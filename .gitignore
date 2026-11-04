@@ -1,0 +1,52 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+firmware/**/include/secrets.h
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Firmware (PlatformIO)
+.pio/
+
+# Local data and runtime files (not committed)
+storage/*
+!storage/.gitkeep
+ml/data/raw/*
+!ml/data/raw/.gitkeep
+ml/data/interim/*
+!ml/data/interim/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Editor (keep only shared settings)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

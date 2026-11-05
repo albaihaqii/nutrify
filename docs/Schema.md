@@ -6,7 +6,7 @@
 | Version      | 0.1 (draft)                                                 |
 | Database     | MySQL 8.0 (InnoDB, `utf8mb4`)                               |
 | Migrations   | Flask-Migrate (Alembic), files in `backend/migrations/`     |
-| Last updated | 2026-11-05                                                  |
+| Last updated | 2026-11-06                                                  |
 | Related      | [Architecture](Architecture.md), [API](API.md), [ML](ML.md) |
 
 ## 1. Conventions
@@ -70,17 +70,19 @@ erDiagram
 
 ### 4.2 `devices`
 
-| Column           | Type              | Null | Notes                                           |
-| ---------------- | ----------------- | ---- | ----------------------------------------------- |
-| id               | BIGINT UNSIGNED   | no   | PK                                              |
-| code             | VARCHAR(50)       | no   | Unique, for example `sensor-node-1`, `webcam-1` |
-| name             | VARCHAR(100)      | no   |                                                 |
-| type             | ENUM(device_type) | no   |                                                 |
-| api_key_hash     | VARCHAR(255)      | yes  | Hashed key; null for the webcam                 |
-| firmware_version | VARCHAR(50)       | yes  |                                                 |
-| last_seen_at     | DATETIME(3)       | yes  | Updated on every device call                    |
-| is_active        | TINYINT(1)        | no   | Default 1                                       |
-| created_at       | DATETIME(3)       | no   |                                                 |
+| Column           | Type              | Null | Notes                                                       |
+| ---------------- | ----------------- | ---- | ----------------------------------------------------------- |
+| id               | BIGINT UNSIGNED   | no   | PK                                                          |
+| code             | VARCHAR(50)       | no   | Unique, for example `sensor-node-1`, `webcam-1`             |
+| name             | VARCHAR(100)      | no   |                                                             |
+| type             | ENUM(device_type) | no   |                                                             |
+| api_key_hash     | VARCHAR(255)      | yes  | SHA-256 hash of the key (hex), indexed; null for the webcam |
+| firmware_version | VARCHAR(50)       | yes  |                                                             |
+| last_seen_at     | DATETIME(3)       | yes  | Updated on every device call                                |
+| is_active        | TINYINT(1)        | no   | Default 1                                                   |
+| created_at       | DATETIME(3)       | no   |                                                             |
+
+Indexes: `(api_key_hash)`. Devices are found by the hash of the key they send.
 
 ### 4.3 `sensor_readings`
 
@@ -208,29 +210,35 @@ Key-value store for values editable in the web app.
 
 Default keys:
 
-| Key                                  | Default   | Meaning                                                             |
-| ------------------------------------ | --------- | ------------------------------------------------------------------- |
-| `ph_min`, `ph_max`                   | 5.5, 6.5  | Ideal pH range                                                      |
-| `ec_min`, `ec_max`                   | 1.5, 2.0  | Ideal EC range (mS/cm)                                              |
-| `temperature_min`, `temperature_max` | 18, 26    | Placeholder range (Celsius), to be validated                        |
-| `analysis_interval_seconds`          | 10        | How often the worker analyses a frame                               |
-| `observation_store_interval_seconds` | 60        | How often observations are persisted (also stored on status change) |
-| `stabilizer_window`                  | 5         | Number of recent results considered                                 |
-| `stabilizer_min_votes`               | 3         | Votes needed to change a status                                     |
-| `sensor_stale_seconds`               | 120       | Age after which a reading is considered stale                       |
-| `consensus_enabled`                  | false     | Optional runtime check with a comparator model                      |
-| `roi_config`                         | 6 regions | Calibrated hole regions (JSON)                                      |
+| Key                                  | Default   | Meaning                                                                                           |
+| ------------------------------------ | --------- | ------------------------------------------------------------------------------------------------- |
+| `ph_min`, `ph_max`                   | 5.5, 6.5  | Ideal pH range                                                                                    |
+| `ec_min`, `ec_max`                   | 1.5, 2.0  | Ideal EC range (mS/cm)                                                                            |
+| `temperature_min`, `temperature_max` | 18, 26    | Placeholder range (Celsius), to be validated                                                      |
+| `analysis_interval_seconds`          | 10        | How often the worker analyses a frame                                                             |
+| `observation_store_interval_seconds` | 60        | How often observations are persisted (also stored on status change)                               |
+| `stabilizer_window`                  | 5         | Number of recent results considered                                                               |
+| `stabilizer_min_votes`               | 3         | Votes needed to change a status                                                                   |
+| `sensor_stale_seconds`               | 120       | Age after which a reading is considered stale                                                     |
+| `consensus_enabled`                  | false     | Optional runtime check with a comparator model                                                    |
+| `roi_config`                         | 6 regions | Calibrated hole regions: JSON list of `{position, x, y, w, h}`, normalised to 0 to 1 of the frame |
 
 ## 5. Referential rules
 
 | Relationship                                                    | On delete |
 | --------------------------------------------------------------- | --------- |
 | `sensor_readings.device_id` to `devices`                        | RESTRICT  |
+| `captures.device_id` to `devices`                               | RESTRICT  |
 | `observations.plant_id` to `plants`                             | RESTRICT  |
 | `observations.capture_id` to `captures`                         | SET NULL  |
 | `observations.labeled_by` to `users`                            | SET NULL  |
+| `plants.last_observation_id` to `observations`                  | SET NULL  |
 | `advice.plant_id`, `advice.observation_id`                      | SET NULL  |
 | `alerts.plant_id`, `alerts.device_id`, `alerts.acknowledged_by` | SET NULL  |
+| `settings.updated_by` to `users`                                | SET NULL  |
+
+`plants` and `observations` reference each other, so the foreign key
+`plants.last_observation_id` is added by the migration after both tables exist.
 
 ## 6. Volume and retention
 
@@ -246,7 +254,36 @@ The export joins `observations` with `plants` and keeps only usable, labeled row
 
 `label_class IS NOT NULL AND qc_status = 'ok'`
 
-| CSV column | Source                |
-| ---------- | --------------------- |
-| `Mean_R`   | `observations.mean_r` |
-| `Mean_G`   | `observations.mean_g` |
+| CSV column    | Source                     |
+| ------------- | -------------------------- |
+| `Mean_R`      | `observations.mean_r`      |
+| `Mean_G`      | `observations.mean_g`      |
+| `Mean_B`      | `observations.mean_b`      |
+| `pH`          | `observations.ph`          |
+| `EC`          | `observations.ec`          |
+| `Temperature` | `observations.temperature` |
+| `label`       | `observations.label_class` |
+
+Extra columns for splitting and traceability (not model features): `observation_id`,
+`plant_position`, `observed_at`. Train and test sets are split by plant and time block, never by
+random row, so near-identical frames of the same plant cannot appear on both sides.
+
+## 8. Initial data
+
+The seed script `scripts/seed_admin.py` creates the rows below. It is safe to run again: rows
+that already exist are kept.
+
+- one `admin` user (name, email, and password read from `backend/.env`, never committed),
+- six `plants` rows (positions 1 to 6),
+- two `devices` rows (`sensor-node-1`, `webcam-1`); the sensor node key is generated at seed
+  time and shown once, only its hash is stored,
+- the default `settings` keys above.
+
+The `viewer` role exists in the schema. Viewer accounts are created later by an admin through
+the API.
+
+## 9. Model artifacts are not in the database
+
+Trained models, their versions, feature order, and evaluation metrics live in
+`ml/models/registry.json` and the artifact files beside it. The database only stores
+`model_version` on each observation. The Models page reads the registry through the API.

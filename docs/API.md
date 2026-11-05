@@ -70,6 +70,7 @@ optional. The frontend maps `code` to Indonesian text.
 | 401  | `invalid_credentials` | Wrong email or password at login                                               |
 | 403  | `forbidden`           | Authenticated but not allowed (for example a viewer calling an admin endpoint) |
 | 404  | `not_found`           | Resource does not exist                                                        |
+| 405  | `method_not_allowed`  | HTTP method not supported for this path                                        |
 | 409  | `conflict`            | Duplicate value (for example an email that already exists)                     |
 | 422  | `validation_error`    | Body or query parameters failed validation                                     |
 | 429  | `rate_limited`        | Too many requests (login attempts, advice generation)                          |
@@ -176,8 +177,9 @@ Response `200`:
 }
 ```
 
-Errors: `401 invalid_credentials`, `429 rate_limited` (after repeated failures), `403 forbidden`
-when the account is inactive.
+Errors: `401 invalid_credentials`, `403 forbidden` when the account is inactive, and
+`429 rate_limited` after 5 failed attempts for the same email from the same address within
+5 minutes (counted in memory, so it resets when the server restarts).
 
 ### `GET /auth/me`
 
@@ -186,7 +188,8 @@ Returns the current user: `{ "id", "name", "email", "role", "last_login_at" }`.
 ### `PUT /auth/password`
 
 Request: `{ "current_password": "...", "new_password": "..." }`. Response `204`. The new password
-must be at least 8 characters.
+must be at least 8 characters. A wrong `current_password` returns `422 validation_error` with
+`details.field` set to `current_password`.
 
 ### `GET /users` (Admin)
 

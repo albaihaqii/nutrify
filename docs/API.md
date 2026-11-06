@@ -631,6 +631,9 @@ resolve automatically when the condition clears.
 Items: `{ "id", "code", "name", "type", "firmware_version", "last_seen_at", "is_active",
 "status" }`. API keys are never returned.
 
+A device is `online` when it was seen within `sensor_stale_seconds` (default 120 seconds),
+`offline` when older, and `never_seen` when it has never contacted the API.
+
 ### `POST /devices` (Admin)
 
 Request: `{ "code": "sensor-node-2", "name": "Sensor node 2", "type": "sensor_node" }`.
@@ -642,13 +645,21 @@ Response `201` includes the generated key **once**:
 
 Only a hash is stored, so the key cannot be shown again.
 
+Only `sensor_node` devices receive a key; for a `webcam` device `api_key` is `null`. A duplicate
+`code` returns `409 conflict`. The code uses lowercase letters, digits, and hyphens (3 to 50
+characters).
+
 ### `PATCH /devices/{id}` (Admin)
 
 Accepts `name` and `is_active`. Deactivating a device makes its key stop working.
 
+Send at least one field; an empty body returns `422 validation_error`.
+
 ### `POST /devices/{id}/rotate-key` (Admin)
 
 Generates a new key, invalidates the old one, and returns the new key once, as in `POST /devices`.
+
+Only devices that use a key can be rotated; a `webcam` returns `422 validation_error`.
 
 ## 14. Settings
 
@@ -681,6 +692,11 @@ Partial update: send only the keys to change. Unknown keys and invalid values re
 `stabilizer_min_votes <= stabilizer_window`, and exactly six regions in `roi_config`, each
 inside the frame. Response `200` with the full settings object. The worker re-reads settings
 without a restart.
+
+Values must have the exact JSON type (for example `consensus_enabled` is `true` or `false`, not a
+string). Ranges: pH 0 to 14, EC 0 to 10, temperature -5 to 60, `sensor_stale_seconds` 10 to 3600.
+Each `roi_config` region has a `position` from 1 to 6 (each used once) and stays inside the frame
+(`x + w` and `y + h` not above 1).
 
 ## 15. Versioning and compatibility
 

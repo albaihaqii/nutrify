@@ -2,7 +2,7 @@
 
 from flask import Flask
 
-from app.api import auth, devices, health, settings
+from app.api import auth, devices, health, sensors, settings
 
 
 def register_blueprints(app: Flask) -> None:
@@ -10,3 +10,4 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(auth.bp, url_prefix="/api/auth")
     app.register_blueprint(settings.bp, url_prefix="/api/settings")
     app.register_blueprint(devices.bp, url_prefix="/api/devices")
+    app.register_blueprint(sensors.bp, url_prefix="/api/sensor-readings")

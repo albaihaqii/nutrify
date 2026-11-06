@@ -242,6 +242,12 @@ Response `201`:
 
 Errors: `401 unauthorized` (bad key), `422 validation_error`.
 
+Unknown body fields are ignored. `tds_ppm` is always derived by the server from `ec`
+(`ec` x 500, rounded) and is never taken from the client. `recorded_at` is optional (defaults to
+the server time) and is rejected with `422` when it is more than 5 minutes in the future. A missing
+or invalid `X-API-Key`, or a key of an inactive device, returns `401 unauthorized`. A bearer token
+is not accepted on this endpoint.
+
 ### `GET /sensor-readings/latest` (Viewer)
 
 ```json
@@ -260,6 +266,10 @@ Errors: `401 unauthorized` (bad key), `422 validation_error`.
 `status` is `in_range`, `low`, or `high`, computed against the ranges in `settings`.
 `is_stale` is true when the reading is older than `sensor_stale_seconds`. Returns `404 not_found`
 when no reading exists yet.
+
+`status` is `low`, `in_range`, or `high` against the ideal ranges in settings (limits included).
+`is_stale` is `true` when `recorded_at` is older than `sensor_stale_seconds`. Returns `404
+not_found` when no reading exists yet. `unit` appears only on `ec` and `temperature`.
 
 ### `GET /sensor-readings` (Viewer)
 

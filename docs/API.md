@@ -200,10 +200,17 @@ Returns `{ "items": [ { "id", "name", "email", "role", "is_active", "last_login_
 Request: `{ "name", "email", "password", "role" }`. Response `201` with the created user.
 Errors: `409 conflict` for a duplicate email.
 
+`email` must be a valid address and is stored in lowercase; `password` is 8 to 128 characters;
+`role` is `admin` or `viewer`. A password is never returned by any endpoint.
+
 ### `PATCH /users/{id}` (Admin)
 
 Accepts any of `name`, `role`, `is_active`, `password`. An admin cannot deactivate or demote
 their own account. Response `200` with the updated user.
+
+The `email` cannot be changed. Send at least one field; an empty body returns `422
+validation_error`. An admin who tries to deactivate or change the role of their own account gets
+`403 forbidden`. A deactivated account cannot log in and its existing tokens stop working.
 
 ## 5. Sensors
 

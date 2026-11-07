@@ -1,119 +1,60 @@
-# Shadcn Admin Dashboard
+# Nutrify Frontend
 
-Admin Dashboard UI crafted with Shadcn and Vite. Built with responsiveness and accessibility in mind.
+Web dashboard for Nutrify, a real-time nutrient-deficiency monitoring system
+for pakcoy grown in an NFT hydroponic setup.
 
-![alt text](public/images/shadcn-admin.png)
+## Stack
 
-[![Sponsored by Clerk](https://img.shields.io/badge/Sponsored%20by-Clerk-5b6ee1?logo=clerk)](https://go.clerk.com/GttUAaK)
+- React 19, TypeScript, Vite
+- Tailwind CSS 4 and shadcn/ui
+- TanStack Router (file-based routes), TanStack Query, TanStack Table
+- Zustand for client state, Axios for API calls
+- Zod and React Hook Form for forms
 
-I've been creating dashboard UIs at work and for my personal projects. I always wanted to make a reusable collection of dashboard UI for future projects; and here it is now. While I've created a few custom components, some of the code is directly adapted from ShadcnUI examples.
+## Requirements
 
-> This is not a starter project (template) though. I'll probably make one in the future.
+- Node.js 22 or newer
+- pnpm
+- The Nutrify backend running locally (see `docs/Setup.md` once available)
 
-## Features
+## Getting Started
 
-- Light/dark mode
-- Responsive
-- Accessible
-- With built-in Sidebar component
-- Global search command
-- 10+ pages
-- Extra custom components
-- RTL support
-
-<details>
-<summary>Customized Components (click to expand)</summary>
-
-This project uses Shadcn UI components, but some have been slightly modified for better RTL (Right-to-Left) support and other improvements. These customized components differ from the original Shadcn UI versions.
-
-If you want to update components using the Shadcn CLI (e.g., `npx shadcn@latest add <component>`), it's generally safe for non-customized components. For the listed customized ones, you may need to manually merge changes to preserve the project's modifications and avoid overwriting RTL support or other updates.
-
-> If you don't require RTL support, you can safely update the 'RTL Updated Components' via the Shadcn CLI, as these changes are primarily for RTL compatibility. The 'Modified Components' may have other customizations to consider.
-
-### Modified Components
-
-- scroll-area
-- sonner
-- separator
-
-### RTL Updated Components
-
-- alert-dialog
-- calendar
-- command
-- dialog
-- dropdown-menu
-- select
-- table
-- sheet
-- sidebar
-- switch
-
-**Notes:**
-
-- **Modified Components**: These have general updates, potentially including RTL adjustments.
-- **RTL Updated Components**: These have specific changes for RTL language support (e.g., layout, positioning).
-- For implementation details, check the source files in `src/components/ui/`.
-- All other Shadcn UI components in the project are standard and can be safely updated via the CLI.
-
-</details>
-
-## Tech Stack
-
-**UI:** [ShadcnUI](https://ui.shadcn.com) (TailwindCSS + RadixUI)
-
-**Build Tool:** [Vite](https://vitejs.dev/)
-
-**Routing:** [TanStack Router](https://tanstack.com/router/latest)
-
-**Type Checking:** [TypeScript](https://www.typescriptlang.org/)
-
-**Linting/Formatting:** [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
-
-**Icons:** [Lucide Icons](https://lucide.dev/icons/), [Tabler Icons](https://tabler.io/icons) (Brand icons only)
-
-**Auth (partial):** [Clerk](https://go.clerk.com/GttUAaK)
-
-## Run Locally
-
-Clone the project
+From the `frontend` folder:
 
 ```bash
-  git clone https://github.com/satnaing/shadcn-admin.git
+pnpm install
+cp .env.example .env
+pnpm dev
 ```
 
-Go to the project directory
+On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
 
-```bash
-  cd shadcn-admin
-```
+The dev server runs at `http://localhost:5173` by default.
 
-Install dependencies
+## Environment Variables
 
-```bash
-  pnpm install
-```
+- `VITE_API_BASE_URL`: base URL of the backend API, for example
+  `http://127.0.0.1:5000/api`
 
-Start the server
+## Scripts
 
-```bash
-  pnpm run dev
-```
+- `pnpm dev`: start the development server
+- `pnpm build`: type-check and build for production
+- `pnpm preview`: preview the production build
+- `pnpm lint`: run ESLint
+- `pnpm format`: format all files with Prettier
+- `pnpm format:check`: check formatting without changing files
+- `pnpm knip`: find unused files, exports and dependencies
+- `pnpm test`: run tests once in a headless browser
 
-## Sponsoring this project ❤️
+## Conventions
 
-If you find this project helpful or use this in your own work, consider [sponsoring me](https://github.com/sponsors/satnaing) to support development and maintenance. You can [buy me a coffee](https://buymeacoffee.com/satnaing) as well. Don’t worry, every penny helps. Thank you! 🙏
+- All user-facing Indonesian text lives in `src/locales/id.ts`.
+- Code, file names and documentation are in English.
+- Server data goes through TanStack Query; session and UI state use Zustand.
+- Timestamps from the API are UTC and are displayed in Asia/Jakarta time.
 
-For questions or sponsorship inquiries, feel free to reach out at [satnaingdev@gmail.com](mailto:satnaingdev@gmail.com).
+## Credits
 
-### Current Sponsor
-
-- [Clerk](https://go.clerk.com/GttUAaK) - authentication and user management for the modern web
-
-## Author
-
-Crafted with 🤍 by [@satnaing](https://github.com/satnaing)
-
-## License
-
-Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+Based on [shadcn-admin](https://github.com/satnaing/shadcn-admin) by
+Sat Naing, released under the MIT License. See `LICENSE`.

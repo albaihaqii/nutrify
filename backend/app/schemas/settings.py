@@ -12,6 +12,7 @@ from pydantic import (
 NUMBER_OF_PLANTS = 6
 _TOLERANCE = 1e-9
 
+
 class RoiRegion(BaseModel):
     """One plant hole, as fractions (0 to 1) of the frame width and height."""
 
@@ -28,6 +29,7 @@ class RoiRegion(BaseModel):
         if self.x + self.w > 1 + _TOLERANCE or self.y + self.h > 1 + _TOLERANCE:
             raise ValueError("region must be inside the frame")
         return self
+
 
 class SettingsValues(BaseModel):
     """Every setting with its valid range. Used to validate the merged result of an update."""
@@ -46,9 +48,7 @@ class SettingsValues(BaseModel):
     stabilizer_min_votes: int = Field(ge=1, le=50)
     sensor_stale_seconds: int = Field(ge=10, le=3600)
     consensus_enabled: bool
-    roi_config: list[RoiRegion] = Field(
-        min_length=NUMBER_OF_PLANTS, max_length=NUMBER_OF_PLANTS
-    )
+    roi_config: list[RoiRegion] = Field(min_length=NUMBER_OF_PLANTS, max_length=NUMBER_OF_PLANTS)
 
     @field_validator("ph_max", "ec_max", "temperature_max")
     @classmethod

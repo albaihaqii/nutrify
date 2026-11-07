@@ -13,13 +13,13 @@ from pathlib import Path
 # Make the backend package importable when running from the repository root.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
-from flask import Flask  # noqa: E402
+from flask import Flask
 
-from app import create_app  # noqa: E402
-from app.extensions import db  # noqa: E402
-from app.models import Device, DeviceType, Plant, Setting, User, UserRole  # noqa: E402
-from app.services.security import generate_api_key, hash_api_key  # noqa: E402
-from app.services.settings_defaults import DEFAULT_SETTINGS  # noqa: E402
+from app import create_app
+from app.extensions import db
+from app.models import Device, DeviceType, Plant, Setting, User, UserRole
+from app.services.security import generate_api_key, hash_api_key
+from app.services.settings_defaults import DEFAULT_SETTINGS
 
 PLANT_COUNT = 6
 MIN_PASSWORD_LENGTH = 8
@@ -80,6 +80,7 @@ def seed_devices() -> None:
     else:
         print(f"[device]   {WEBCAM_CODE} already exists")
 
+
 def seed_settings() -> None:
     created = 0
     for key, value in DEFAULT_SETTINGS.items():
@@ -87,6 +88,7 @@ def seed_settings() -> None:
             db.session.add(Setting(key=key, value=value))
             created += 1
     print(f"[settings] {created} created, {len(DEFAULT_SETTINGS) - created} already existed")
+
 
 def main() -> None:
     app = create_app()
@@ -97,6 +99,7 @@ def main() -> None:
         seed_settings()
         db.session.commit()
     print("Seed finished.")
+
 
 if __name__ == "__main__":
     main()

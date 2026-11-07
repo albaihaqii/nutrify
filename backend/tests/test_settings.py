@@ -39,9 +39,7 @@ def test_admin_updates_part_of_the_settings(
     assert client.get("/api/settings", headers=admin_headers).get_json()["ph_min"] == 5.6
 
 
-def test_update_is_validated_as_a_whole(
-    client: FlaskClient, admin_headers: dict[str, str]
-) -> None:
+def test_update_is_validated_as_a_whole(client: FlaskClient, admin_headers: dict[str, str]) -> None:
     # Only ph_min is sent, but together with the stored ph_max (6.5) it is invalid.
     response = client.put("/api/settings", headers=admin_headers, json={"ph_min": 7.0})
     assert response.status_code == 422

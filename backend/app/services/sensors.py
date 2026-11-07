@@ -96,9 +96,7 @@ def build_latest(reading: SensorReading, settings: dict[str, Any], now: datetime
         recorded_at=reading.recorded_at,
         received_at=reading.received_at,
         is_stale=age_seconds > settings["sensor_stale_seconds"],
-        ph=RangedMetric(
-            value=ph, status=metric_status(ph, settings["ph_min"], settings["ph_max"])
-        ),
+        ph=RangedMetric(value=ph, status=metric_status(ph, settings["ph_min"], settings["ph_max"])),
         ec=RangedMetric(
             value=ec,
             status=metric_status(ec, settings["ec_min"], settings["ec_max"]),
@@ -131,9 +129,7 @@ def resolve_window(query: HistoryQuery, now: datetime) -> tuple[datetime, dateti
     end = to_naive_utc(query.to) if query.to else now
     start = to_naive_utc(query.from_) if query.from_ else end - DEFAULT_HISTORY_WINDOW
     if start >= end:
-        raise ApiError(
-            422, "validation_error", "from: must be earlier than to", {"field": "from"}
-        )
+        raise ApiError(422, "validation_error", "from: must be earlier than to", {"field": "from"})
     return start, end
 
 

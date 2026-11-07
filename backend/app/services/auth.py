@@ -19,6 +19,7 @@ THROTTLE_WINDOW_SECONDS = 300
 # as long as a wrong password and does not reveal which accounts exist.
 _DUMMY_HASH = generate_password_hash("not-a-real-password")
 
+
 class LoginThrottle:
     """Limit failed logins per key. Kept in memory: single process, reset on restart."""
 
@@ -54,7 +55,9 @@ class LoginThrottle:
         with self._lock:
             self._failures.pop(key, None)
 
+
 login_throttle = LoginThrottle(MAX_FAILED_ATTEMPTS, THROTTLE_WINDOW_SECONDS)
+
 
 def authenticate(email: str, password: str, client_key: str) -> User:
     """Return the user for valid credentials, or raise an ApiError."""
@@ -75,9 +78,11 @@ def authenticate(email: str, password: str, client_key: str) -> User:
     db.session.commit()
     return user
 
+
 def issue_token(user: User) -> str:
     """Create an access token. The subject is the user id (as a string)."""
     return create_access_token(identity=str(user.id), additional_claims={"role": user.role.value})
+
 
 def change_password(user: User, current_password: str, new_password: str) -> None:
     if not user.check_password(current_password):

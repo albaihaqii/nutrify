@@ -8,6 +8,7 @@ from app.extensions import db
 
 bp = Blueprint("health", __name__)
 
+
 @bp.get("/health")
 def health() -> tuple[Response, int]:
     try:

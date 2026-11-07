@@ -20,6 +20,7 @@ HTTP_ERROR_CODES = {
     429: "rate_limited",
 }
 
+
 class ApiError(Exception):
     """An error that is returned to the client as a JSON error response."""
 
@@ -35,6 +36,7 @@ class ApiError(Exception):
         self.code = code
         self.message = message
         self.details = details
+
 
 def error_response(
     status: int,

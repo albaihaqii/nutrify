@@ -8,9 +8,7 @@ from tests.helpers import error_of
 READING = {"ph": 6.1, "ec": 1.8, "temperature": 24.5}
 
 
-def test_devices_are_admin_only(
-    client: FlaskClient, viewer_headers: dict[str, str]
-) -> None:
+def test_devices_are_admin_only(client: FlaskClient, viewer_headers: dict[str, str]) -> None:
     assert client.get("/api/devices").status_code == 401
     response = client.get("/api/devices", headers=viewer_headers)
     assert response.status_code == 403
@@ -54,9 +52,7 @@ def test_create_rejects_duplicate_and_invalid_codes(
     assert duplicate.status_code == 409
     assert error_of(duplicate)["code"] == "conflict"
 
-    invalid = client.post(
-        "/api/devices", headers=admin_headers, json={**body, "code": "Bad Code!"}
-    )
+    invalid = client.post("/api/devices", headers=admin_headers, json={**body, "code": "Bad Code!"})
     assert invalid.status_code == 422
     assert error_of(invalid)["details"]["field"] == "code"
 

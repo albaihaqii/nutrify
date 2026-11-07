@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.extensions import db
 from app.models.types import BigIntId, UtcDateTime, utcnow
 
+
 class Setting(db.Model):
     __tablename__ = "settings"
 
@@ -17,9 +18,7 @@ class Setting(db.Model):
     updated_by: Mapped[int | None] = mapped_column(
         BigIntId, ForeignKey("users.id", ondelete="SET NULL")
     )
-    updated_at: Mapped[datetime] = mapped_column(
-        UtcDateTime, default=utcnow, onupdate=utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
 
     def __repr__(self) -> str:
         return f"<Setting {self.key}={self.value!r}>"

@@ -6,6 +6,7 @@ from .config import Config
 from .errors import register_error_handlers
 from .extensions import cors, db, jwt, migrate
 
+
 def create_app(config_class: type = Config) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config_class)

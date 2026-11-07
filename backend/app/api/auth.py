@@ -10,6 +10,7 @@ from app.services import auth as auth_service
 
 bp = Blueprint("auth", __name__)
 
+
 @bp.post("/login")
 def login() -> Response:
     body = load_body(LoginRequest)
@@ -24,10 +25,12 @@ def login() -> Response:
         }
     )
 
+
 @bp.get("/me")
 @login_required
 def me() -> Response:
     return jsonify(UserMe.model_validate(current_user).model_dump(mode="json"))
+
 
 @bp.put("/password")
 @login_required

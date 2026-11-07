@@ -10,6 +10,7 @@ from app.extensions import db
 from app.models.enums import PlantClass, QcStatus, db_enum
 from app.models.types import BigIntId, UtcDateTime, utcnow
 
+
 class Observation(db.Model):
     __tablename__ = "observations"
     __table_args__ = (
@@ -20,9 +21,7 @@ class Observation(db.Model):
     )
 
     id: Mapped[int] = mapped_column(BigIntId, primary_key=True, autoincrement=True)
-    plant_id: Mapped[int] = mapped_column(
-        BigIntId, ForeignKey("plants.id", ondelete="RESTRICT")
-    )
+    plant_id: Mapped[int] = mapped_column(BigIntId, ForeignKey("plants.id", ondelete="RESTRICT"))
     capture_id: Mapped[int | None] = mapped_column(
         BigIntId, ForeignKey("captures.id", ondelete="SET NULL")
     )
@@ -40,23 +39,15 @@ class Observation(db.Model):
     temperature: Mapped[Decimal | None] = mapped_column(Numeric(4, 1))
 
     # Model output
-    predicted_class: Mapped[PlantClass | None] = mapped_column(
-        db_enum(PlantClass, "plant_class")
-    )
-    stable_class: Mapped[PlantClass | None] = mapped_column(
-        db_enum(PlantClass, "plant_class")
-    )
+    predicted_class: Mapped[PlantClass | None] = mapped_column(db_enum(PlantClass, "plant_class"))
+    stable_class: Mapped[PlantClass | None] = mapped_column(db_enum(PlantClass, "plant_class"))
     confidence: Mapped[Decimal | None] = mapped_column(Numeric(4, 3))
     rule_path: Mapped[list | None] = mapped_column(JSON)
-    qc_status: Mapped[QcStatus] = mapped_column(
-        db_enum(QcStatus, "qc_status"), default=QcStatus.OK
-    )
+    qc_status: Mapped[QcStatus] = mapped_column(db_enum(QcStatus, "qc_status"), default=QcStatus.OK)
     model_version: Mapped[str | None] = mapped_column(String(50))
 
     # Manual ground-truth label (used for the dataset)
-    label_class: Mapped[PlantClass | None] = mapped_column(
-        db_enum(PlantClass, "plant_class")
-    )
+    label_class: Mapped[PlantClass | None] = mapped_column(db_enum(PlantClass, "plant_class"))
     labeled_by: Mapped[int | None] = mapped_column(
         BigIntId, ForeignKey("users.id", ondelete="SET NULL")
     )

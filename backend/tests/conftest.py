@@ -2,6 +2,7 @@
 
 from collections.abc import Callable, Iterator
 from datetime import timedelta
+from typing import ClassVar
 
 import pytest
 from flask import Flask
@@ -25,7 +26,7 @@ class TestConfig:
     JWT_SECRET_KEY = "test-jwt-secret-key-with-at-least-32-bytes"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=12)
     SQLALCHEMY_DATABASE_URI = "sqlite://"
-    CORS_ORIGINS = ["http://localhost:5173"]
+    CORS_ORIGINS: ClassVar[list[str]] = ["http://localhost:5173"]
 
 
 @pytest.fixture()

@@ -10,6 +10,7 @@ from app.extensions import db
 from app.models.enums import UserRole, db_enum
 from app.models.types import BigIntId, UtcDateTime, utcnow
 
+
 class User(db.Model):
     __tablename__ = "users"
 
@@ -17,15 +18,11 @@ class User(db.Model):
     name: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(255), unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[UserRole] = mapped_column(
-        db_enum(UserRole, "user_role"), default=UserRole.VIEWER
-    )
+    role: Mapped[UserRole] = mapped_column(db_enum(UserRole, "user_role"), default=UserRole.VIEWER)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_login_at: Mapped[datetime | None] = mapped_column(UtcDateTime)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
-    updated_at: Mapped[datetime] = mapped_column(
-        UtcDateTime, default=utcnow, onupdate=utcnow
-    )
+    updated_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow, onupdate=utcnow)
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)

@@ -8,6 +8,7 @@ from app.errors import error_response
 from app.extensions import db, jwt
 from app.models import User
 
+
 def register_jwt_callbacks() -> None:
     @jwt.user_lookup_loader
     def load_user(_header: dict[str, Any], payload: dict[str, Any]) -> User | None:

@@ -114,9 +114,7 @@ def test_admin_can_set_a_new_password_for_a_user(
     )
     assert response.status_code == 200
     assert login(client, VIEWER_EMAIL, "reset-password-1")
-    old = client.post(
-        "/api/auth/login", json={"email": VIEWER_EMAIL, "password": VIEWER_PASSWORD}
-    )
+    old = client.post("/api/auth/login", json={"email": VIEWER_EMAIL, "password": VIEWER_PASSWORD})
     assert old.status_code == 401
 
 

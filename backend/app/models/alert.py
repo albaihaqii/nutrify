@@ -9,6 +9,7 @@ from app.extensions import db
 from app.models.enums import AlertCode, Severity, db_enum
 from app.models.types import BigIntId, UtcDateTime, utcnow
 
+
 class Alert(db.Model):
     __tablename__ = "alerts"
     __table_args__ = (

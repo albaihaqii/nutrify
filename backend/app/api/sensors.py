@@ -15,9 +15,7 @@ bp = Blueprint("sensors", __name__)
 def create_reading() -> tuple[Response, int]:
     body = load_body(ReadingIn)
     reading = sensor_service.record_reading(g.device, body)
-    result = ReadingCreated(
-        id=reading.id, tds_ppm=reading.tds_ppm, received_at=reading.received_at
-    )
+    result = ReadingCreated(id=reading.id, tds_ppm=reading.tds_ppm, received_at=reading.received_at)
     return jsonify(result.model_dump(mode="json")), 201
 
 

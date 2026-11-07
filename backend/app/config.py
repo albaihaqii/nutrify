@@ -9,8 +9,10 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parents[1]
 load_dotenv(BASE_DIR / ".env")
 
+
 def _split_csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
+
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "")

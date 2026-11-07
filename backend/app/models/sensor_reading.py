@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.extensions import db
 from app.models.types import BigIntId, UtcDateTime, utcnow
 
+
 class SensorReading(db.Model):
     __tablename__ = "sensor_readings"
     __table_args__ = (
@@ -17,9 +18,7 @@ class SensorReading(db.Model):
     )
 
     id: Mapped[int] = mapped_column(BigIntId, primary_key=True, autoincrement=True)
-    device_id: Mapped[int] = mapped_column(
-        BigIntId, ForeignKey("devices.id", ondelete="RESTRICT")
-    )
+    device_id: Mapped[int] = mapped_column(BigIntId, ForeignKey("devices.id", ondelete="RESTRICT"))
     ph: Mapped[Decimal] = mapped_column(Numeric(4, 2))
     ec: Mapped[Decimal] = mapped_column(Numeric(5, 3))  # mS/cm
     tds_ppm: Mapped[int] = mapped_column(Integer)  # derived: round(ec x 500)

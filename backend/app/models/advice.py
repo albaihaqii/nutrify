@@ -15,6 +15,7 @@ from app.models.enums import (
 )
 from app.models.types import BigIntId, UtcDateTime, utcnow
 
+
 class Advice(db.Model):
     __tablename__ = "advice"
     __table_args__ = (
@@ -25,18 +26,14 @@ class Advice(db.Model):
 
     id: Mapped[int] = mapped_column(BigIntId, primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
-    trigger: Mapped[AdviceTrigger] = mapped_column(
-        db_enum(AdviceTrigger, "advice_trigger")
-    )
+    trigger: Mapped[AdviceTrigger] = mapped_column(db_enum(AdviceTrigger, "advice_trigger"))
     plant_id: Mapped[int | None] = mapped_column(
         BigIntId, ForeignKey("plants.id", ondelete="SET NULL")
     )
     observation_id: Mapped[int | None] = mapped_column(
         BigIntId, ForeignKey("observations.id", ondelete="SET NULL")
     )
-    plant_class: Mapped[PlantClass | None] = mapped_column(
-        db_enum(PlantClass, "plant_class")
-    )
+    plant_class: Mapped[PlantClass | None] = mapped_column(db_enum(PlantClass, "plant_class"))
     severity: Mapped[Severity] = mapped_column(db_enum(Severity, "severity"))
     summary: Mapped[str] = mapped_column(Text)
     likely_causes: Mapped[list] = mapped_column(JSON)  # list of strings

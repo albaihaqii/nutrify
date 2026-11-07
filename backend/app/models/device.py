@@ -9,6 +9,7 @@ from app.extensions import db
 from app.models.enums import DeviceType, db_enum
 from app.models.types import BigIntId, UtcDateTime, utcnow
 
+
 class Device(db.Model):
     __tablename__ = "devices"
 

@@ -5,9 +5,11 @@ import secrets
 
 API_KEY_PREFIX = "nfy_"
 
+
 def generate_api_key() -> str:
     """Create a new random device key. Shown once, never stored in plain text."""
     return API_KEY_PREFIX + secrets.token_urlsafe(32)
+
 
 def hash_api_key(key: str) -> str:
     """SHA-256 hash of a device key.

@@ -104,7 +104,7 @@ Done when:
 - [ ] `POST /auth/login`, `GET /auth/me` work; viewer and admin permissions are enforced.
 - [ ] `POST /sensor-readings` with a device key stores a reading and derives `tds_ppm`.
 - [ ] `scripts/simulate_device.py` posts realistic readings.
-- [ ] pytest covers auth, validation errors, and ingestion.
+- [x] pytest covers auth, validation errors, and ingestion.
 
 ### M2. Frontend shell and login (week 1)
 

@@ -301,6 +301,12 @@ Response:
 Items are sorted oldest first (chart order). The server limits the result to 2,000 points and
 returns `422 validation_error` when the window and interval would exceed it.
 
+`from` and `to` are inclusive UTC timestamps (for example `2026-11-05T02:40:00Z`); `to`
+defaults to now and `from` to 24 hours before `to`. `from` must be earlier than `to`. Time
+buckets are aligned to UTC and each item's `time` is the start of its bucket. When `metric` is
+given, each item contains only `time` and that metric. A window that would return more than
+2,000 points returns `422 validation_error` with `details.field` set to `interval`.
+
 ## 6. Dashboard
 
 ### `GET /dashboard/summary` (Viewer)

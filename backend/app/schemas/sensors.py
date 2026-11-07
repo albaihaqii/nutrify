@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field
 from app.schemas.common import UtcDatetime
 
 MetricStatus = Literal["low", "in_range", "high"]
+HistoryInterval = Literal["raw", "1m", "5m", "1h"]
+HistoryMetric = Literal["ph", "ec", "tds_ppm", "temperature"]
 
 
 class ReadingIn(BaseModel):
@@ -46,3 +48,27 @@ class LatestReading(BaseModel):
     ec: RangedMetric
     tds_ppm: TdsMetric
     temperature: RangedMetric
+
+
+class HistoryQuery(BaseModel):
+    """Query string of GET /sensor-readings. Unknown parameters are ignored."""
+
+    from_: datetime | None = Field(default=None, alias="from")
+    to: datetime | None = None
+    interval: HistoryInterval = "5m"
+    metric: HistoryMetric | None = None
+
+
+class HistoryPoint(BaseModel):
+    """One chart point. Metrics that were not requested stay None and are left out of the JSON."""
+
+    time: UtcDatetime
+    ph: float | None = None
+    ec: float | None = None
+    tds_ppm: int | None = None
+    temperature: float | None = None
+
+
+class HistoryOut(BaseModel):
+    interval: HistoryInterval
+    items: list[HistoryPoint]

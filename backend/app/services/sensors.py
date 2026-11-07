@@ -1,6 +1,7 @@
 """Sensor readings: storing what the sensor node sends and reading the latest values."""
 
 from datetime import datetime, timedelta, timezone
+from math import ceil
 from typing import Any
 
 from app.errors import ApiError
@@ -8,6 +9,9 @@ from app.extensions import db
 from app.models import Device, SensorReading
 from app.models.types import utcnow
 from app.schemas.sensors import (
+    HistoryOut,
+    HistoryPoint,
+    HistoryQuery,
     LatestReading,
     MetricStatus,
     RangedMetric,
@@ -18,6 +22,11 @@ from app.services.settings import get_settings
 
 EC_TO_PPM_FACTOR = 500  # tds_ppm = ec (mS/cm) x 500, see docs/Domain.md section 2.3
 MAX_FUTURE_SKEW = timedelta(minutes=5)
+
+DEFAULT_HISTORY_WINDOW = timedelta(hours=24)
+MAX_HISTORY_POINTS = 2000
+EPOCH = datetime(1970, 1, 1)
+BUCKET_SECONDS = {"1m": 60, "5m": 300, "1h": 3600}
 
 # Decimal places stored in the database (docs/Schema.md section 4.3).
 PH_DECIMALS = 2
@@ -115,3 +124,110 @@ def get_latest_reading() -> LatestReading:
     if reading is None:
         raise ApiError(404, "not_found", "No sensor readings yet")
     return build_latest(reading, get_settings(), utcnow())
+
+
+def resolve_window(query: HistoryQuery, now: datetime) -> tuple[datetime, datetime]:
+    """Time window as naive UTC. Defaults to the last 24 hours."""
+    end = to_naive_utc(query.to) if query.to else now
+    start = to_naive_utc(query.from_) if query.from_ else end - DEFAULT_HISTORY_WINDOW
+    if start >= end:
+        raise ApiError(
+            422, "validation_error", "from: must be earlier than to", {"field": "from"}
+        )
+    return start, end
+
+
+def too_many_points(field: str) -> ApiError:
+    return ApiError(
+        422,
+        "validation_error",
+        f"{field}: too many points (maximum {MAX_HISTORY_POINTS}); "
+        "use a shorter window or a larger interval",
+        {"field": field},
+    )
+
+
+def _fetch_rows(start: datetime, end: datetime, limit: int | None = None) -> list[Any]:
+    statement = (
+        db.select(
+            SensorReading.recorded_at,
+            SensorReading.ph,
+            SensorReading.ec,
+            SensorReading.tds_ppm,
+            SensorReading.temperature,
+        )
+        .where(SensorReading.recorded_at >= start, SensorReading.recorded_at <= end)
+        .order_by(SensorReading.recorded_at, SensorReading.id)
+    )
+    if limit is not None:
+        statement = statement.limit(limit)
+    return list(db.session.execute(statement).all())
+
+
+def _point(time: datetime, values: dict[str, float | int], metric: str | None) -> HistoryPoint:
+    if metric:
+        values = {metric: values[metric]}
+    return HistoryPoint(time=time, **values)
+
+
+def _raw_points(rows: list[Any], metric: str | None) -> list[HistoryPoint]:
+    return [
+        _point(
+            row.recorded_at,
+            {
+                "ph": float(row.ph),
+                "ec": float(row.ec),
+                "tds_ppm": row.tds_ppm,
+                "temperature": float(row.temperature),
+            },
+            metric,
+        )
+        for row in rows
+    ]
+
+
+def _bucket_points(rows: list[Any], size: int, metric: str | None) -> list[HistoryPoint]:
+    """Mean of each metric per time bucket, aligned to UTC, oldest first."""
+    buckets: dict[int, list[float]] = {}
+    for row in rows:
+        index = int((row.recorded_at - EPOCH).total_seconds() // size)
+        total = buckets.setdefault(index, [0, 0.0, 0.0, 0.0, 0.0])
+        total[0] += 1
+        total[1] += float(row.ph)
+        total[2] += float(row.ec)
+        total[3] += row.tds_ppm
+        total[4] += float(row.temperature)
+
+    points = []
+    for index in sorted(buckets):
+        count, ph, ec, tds, temperature = buckets[index]
+        points.append(
+            _point(
+                EPOCH + timedelta(seconds=index * size),
+                {
+                    "ph": round(ph / count, PH_DECIMALS),
+                    "ec": round(ec / count, EC_DECIMALS),
+                    "tds_ppm": int(tds / count + 0.5),
+                    "temperature": round(temperature / count, TEMPERATURE_DECIMALS),
+                },
+                metric,
+            )
+        )
+    return points
+
+
+def get_history(query: HistoryQuery) -> HistoryOut:
+    """Sensor history for charts: raw readings or means per time bucket, oldest first."""
+    start, end = resolve_window(query, utcnow())
+
+    if query.interval == "raw":
+        rows = _fetch_rows(start, end, limit=MAX_HISTORY_POINTS + 1)
+        if len(rows) > MAX_HISTORY_POINTS:
+            raise too_many_points("interval")
+        return HistoryOut(interval="raw", items=_raw_points(rows, query.metric))
+
+    size = BUCKET_SECONDS[query.interval]
+    if ceil((end - start).total_seconds() / size) > MAX_HISTORY_POINTS:
+        raise too_many_points("interval")
+    rows = _fetch_rows(start, end)
+    return HistoryOut(interval=query.interval, items=_bucket_points(rows, size, query.metric))

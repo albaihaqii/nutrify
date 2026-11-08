@@ -36,6 +36,7 @@ export const id = {
       advisor: 'Penasihat',
       online: 'online',
       offline: 'offline',
+      checking: 'memeriksa',
     },
   },
   pages: {
@@ -150,6 +151,13 @@ export const id = {
     minutesAgo: 'menit lalu',
     hoursAgo: 'jam lalu',
     daysAgo: 'hari lalu',
+  },
+  state: {
+    error: 'Gagal memuat data.',
+    retry: 'Coba lagi',
+    lastData: 'Data terakhir',
+    emptyTitle: 'Belum ada data',
+    emptyDescription: 'Data akan muncul setelah perangkat mengirim pembacaan.',
   },
   auth: {
     subtitle: 'Monitoring Hidroponik NFT Pakcoy',

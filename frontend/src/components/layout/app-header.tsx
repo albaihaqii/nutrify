@@ -2,6 +2,7 @@ import { useLocation } from '@tanstack/react-router'
 import { id } from '@/locales/id'
 import { PanelLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useServiceStatus } from '@/hooks/use-service-status'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -10,12 +11,11 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { sidebarData } from './data/sidebar-data'
 import { UserMenu } from './user-menu'
 
-// Static until the health endpoints exist; replace with real status data.
 const services = [
-  { label: id.header.status.webcam, online: true },
-  { label: id.header.status.sensor, online: true },
-  { label: id.header.status.advisor, online: true },
-]
+  { key: 'webcam', label: id.header.status.webcam },
+  { key: 'sensor', label: id.header.status.sensor },
+  { key: 'advisor', label: id.header.status.advisor },
+] as const
 
 function useCurrentPage() {
   const pathname = useLocation({ select: (location) => location.pathname })
@@ -32,7 +32,20 @@ function useCurrentPage() {
   return null
 }
 
-function StatusChip({ label, online }: { label: string; online: boolean }) {
+type StatusChipProps = {
+  label: string
+  /** null while the status is still being checked. */
+  online: boolean | null
+}
+
+function StatusChip({ label, online }: StatusChipProps) {
+  const text =
+    online === null
+      ? id.header.status.checking
+      : online
+        ? id.header.status.online
+        : id.header.status.offline
+
   return (
     <span className='inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium whitespace-nowrap'>
       <span
@@ -42,7 +55,7 @@ function StatusChip({ label, online }: { label: string; online: boolean }) {
           online ? 'bg-chart-1' : 'border-2 border-chart-5'
         )}
       />
-      {label}: {online ? id.header.status.online : id.header.status.offline}
+      {label}: {text}
     </span>
   )
 }
@@ -50,6 +63,7 @@ function StatusChip({ label, online }: { label: string; online: boolean }) {
 export function AppHeader() {
   const { toggleSidebar } = useSidebar()
   const page = useCurrentPage()
+  const { data: status } = useServiceStatus()
 
   return (
     <header className='sticky top-0 z-30 flex min-h-16 flex-wrap items-center gap-x-3 gap-y-2 rounded-t-[inherit] border-b bg-card px-6 py-2 sm:gap-x-4'>
@@ -85,7 +99,11 @@ export function AppHeader() {
 
       <Search />
       {services.map((service) => (
-        <StatusChip key={service.label} {...service} />
+        <StatusChip
+          key={service.key}
+          label={service.label}
+          online={status ? status[service.key] : null}
+        />
       ))}
       <ThemeSwitch />
       <UserMenu />

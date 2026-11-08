@@ -45,7 +45,7 @@ function resolveTarget(redirectTo?: string) {
   ) {
     return redirectTo
   }
-  return '/'
+  return '/dashboard'
 }
 
 export function UserAuthForm({ redirectTo }: UserAuthFormProps) {

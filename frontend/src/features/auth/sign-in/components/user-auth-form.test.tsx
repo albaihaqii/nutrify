@@ -103,7 +103,7 @@ describe('UserAuthForm', () => {
     expect(loginMock).toHaveBeenCalledWith('a@b.com', '1234567')
     expect(setSessionMock).toHaveBeenCalledWith(session)
     await vi.waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
+      expect(navigate).toHaveBeenCalledWith({ to: '/dashboard', replace: true })
     )
   })
 
@@ -125,7 +125,7 @@ describe('UserAuthForm', () => {
     await signIn(form)
 
     await vi.waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
+      expect(navigate).toHaveBeenCalledWith({ to: '/dashboard', replace: true })
     )
   })
 

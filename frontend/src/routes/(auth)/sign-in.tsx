@@ -10,7 +10,7 @@ const searchSchema = z.object({
 export const Route = createFileRoute('/(auth)/sign-in')({
   beforeLoad: () => {
     if (isAuthenticated()) {
-      throw redirect({ to: '/' })
+      throw redirect({ to: '/dashboard' })
     }
   },
   component: SignIn,

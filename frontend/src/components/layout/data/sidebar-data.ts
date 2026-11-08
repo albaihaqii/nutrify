@@ -30,7 +30,7 @@ export const sidebarData: SidebarData = {
     {
       title: id.nav.groups.main,
       items: [
-        { title: id.nav.items.dashboard, url: '/', icon: House },
+        { title: id.nav.items.dashboard, url: '/dashboard', icon: House },
         { title: id.nav.items.liveCamera, url: '/live', icon: Camera },
         { title: id.nav.items.plants, url: '/plants', icon: Leaf },
       ],

@@ -17,6 +17,7 @@ import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -57,6 +58,12 @@ const authSignInRoute = authSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/dashboard/',
+    path: '/dashboard/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof authSignInRoute
@@ -75,6 +83,7 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,12 +95,29 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/401' | '/403' | '/404' | '/500' | '/503'
+  fullPaths:
+    | '/'
+    | '/sign-in'
+    | '/401'
+    | '/403'
+    | '/404'
+    | '/500'
+    | '/503'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/sign-in' | '/401' | '/403' | '/404' | '/500' | '/503' | '/'
+  to:
+    | '/sign-in'
+    | '/401'
+    | '/403'
+    | '/404'
+    | '/500'
+    | '/503'
+    | '/'
+    | '/dashboard'
   id:
     | '__root__'
     | '/_authenticated'
@@ -102,6 +128,7 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -172,15 +199,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

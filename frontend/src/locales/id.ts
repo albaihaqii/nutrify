@@ -75,6 +75,57 @@ export const id = {
         },
       },
     },
+    chart: {
+      title: 'pH & EC',
+      rangeLabel: 'Rentang waktu',
+      ranges: { '1h': '1 Jam', '24h': '24 Jam', '7d': '7 Hari' },
+      now: 'Sekarang',
+      today: 'Hari ini',
+      minutes: 'mnt',
+      ariaSummary: 'Grafik garis pH dan EC selama',
+      ariaAllIdeal: 'keduanya berada dalam rentang ideal',
+      legend: {
+        ph: 'pH (kiri)',
+        ec: 'EC mS/cm (kanan)',
+        idealPh: 'Rentang ideal pH 5,5–6,5',
+        idealEc: 'Garis titik biru: ideal EC 1,5–2,0',
+      },
+    },
+    plants: {
+      title: 'Kondisi Tanaman',
+      viewAll: 'Lihat semua',
+      noteCount: 'lubang berstatus',
+      noteReason: '(model tidak sepakat atau keyakinan rendah).',
+      noneToCheck: 'Tidak ada lubang yang perlu dicek.',
+    },
+    daily: {
+      title: 'Kondisi Tanaman per Hari',
+      ariaLabel:
+        'Diagram batang bertumpuk jumlah lubang per status selama 7 hari',
+    },
+    advisor: {
+      title: 'Saran Penasihat Terbaru',
+      causeLabel: 'Dugaan penyebab:',
+      sourcePrefix: 'Sumber:',
+      disclaimer:
+        'Ini saran, bukan tindakan otomatis. Perangkat keras tidak diubah oleh sistem.',
+      severity: { low: 'Rendah', medium: 'Sedang', high: 'Tinggi' },
+    },
+    alerts: {
+      title: 'Peringatan Terbaru',
+    },
+  },
+  plantStatus: {
+    ok: 'Normal',
+    n: 'Defisiensi N',
+    fe: 'Defisiensi Fe',
+    check: 'Perlu Dicek',
+  },
+  time: {
+    justNow: 'Baru saja',
+    minutesAgo: 'menit lalu',
+    hoursAgo: 'jam lalu',
+    daysAgo: 'hari lalu',
   },
   auth: {
     subtitle: 'Monitoring Hidroponik NFT Pakcoy',

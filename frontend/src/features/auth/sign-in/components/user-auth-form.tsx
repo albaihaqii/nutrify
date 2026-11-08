@@ -80,7 +80,7 @@ export function UserAuthForm({ redirectTo }: UserAuthFormProps) {
       {loginError && (
         <div
           role='alert'
-          className='flex items-start gap-2.5 rounded-lg bg-status-high-bg p-3 text-status-high-fg'
+          className='flex items-start gap-2.5 rounded-md bg-status-high-bg p-3 text-status-high-fg'
         >
           <TriangleAlert className='mt-0.5 size-4 shrink-0' />
           <div>

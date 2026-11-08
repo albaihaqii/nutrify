@@ -114,6 +114,30 @@ export const id = {
     alerts: {
       title: 'Peringatan Terbaru',
     },
+    observations: {
+      title: 'Pengamatan Terbaru',
+      viewAll: 'Riwayat lengkap',
+      detail: 'Detail',
+      actions: 'Aksi',
+      agreement: '{agree} dari {total}',
+      different: '(berbeda)',
+      columns: {
+        time: 'Waktu',
+        plant: 'Lubang',
+        status: 'Status C4.5',
+        confidence: 'Keyakinan',
+        agreement: 'Model lain sepakat?',
+        ph: 'pH',
+        ec: 'EC',
+        temperature: 'Suhu',
+      },
+    },
+    models: {
+      title: 'Akurasi Model',
+      sample: 'Data contoh',
+      note: 'Nilai akan diisi dari hasil evaluasi data nyata di halaman Model & Evaluasi.',
+      noData: 'belum ada data',
+    },
   },
   plantStatus: {
     ok: 'Normal',

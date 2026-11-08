@@ -1,0 +1,113 @@
+import { Link } from '@tanstack/react-router'
+import { id } from '@/locales/id'
+import { formatNumber } from '@/lib/format'
+import { plantStatusIcon } from '@/lib/plant-status'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { StatusBadge } from '@/components/status-badge'
+import { observations, type Observation } from '../data/observations'
+
+const headClass =
+  'h-auto px-3 py-2 text-xs font-semibold whitespace-nowrap text-muted-foreground'
+const cellClass = 'px-3 py-2.5 whitespace-nowrap'
+const { columns } = id.dashboard.observations
+
+function formatAgreement({ agree, total }: Observation) {
+  const text = id.dashboard.observations.agreement
+    .replace('{agree}', String(agree))
+    .replace('{total}', String(total))
+  return agree === 0 ? `${text} ${id.dashboard.observations.different}` : text
+}
+
+export function ObservationsCard() {
+  return (
+    <Card className='gap-0 p-5 shadow-none'>
+      <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+        <h2 className='text-[15px] font-semibold'>
+          {id.dashboard.observations.title}
+        </h2>
+        <Button asChild variant='outline' className='h-8 px-2.5 text-[13px]'>
+          <Link to='/history'>{id.dashboard.observations.viewAll}</Link>
+        </Button>
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow className='hover:bg-transparent'>
+            <TableHead className={headClass}>{columns.time}</TableHead>
+            <TableHead className={headClass}>{columns.plant}</TableHead>
+            <TableHead className={headClass}>{columns.status}</TableHead>
+            <TableHead className={headClass}>{columns.confidence}</TableHead>
+            <TableHead className={headClass}>{columns.agreement}</TableHead>
+            <TableHead className={headClass}>{columns.ph}</TableHead>
+            <TableHead className={headClass}>{columns.ec}</TableHead>
+            <TableHead className={headClass}>{columns.temperature}</TableHead>
+            <TableHead className={headClass}>
+              <span className='sr-only'>
+                {id.dashboard.observations.actions}
+              </span>
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {observations.map((row) => {
+            const Icon = plantStatusIcon[row.status]
+            return (
+              <TableRow key={row.id} className='hover:bg-transparent'>
+                <TableCell className={`${cellClass} tabular-nums`}>
+                  {row.time}
+                </TableCell>
+                <TableCell className={cellClass}>
+                  <strong className='font-semibold'>{row.plantId}</strong>
+                </TableCell>
+                <TableCell className={cellClass}>
+                  <StatusBadge
+                    tone={row.status}
+                    dashed={row.status === 'check'}
+                  >
+                    <Icon aria-hidden='true' />
+                    {id.plantStatus[row.status]}
+                  </StatusBadge>
+                </TableCell>
+                <TableCell className={`${cellClass} tabular-nums`}>
+                  {row.confidence === null
+                    ? '—'
+                    : `${Math.round(row.confidence * 100)}%`}
+                </TableCell>
+                <TableCell className={cellClass}>
+                  {formatAgreement(row)}
+                </TableCell>
+                <TableCell className={`${cellClass} tabular-nums`}>
+                  {formatNumber(row.ph, 1)}
+                </TableCell>
+                <TableCell className={`${cellClass} tabular-nums`}>
+                  {formatNumber(row.ec, 2)}
+                </TableCell>
+                <TableCell className={`${cellClass} tabular-nums`}>
+                  {formatNumber(row.temperature, 1)} °C
+                </TableCell>
+                <TableCell className={cellClass}>
+                  <Button
+                    asChild
+                    variant='outline'
+                    className='h-8 px-2.5 text-[13px]'
+                  >
+                    <Link to='/plants'>{id.dashboard.observations.detail}</Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </Card>
+  )
+}

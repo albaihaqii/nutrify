@@ -3,6 +3,7 @@ import { Main } from '@/components/layout/main'
 import { PageHead } from '@/components/page-head'
 import { InsightSection } from './components/insight-section'
 import { KpiSection } from './components/kpi-section'
+import { RecordsSection } from './components/records-section'
 import { TrendSection } from './components/trend-section'
 
 export function Dashboard() {
@@ -15,6 +16,7 @@ export function Dashboard() {
       <KpiSection />
       <TrendSection />
       <InsightSection />
+      <RecordsSection />
     </Main>
   )
 }

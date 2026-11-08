@@ -1,15 +1,14 @@
 import { id } from '@/locales/id'
 import { Main } from '@/components/layout/main'
+import { PageHead } from '@/components/page-head'
 
 export function Dashboard() {
   return (
     <Main className='flex flex-col gap-6 p-6'>
-      <div>
-        <h1 className='text-2xl font-bold tracking-tight'>
-          {id.nav.items.dashboard}
-        </h1>
-        <p className='text-muted-foreground'>{id.dashboard.subtitle}</p>
-      </div>
+      <PageHead
+        title={id.nav.items.dashboard}
+        description={id.dashboard.subtitle}
+      />
     </Main>
   )
 }

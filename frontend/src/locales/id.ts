@@ -38,6 +38,18 @@ export const id = {
       offline: 'offline',
     },
   },
+  pages: {
+    placeholder: 'Halaman ini sedang disiapkan.',
+    liveCamera: 'Tayangan langsung webcam tandon dan 6 lubang tanam',
+    plants: 'Kondisi 6 lubang pakcoy dan riwayat tiap tanaman',
+    sensors: 'Pembacaan pH, EC, TDS, dan suhu air tandon',
+    history: 'Riwayat pembacaan sensor dan deteksi tanaman',
+    dataset: 'Kelola citra dan data latih untuk model',
+    models: 'Performa dan evaluasi model C4.5',
+    advisor: 'Saran perawatan dari Penasihat',
+    devices: 'Status perangkat ESP32 dan webcam',
+    settings: 'Pengaturan sistem dan akun pengguna',
+  },
   search: {
     title: 'Pencarian halaman',
     description: 'Cari dan buka halaman Nutrify.',

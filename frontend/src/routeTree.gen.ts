@@ -17,7 +17,16 @@ import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors401RouteImport } from './routes/(errors)/401'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
+import { Route as AuthenticatedSensorsIndexRouteImport } from './routes/_authenticated/sensors/index'
+import { Route as AuthenticatedPlantsIndexRouteImport } from './routes/_authenticated/plants/index'
+import { Route as AuthenticatedModelsIndexRouteImport } from './routes/_authenticated/models/index'
+import { Route as AuthenticatedLiveIndexRouteImport } from './routes/_authenticated/live/index'
+import { Route as AuthenticatedHistoryIndexRouteImport } from './routes/_authenticated/history/index'
+import { Route as AuthenticatedDevicesIndexRouteImport } from './routes/_authenticated/devices/index'
+import { Route as AuthenticatedDatasetIndexRouteImport } from './routes/_authenticated/dataset/index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
+import { Route as AuthenticatedAdvisorIndexRouteImport } from './routes/_authenticated/advisor/index'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -58,10 +67,63 @@ const authSignInRoute = authSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/settings/',
+    path: '/settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSensorsIndexRoute =
+  AuthenticatedSensorsIndexRouteImport.update({
+    id: '/sensors/',
+    path: '/sensors/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlantsIndexRoute =
+  AuthenticatedPlantsIndexRouteImport.update({
+    id: '/plants/',
+    path: '/plants/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedModelsIndexRoute =
+  AuthenticatedModelsIndexRouteImport.update({
+    id: '/models/',
+    path: '/models/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLiveIndexRoute = AuthenticatedLiveIndexRouteImport.update({
+  id: '/live/',
+  path: '/live/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHistoryIndexRoute =
+  AuthenticatedHistoryIndexRouteImport.update({
+    id: '/history/',
+    path: '/history/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDevicesIndexRoute =
+  AuthenticatedDevicesIndexRouteImport.update({
+    id: '/devices/',
+    path: '/devices/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDatasetIndexRoute =
+  AuthenticatedDatasetIndexRouteImport.update({
+    id: '/dataset/',
+    path: '/dataset/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/dashboard/',
     path: '/dashboard/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdvisorIndexRoute =
+  AuthenticatedAdvisorIndexRouteImport.update({
+    id: '/advisor/',
+    path: '/advisor/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
@@ -73,7 +135,16 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/advisor/': typeof AuthenticatedAdvisorIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/dataset/': typeof AuthenticatedDatasetIndexRoute
+  '/devices/': typeof AuthenticatedDevicesIndexRoute
+  '/history/': typeof AuthenticatedHistoryIndexRoute
+  '/live/': typeof AuthenticatedLiveIndexRoute
+  '/models/': typeof AuthenticatedModelsIndexRoute
+  '/plants/': typeof AuthenticatedPlantsIndexRoute
+  '/sensors/': typeof AuthenticatedSensorsIndexRoute
+  '/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof authSignInRoute
@@ -83,7 +154,16 @@ export interface FileRoutesByTo {
   '/500': typeof errors500Route
   '/503': typeof errors503Route
   '/': typeof AuthenticatedIndexRoute
+  '/advisor': typeof AuthenticatedAdvisorIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/dataset': typeof AuthenticatedDatasetIndexRoute
+  '/devices': typeof AuthenticatedDevicesIndexRoute
+  '/history': typeof AuthenticatedHistoryIndexRoute
+  '/live': typeof AuthenticatedLiveIndexRoute
+  '/models': typeof AuthenticatedModelsIndexRoute
+  '/plants': typeof AuthenticatedPlantsIndexRoute
+  '/sensors': typeof AuthenticatedSensorsIndexRoute
+  '/settings': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,7 +175,16 @@ export interface FileRoutesById {
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/advisor/': typeof AuthenticatedAdvisorIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/dataset/': typeof AuthenticatedDatasetIndexRoute
+  '/_authenticated/devices/': typeof AuthenticatedDevicesIndexRoute
+  '/_authenticated/history/': typeof AuthenticatedHistoryIndexRoute
+  '/_authenticated/live/': typeof AuthenticatedLiveIndexRoute
+  '/_authenticated/models/': typeof AuthenticatedModelsIndexRoute
+  '/_authenticated/plants/': typeof AuthenticatedPlantsIndexRoute
+  '/_authenticated/sensors/': typeof AuthenticatedSensorsIndexRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,7 +196,16 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/advisor/'
     | '/dashboard/'
+    | '/dataset/'
+    | '/devices/'
+    | '/history/'
+    | '/live/'
+    | '/models/'
+    | '/plants/'
+    | '/sensors/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sign-in'
@@ -117,7 +215,16 @@ export interface FileRouteTypes {
     | '/500'
     | '/503'
     | '/'
+    | '/advisor'
     | '/dashboard'
+    | '/dataset'
+    | '/devices'
+    | '/history'
+    | '/live'
+    | '/models'
+    | '/plants'
+    | '/sensors'
+    | '/settings'
   id:
     | '__root__'
     | '/_authenticated'
@@ -128,7 +235,16 @@ export interface FileRouteTypes {
     | '/(errors)/500'
     | '/(errors)/503'
     | '/_authenticated/'
+    | '/_authenticated/advisor/'
     | '/_authenticated/dashboard/'
+    | '/_authenticated/dataset/'
+    | '/_authenticated/devices/'
+    | '/_authenticated/history/'
+    | '/_authenticated/live/'
+    | '/_authenticated/models/'
+    | '/_authenticated/plants/'
+    | '/_authenticated/sensors/'
+    | '/_authenticated/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -199,6 +315,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sensors/': {
+      id: '/_authenticated/sensors/'
+      path: '/sensors'
+      fullPath: '/sensors/'
+      preLoaderRoute: typeof AuthenticatedSensorsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/plants/': {
+      id: '/_authenticated/plants/'
+      path: '/plants'
+      fullPath: '/plants/'
+      preLoaderRoute: typeof AuthenticatedPlantsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/models/': {
+      id: '/_authenticated/models/'
+      path: '/models'
+      fullPath: '/models/'
+      preLoaderRoute: typeof AuthenticatedModelsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/live/': {
+      id: '/_authenticated/live/'
+      path: '/live'
+      fullPath: '/live/'
+      preLoaderRoute: typeof AuthenticatedLiveIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/history/': {
+      id: '/_authenticated/history/'
+      path: '/history'
+      fullPath: '/history/'
+      preLoaderRoute: typeof AuthenticatedHistoryIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/devices/': {
+      id: '/_authenticated/devices/'
+      path: '/devices'
+      fullPath: '/devices/'
+      preLoaderRoute: typeof AuthenticatedDevicesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dataset/': {
+      id: '/_authenticated/dataset/'
+      path: '/dataset'
+      fullPath: '/dataset/'
+      preLoaderRoute: typeof AuthenticatedDatasetIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
       path: '/dashboard'
@@ -206,17 +378,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/advisor/': {
+      id: '/_authenticated/advisor/'
+      path: '/advisor'
+      fullPath: '/advisor/'
+      preLoaderRoute: typeof AuthenticatedAdvisorIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedAdvisorIndexRoute: typeof AuthenticatedAdvisorIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDatasetIndexRoute: typeof AuthenticatedDatasetIndexRoute
+  AuthenticatedDevicesIndexRoute: typeof AuthenticatedDevicesIndexRoute
+  AuthenticatedHistoryIndexRoute: typeof AuthenticatedHistoryIndexRoute
+  AuthenticatedLiveIndexRoute: typeof AuthenticatedLiveIndexRoute
+  AuthenticatedModelsIndexRoute: typeof AuthenticatedModelsIndexRoute
+  AuthenticatedPlantsIndexRoute: typeof AuthenticatedPlantsIndexRoute
+  AuthenticatedSensorsIndexRoute: typeof AuthenticatedSensorsIndexRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedAdvisorIndexRoute: AuthenticatedAdvisorIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  AuthenticatedDatasetIndexRoute: AuthenticatedDatasetIndexRoute,
+  AuthenticatedDevicesIndexRoute: AuthenticatedDevicesIndexRoute,
+  AuthenticatedHistoryIndexRoute: AuthenticatedHistoryIndexRoute,
+  AuthenticatedLiveIndexRoute: AuthenticatedLiveIndexRoute,
+  AuthenticatedModelsIndexRoute: AuthenticatedModelsIndexRoute,
+  AuthenticatedPlantsIndexRoute: AuthenticatedPlantsIndexRoute,
+  AuthenticatedSensorsIndexRoute: AuthenticatedSensorsIndexRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

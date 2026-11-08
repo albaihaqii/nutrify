@@ -5,22 +5,22 @@ import { SignOutDialog } from './sign-out-dialog'
 
 const navigate = vi.fn()
 const reset = vi.fn()
-
-const MOCK_HREF = 'https://app.test/dashboard?tab=1'
+const clear = vi.fn()
 
 vi.mock('@/stores/auth-store', () => ({
-  useAuthStore: () => ({
-    auth: { reset },
-  }),
+  useAuthStore: (
+    selector: (state: { auth: { reset: () => void } }) => unknown
+  ) => selector({ auth: { reset } }),
 }))
+
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-query')>()
+  return { ...actual, useQueryClient: () => ({ clear }) }
+})
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
-  return {
-    ...actual,
-    useNavigate: () => navigate,
-    useLocation: () => ({ href: MOCK_HREF }),
-  }
+  return { ...actual, useNavigate: () => navigate }
 })
 
 describe('SignOutDialog', () => {
@@ -28,29 +28,38 @@ describe('SignOutDialog', () => {
     vi.clearAllMocks()
   })
 
-  it('calls auth.reset and navigates to sign-in with current location as redirect', async () => {
-    const { getByRole } = await render(
+  it('shows the Indonesian confirmation copy', async () => {
+    const { getByText } = await render(
       <SignOutDialog open onOpenChange={vi.fn()} />
     )
 
-    await userEvent.click(getByRole('button', { name: /^Sign out$/i }))
-
-    expect(reset).toHaveBeenCalledOnce()
-    expect(navigate).toHaveBeenCalledWith({
-      to: '/sign-in',
-      search: { redirect: MOCK_HREF },
-      replace: true,
-    })
+    await expect.element(getByText('Keluar dari Nutrify?')).toBeVisible()
+    await expect
+      .element(getByText('Anda perlu masuk lagi untuk mengakses dashboard.'))
+      .toBeVisible()
   })
 
-  it('does not call reset or navigate when Cancel is clicked', async () => {
+  it('clears the session and cache, then goes to a clean sign-in page', async () => {
     const { getByRole } = await render(
       <SignOutDialog open onOpenChange={vi.fn()} />
     )
 
-    await userEvent.click(getByRole('button', { name: /^Cancel$/i }))
+    await userEvent.click(getByRole('button', { name: /^Ya, keluar$/i }))
+
+    expect(reset).toHaveBeenCalledOnce()
+    expect(clear).toHaveBeenCalledOnce()
+    expect(navigate).toHaveBeenCalledWith({ to: '/sign-in', replace: true })
+  })
+
+  it('changes nothing when Batal is clicked', async () => {
+    const { getByRole } = await render(
+      <SignOutDialog open onOpenChange={vi.fn()} />
+    )
+
+    await userEvent.click(getByRole('button', { name: /^Batal$/i }))
 
     expect(reset).not.toHaveBeenCalled()
+    expect(clear).not.toHaveBeenCalled()
     expect(navigate).not.toHaveBeenCalled()
   })
 })

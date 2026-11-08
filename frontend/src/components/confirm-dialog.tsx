@@ -44,7 +44,15 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
   } = props
   return (
     <AlertDialog {...actions}>
-      <AlertDialogContent className={cn(className && className)}>
+      <AlertDialogContent
+        className={cn('outline-none', className)}
+        onOpenAutoFocus={(event) => {
+          // Keep focus on the dialog itself so no button shows a focus ring
+          // until the user presses Tab (same look for mouse and keyboard).
+          event.preventDefault()
+          ;(event.currentTarget as HTMLElement | null)?.focus()
+        }}
+      >
         <AlertDialogHeader className='text-start'>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription asChild>
@@ -53,7 +61,10 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
         </AlertDialogHeader>
         {children}
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>
+          <AlertDialogCancel
+            disabled={isLoading}
+            className='focus-visible:border-foreground/30 focus-visible:ring-1 focus-visible:ring-foreground/20'
+          >
             {cancelBtnText ?? 'Cancel'}
           </AlertDialogCancel>
           <Button

@@ -38,6 +38,11 @@ export const id = {
       offline: 'offline',
     },
   },
+  search: {
+    title: 'Pencarian halaman',
+    description: 'Cari dan buka halaman Nutrify.',
+    empty: 'Halaman tidak ditemukan.',
+  },
   dashboard: {
     subtitle: 'Ringkasan tandon dan 6 lubang pakcoy',
   },
@@ -53,6 +58,12 @@ export const id = {
     submitting: 'Memproses…',
     restricted: 'Akses dibatasi: admin dan viewer. Akun dibuat oleh admin.',
     signOut: 'Keluar',
+    signOutDialog: {
+      title: 'Keluar dari Nutrify?',
+      desc: 'Anda perlu masuk lagi untuk mengakses dashboard.',
+      cancel: 'Batal',
+      confirm: 'Ya, keluar',
+    },
     errors: {
       title: 'Gagal masuk.',
       invalidCredentials: 'Email atau password salah. Periksa lalu coba lagi.',

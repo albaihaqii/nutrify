@@ -1,92 +1,30 @@
-import { ChevronsUpDown, LogOut } from 'lucide-react'
-import useDialogState from '@/hooks/use-dialog-state'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
-import { SignOutDialog } from '@/components/sign-out-dialog'
+import { useAuthStore } from '@/stores/auth-store'
 
-type NavUserProps = {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length >= 2) return `${words[0][0]}${words[1][0]}`.toUpperCase()
+  return name.trim().slice(0, 2).toUpperCase()
 }
 
-export function NavUser({ user }: NavUserProps) {
-  const { isMobile } = useSidebar()
-  const [open, setOpen] = useDialogState()
-  const initials = user.name.slice(0, 2).toUpperCase()
+export function NavUser() {
+  const user = useAuthStore((state) => state.auth.user)
+
+  if (!user) return null
 
   return (
-    <>
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton
-                size='lg'
-                className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-              >
-                <Avatar className='h-8 w-8 rounded-lg'>
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className='rounded-lg'>
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className='grid flex-1 text-start text-sm leading-tight'>
-                  <span className='truncate font-semibold'>{user.name}</span>
-                  <span className='truncate text-xs'>{user.email}</span>
-                </div>
-                <ChevronsUpDown className='ms-auto size-4' />
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-              side={isMobile ? 'bottom' : 'right'}
-              align='end'
-              sideOffset={4}
-            >
-              <DropdownMenuLabel className='p-0 font-normal'>
-                <div className='flex items-center gap-2 px-1 py-1.5 text-start text-sm'>
-                  <Avatar className='h-8 w-8 rounded-lg'>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className='rounded-lg'>
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className='grid flex-1 text-start text-sm leading-tight'>
-                    <span className='truncate font-semibold'>{user.name}</span>
-                    <span className='truncate text-xs'>{user.email}</span>
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant='destructive'
-                onClick={() => setOpen(true)}
-              >
-                <LogOut />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarMenuItem>
-      </SidebarMenu>
-
-      <SignOutDialog open={!!open} onOpenChange={setOpen} />
-    </>
+    <div className='flex h-12 items-center gap-2 rounded-lg border px-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:px-0'>
+      <span
+        aria-hidden='true'
+        className='flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold'
+      >
+        {getInitials(user.name)}
+      </span>
+      <div className='grid min-w-0 flex-1 text-start leading-tight group-data-[collapsible=icon]:hidden'>
+        <span className='truncate font-semibold'>{user.name}</span>
+        <span className='truncate text-xs text-muted-foreground'>
+          {user.email}
+        </span>
+      </div>
+    </div>
   )
 }

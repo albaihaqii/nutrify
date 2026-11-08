@@ -1,64 +1,24 @@
 import { Link } from '@tanstack/react-router'
-import { Menu, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
-import { Button } from '../ui/button'
+import { id } from '@/locales/id'
+import { Logo } from '@/assets/logo'
 
 export function AppTitle() {
-  const { setOpenMobile } = useSidebar()
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          size='lg'
-          className='gap-0 py-0 hover:bg-transparent active:bg-transparent'
-          asChild
-        >
-          <div>
-            <Link
-              to='/'
-              onClick={() => setOpenMobile(false)}
-              className='grid flex-1 text-start text-sm leading-tight'
-            >
-              <span className='truncate font-bold'>Shadcn-Admin</span>
-              <span className='truncate text-xs'>Vite + ShadcnUI</span>
-            </Link>
-            <ToggleSidebar />
-          </div>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    </SidebarMenu>
-  )
-}
-
-function ToggleSidebar({
-  className,
-  onClick,
-  ...props
-}: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
-
-  return (
-    <Button
-      data-sidebar='trigger'
-      data-slot='sidebar-trigger'
-      variant='ghost'
-      size='icon'
-      className={cn('aspect-square size-8 max-md:scale-125', className)}
-      onClick={(event) => {
-        onClick?.(event)
-        toggleSidebar()
-      }}
-      {...props}
+    <Link
+      to='/dashboard'
+      className='flex h-12 items-center gap-2 rounded-md px-2 outline-offset-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0 focus-visible:outline-2 focus-visible:outline-ring'
     >
-      <X className='md:hidden' />
-      <Menu className='max-md:hidden' />
-      <span className='sr-only'>Toggle Sidebar</span>
-    </Button>
+      <span className='flex aspect-square size-8 shrink-0 items-center justify-center rounded-[9px] bg-primary text-primary-foreground'>
+        <Logo />
+      </span>
+      <div className='grid min-w-0 flex-1 text-start leading-tight group-data-[collapsible=icon]:hidden'>
+        <span className='truncate text-base font-bold tracking-tight'>
+          {id.app.name}
+        </span>
+        <span className='truncate text-xs text-muted-foreground'>
+          {id.app.tagline}
+        </span>
+      </div>
+    </Link>
   )
 }

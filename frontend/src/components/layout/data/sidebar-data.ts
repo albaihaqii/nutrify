@@ -19,13 +19,6 @@ export const sidebarData: SidebarData = {
     email: 'admin@nutrify.id',
     avatar: '',
   },
-  teams: [
-    {
-      name: id.app.name,
-      logo: Leaf,
-      plan: id.app.tagline,
-    },
-  ],
   navGroups: [
     {
       title: id.nav.groups.main,

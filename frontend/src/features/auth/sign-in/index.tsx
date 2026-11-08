@@ -1,50 +1,28 @@
 import { useSearch } from '@tanstack/react-router'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { AuthLayout } from '../auth-layout'
+import { id } from '@/locales/id'
+import { Leaf } from 'lucide-react'
 import { UserAuthForm } from './components/user-auth-form'
 
 export function SignIn() {
   const { redirect } = useSearch({ from: '/(auth)/sign-in' })
 
   return (
-    <AuthLayout>
-      <Card className='max-w-sm gap-4'>
-        <CardHeader>
-          <CardTitle className='text-lg tracking-tight'>Sign in</CardTitle>
-          <CardDescription>
-            Enter your email and password below to log into your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <UserAuthForm redirectTo={redirect} />
-        </CardContent>
-        <CardFooter>
-          <p className='px-8 text-center text-sm text-muted-foreground'>
-            By clicking sign in, you agree to our{' '}
-            <a
-              href='/terms'
-              className='underline underline-offset-4 hover:text-primary'
-            >
-              Terms of Service
-            </a>{' '}
-            and{' '}
-            <a
-              href='/privacy'
-              className='underline underline-offset-4 hover:text-primary'
-            >
-              Privacy Policy
-            </a>
-            .
-          </p>
-        </CardFooter>
-      </Card>
-    </AuthLayout>
+    <div className='flex min-h-svh items-center justify-center px-6 py-14'>
+      <div className='flex w-full max-w-100 flex-col gap-5 rounded-xl border bg-card p-8'>
+        <div className='flex flex-col items-center gap-2.5 text-center'>
+          <span className='grid size-12 place-items-center rounded-[13px] bg-primary text-primary-foreground'>
+            <Leaf className='size-[26px]' />
+          </span>
+          <h1 className='text-[22px] font-bold tracking-[-0.01em]'>
+            {id.app.name}
+          </h1>
+          <p className='text-muted-foreground'>{id.auth.subtitle}</p>
+        </div>
+        <UserAuthForm redirectTo={redirect} />
+        <p className='text-center text-xs text-muted-foreground'>
+          {id.auth.restricted}
+        </p>
+      </div>
+    </div>
   )
 }

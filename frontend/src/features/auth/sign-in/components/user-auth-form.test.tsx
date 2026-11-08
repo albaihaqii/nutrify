@@ -1,133 +1,166 @@
+import { AxiosError, type AxiosResponse } from 'axios'
+import { id } from '@/locales/id'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, type RenderResult } from 'vitest-browser-react'
-import { type Locator, userEvent } from 'vitest/browser'
+import { render } from 'vitest-browser-react'
+import { userEvent } from 'vitest/browser'
 import { UserAuthForm } from './user-auth-form'
 
-const FORM_MESSAGES = {
-  emailEmpty: 'Please enter your email.',
-  passwordEmpty: 'Please enter your password.',
-  passwordShort: 'Password must be at least 7 characters long.',
-} as const
-
-const navigate = vi.fn()
-const setUserMock = vi.fn()
-const setAccessTokenMock = vi.fn()
+const { navigate, setSessionMock, loginMock } = vi.hoisted(() => ({
+  navigate: vi.fn(),
+  setSessionMock: vi.fn(),
+  loginMock: vi.fn(),
+}))
 
 vi.mock('@/stores/auth-store', () => ({
-  useAuthStore: () => ({
-    auth: {
-      setUser: setUserMock,
-      setAccessToken: setAccessTokenMock,
-    },
-  }),
+  useAuthStore: () => ({ auth: { setSession: setSessionMock } }),
 }))
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
-  return {
-    ...actual,
-    useNavigate: () => navigate,
-    Link: ({
-      children,
-      to,
-      className,
-      ...rest
-    }: {
-      children?: React.ReactNode
-      to: string
-      className?: string
-    }) => (
-      <a href={to} className={className} {...rest}>
-        {children}
-      </a>
-    ),
-  }
+  return { ...actual, useNavigate: () => navigate }
 })
 
-vi.mock('@/lib/utils', async (orig) => ({
-  ...(await orig()),
-  sleep: vi.fn(() => Promise.resolve()),
+vi.mock('../login', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../login')>()),
+  login: loginMock,
 }))
 
+const session = {
+  accessToken: 'token-1',
+  user: {
+    id: 1,
+    name: 'Admin',
+    email: 'admin@nutrify.id',
+    role: 'admin' as const,
+  },
+  expiresAt: 1_900_000_000_000,
+}
+
+function apiError(status: number, code: string) {
+  return new AxiosError(
+    'Request failed',
+    'ERR_BAD_REQUEST',
+    undefined,
+    undefined,
+    { status, data: { error: { code, message: code } } } as AxiosResponse
+  )
+}
+
+async function setup(redirectTo?: string) {
+  const screen = await render(<UserAuthForm redirectTo={redirectTo} />)
+  return {
+    screen,
+    email: screen.getByRole('textbox', { name: /^Email$/i }),
+    password: screen.getByLabelText(/^Password$/i),
+    submit: screen.getByRole('button', { name: /^Masuk$/i }),
+  }
+}
+
+async function signIn(
+  form: Awaited<ReturnType<typeof setup>>,
+  email = 'a@b.com',
+  password = '1234567'
+) {
+  await userEvent.fill(form.email, email)
+  await userEvent.fill(form.password, password)
+  await userEvent.click(form.submit)
+}
+
 describe('UserAuthForm', () => {
-  describe('Rendering without redirectTo', () => {
-    let screen: RenderResult
-    let emailInput: Locator
-    let passwordInput: Locator
-    let signInButton: Locator
-    let forgotPasswordLink: Locator
-
-    beforeEach(async () => {
-      vi.clearAllMocks()
-      screen = await render(<UserAuthForm />)
-      emailInput = screen.getByRole('textbox', { name: /^Email$/i })
-      passwordInput = screen.getByLabelText(/^Password$/i)
-      signInButton = screen.getByRole('button', { name: /^Sign in$/i })
-      forgotPasswordLink = screen.getByText(/^Forgot password\?$/i)
-    })
-
-    it('renders fields, submit button, and forgot password link', async () => {
-      await expect.element(emailInput).toBeInTheDocument()
-      await expect.element(passwordInput).toBeInTheDocument()
-      await expect.element(signInButton).toBeInTheDocument()
-      await expect.element(forgotPasswordLink).toBeInTheDocument()
-    })
-
-    it('shows validation messages when submitting empty form', async () => {
-      await userEvent.click(signInButton)
-
-      await expect
-        .element(screen.getByText(FORM_MESSAGES.emailEmpty))
-        .toBeInTheDocument()
-      await expect
-        .element(screen.getByText(FORM_MESSAGES.passwordEmpty))
-        .toBeInTheDocument()
-    })
-
-    it('authenticates and navigates to default route on success', async () => {
-      await userEvent.fill(emailInput, 'a@b.com')
-      await userEvent.fill(passwordInput, '1234567')
-
-      await userEvent.click(signInButton)
-
-      await vi.waitFor(() => expect(setUserMock).toHaveBeenCalledOnce())
-      expect(setUserMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: 'a@b.com',
-          accountNo: expect.any(String),
-          role: expect.any(Array),
-          exp: expect.any(Number),
-        })
-      )
-      expect(setAccessTokenMock).toHaveBeenCalledOnce()
-      expect(setAccessTokenMock).toHaveBeenCalledWith('mock-access-token')
-
-      await vi.waitFor(() =>
-        expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
-      )
-    })
+  beforeEach(() => {
+    vi.clearAllMocks()
   })
 
-  it('navigates to redirectTo when provided', async () => {
-    vi.clearAllMocks()
+  it('renders the fields and the submit button', async () => {
+    const form = await setup()
 
-    const { getByRole, getByLabelText } = await render(
-      <UserAuthForm redirectTo='/settings' />
+    await expect.element(form.email).toBeInTheDocument()
+    await expect.element(form.password).toBeInTheDocument()
+    await expect.element(form.submit).toBeInTheDocument()
+  })
+
+  it('shows validation messages when submitting an empty form', async () => {
+    const form = await setup()
+
+    await userEvent.click(form.submit)
+
+    await expect
+      .element(form.screen.getByText(id.auth.errors.emailRequired))
+      .toBeInTheDocument()
+    await expect
+      .element(form.screen.getByText(id.auth.errors.passwordRequired))
+      .toBeInTheDocument()
+    expect(loginMock).not.toHaveBeenCalled()
+  })
+
+  it('stores the session and goes to the dashboard on success', async () => {
+    loginMock.mockResolvedValue(session)
+    const form = await setup()
+
+    await signIn(form)
+
+    await vi.waitFor(() => expect(setSessionMock).toHaveBeenCalledOnce())
+    expect(loginMock).toHaveBeenCalledWith('a@b.com', '1234567')
+    expect(setSessionMock).toHaveBeenCalledWith(session)
+    await vi.waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
     )
+  })
 
-    await userEvent.fill(getByRole('textbox', { name: /Email/i }), 'a@b.com')
-    await userEvent.fill(getByLabelText('Password'), '1234567')
+  it('goes to redirectTo when it is a same-site path', async () => {
+    loginMock.mockResolvedValue(session)
+    const form = await setup('/history')
 
-    await userEvent.click(getByRole('button', { name: /Sign in/i }))
-
-    await vi.waitFor(() => expect(setUserMock).toHaveBeenCalledOnce())
-    expect(setAccessTokenMock).toHaveBeenCalledOnce()
+    await signIn(form)
 
     await vi.waitFor(() =>
-      expect(navigate).toHaveBeenCalledWith({
-        to: '/settings',
-        replace: true,
-      })
+      expect(navigate).toHaveBeenCalledWith({ to: '/history', replace: true })
     )
+  })
+
+  it('ignores an external redirectTo', async () => {
+    loginMock.mockResolvedValue(session)
+    const form = await setup('//evil.example')
+
+    await signIn(form)
+
+    await vi.waitFor(() =>
+      expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
+    )
+  })
+
+  it('shows an alert for wrong credentials', async () => {
+    loginMock.mockRejectedValue(apiError(401, 'invalid_credentials'))
+    const form = await setup()
+
+    await signIn(form)
+
+    await expect
+      .element(form.screen.getByRole('alert'))
+      .toHaveTextContent(id.auth.errors.invalidCredentials)
+    expect(setSessionMock).not.toHaveBeenCalled()
+    expect(navigate).not.toHaveBeenCalled()
+  })
+
+  it('shows an alert when too many attempts were made', async () => {
+    loginMock.mockRejectedValue(apiError(429, 'rate_limited'))
+    const form = await setup()
+
+    await signIn(form)
+
+    await expect
+      .element(form.screen.getByRole('alert'))
+      .toHaveTextContent(id.auth.errors.tooManyAttempts)
+  })
+
+  it('shows an alert when the server cannot be reached', async () => {
+    loginMock.mockRejectedValue(new AxiosError('Network Error', 'ERR_NETWORK'))
+    const form = await setup()
+
+    await signIn(form)
+
+    await expect
+      .element(form.screen.getByRole('alert'))
+      .toHaveTextContent(id.auth.errors.network)
   })
 })

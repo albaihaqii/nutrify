@@ -3,11 +3,10 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from '@tanstack/react-router'
-import { Loader2, LogIn } from 'lucide-react'
-import { toast } from 'sonner'
-import { IconFacebook, IconGithub } from '@/assets/brand-icons'
+import { id } from '@/locales/id'
+import { Loader2, TriangleAlert } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
-import { sleep, cn } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -19,126 +18,131 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { getLoginErrorMessage, login } from '../login'
 
 const formSchema = z.object({
   email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email.' : undefined),
+    error: (iss) =>
+      iss.input === ''
+        ? id.auth.errors.emailRequired
+        : id.auth.errors.emailInvalid,
   }),
-  password: z
-    .string()
-    .min(1, 'Please enter your password.')
-    .min(7, 'Password must be at least 7 characters long.'),
+  password: z.string().min(1, id.auth.errors.passwordRequired),
 })
 
-interface UserAuthFormProps extends React.HTMLAttributes<HTMLFormElement> {
+type FormValues = z.infer<typeof formSchema>
+
+interface UserAuthFormProps {
   redirectTo?: string
 }
 
-export function UserAuthForm({
-  className,
-  redirectTo,
-  ...props
-}: UserAuthFormProps) {
+/** Only same-site paths are accepted as a post-login destination. */
+function resolveTarget(redirectTo?: string) {
+  if (
+    redirectTo &&
+    redirectTo.startsWith('/') &&
+    !redirectTo.startsWith('//')
+  ) {
+    return redirectTo
+  }
+  return '/'
+}
+
+export function UserAuthForm({ redirectTo }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [loginError, setLoginError] = useState<string | null>(null)
   const navigate = useNavigate()
   const { auth } = useAuthStore()
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: '', password: '' },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  const fieldClass = cn('h-10', loginError && 'border-status-high-fg')
+
+  async function onSubmit(values: FormValues) {
     setIsLoading(true)
-
-    toast.promise(sleep(2000), {
-      loading: 'Signing in...',
-      success: () => {
-        setIsLoading(false)
-
-        // Mock successful authentication with expiry computed at success time
-        const mockUser = {
-          accountNo: 'ACC001',
-          email: data.email,
-          role: ['user'],
-          exp: Date.now() + 24 * 60 * 60 * 1000, // 24 hours from now
-        }
-
-        // Set user and access token
-        auth.setUser(mockUser)
-        auth.setAccessToken('mock-access-token')
-
-        // Redirect to the stored location or default to dashboard
-        const targetPath = redirectTo || '/'
-        navigate({ to: targetPath, replace: true })
-
-        return `Welcome back, ${data.email}!`
-      },
-      error: 'Error',
-    })
+    setLoginError(null)
+    try {
+      const session = await login(values.email.trim(), values.password)
+      auth.setSession(session)
+      await navigate({ to: resolveTarget(redirectTo), replace: true })
+    } catch (error) {
+      setLoginError(getLoginErrorMessage(error))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('grid gap-3', className)}
-        {...props}
-      >
-        <FormField
-          control={form.control}
-          name='email'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder='name@example.com' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='password'
-          render={({ field }) => (
-            <FormItem className='relative'>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <PasswordInput placeholder='********' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button className='mt-2' disabled={isLoading}>
-          {isLoading ? <Loader2 className='animate-spin' /> : <LogIn />}
-          Sign in
-        </Button>
-
-        <div className='relative my-2'>
-          <div className='absolute inset-0 flex items-center'>
-            <span className='w-full border-t' />
-          </div>
-          <div className='relative flex justify-center text-xs uppercase'>
-            <span className='bg-background px-2 text-muted-foreground'>
-              Or continue with
-            </span>
+    <div className='flex flex-col gap-5'>
+      {loginError && (
+        <div
+          role='alert'
+          className='flex items-start gap-2.5 rounded-lg bg-status-high-bg p-3 text-status-high-fg'
+        >
+          <TriangleAlert className='mt-0.5 size-4 shrink-0' />
+          <div>
+            <strong>{id.auth.errors.title}</strong> {loginError}
           </div>
         </div>
-
-        <div className='grid grid-cols-2 gap-2'>
-          <Button variant='outline' type='button' disabled={isLoading}>
-            <IconGithub className='h-4 w-4' /> GitHub
+      )}
+      <Form {...form}>
+        <form
+          noValidate
+          onSubmit={form.handleSubmit(onSubmit)}
+          className='flex flex-col gap-4'
+        >
+          <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+              <FormItem className='gap-1.5'>
+                <FormLabel className='text-[13px] font-semibold'>
+                  {id.auth.emailLabel}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type='email'
+                    autoComplete='username'
+                    placeholder={id.auth.emailPlaceholder}
+                    className={fieldClass}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name='password'
+            render={({ field }) => (
+              <FormItem className='gap-1.5'>
+                <FormLabel className='text-[13px] font-semibold'>
+                  {id.auth.passwordLabel}
+                </FormLabel>
+                <FormControl>
+                  <PasswordInput
+                    autoComplete='current-password'
+                    placeholder={id.auth.passwordPlaceholder}
+                    showLabel={id.auth.showPassword}
+                    hideLabel={id.auth.hidePassword}
+                    inputClassName={fieldClass}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type='submit' className='h-10 w-full' disabled={isLoading}>
+            {isLoading && <Loader2 className='animate-spin' />}
+            {isLoading ? id.auth.submitting : id.auth.submit}
           </Button>
-          <Button variant='outline' type='button' disabled={isLoading}>
-            <IconFacebook className='h-4 w-4' /> Facebook
-          </Button>
-        </div>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </div>
   )
 }

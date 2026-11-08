@@ -28,6 +28,18 @@ export const id = {
     searchPlaceholder: 'Cari halaman…',
     toggleTheme: 'Ganti tema',
     userMenu: 'Menu pengguna',
+    breadcrumb: 'Navigasi halaman',
+    roleLabel: 'Peran',
+    status: {
+      webcam: 'Webcam',
+      sensor: 'Sensor',
+      advisor: 'Penasihat',
+      online: 'online',
+      offline: 'offline',
+    },
+  },
+  dashboard: {
+    subtitle: 'Ringkasan tandon dan 6 lubang pakcoy',
   },
   auth: {
     subtitle: 'Monitoring Hidroponik NFT Pakcoy',

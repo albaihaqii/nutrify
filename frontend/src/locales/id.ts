@@ -57,6 +57,24 @@ export const id = {
   },
   dashboard: {
     subtitle: 'Ringkasan tandon dan 6 lubang pakcoy',
+    lastUpdated: 'Data terakhir 1 menit lalu',
+    kpi: {
+      sectionLabel: 'Ringkasan sensor',
+      vsLastHour: 'vs 1 jam lalu',
+      idealPrefix: 'Ideal',
+      idealRange: 'Rentang ideal',
+      status: { ideal: 'Ideal', low: 'Rendah', high: 'Tinggi' },
+      metrics: {
+        ph: { label: 'pH Tandon', unit: '', ideal: '5,5–6,5' },
+        ec: { label: 'EC Tandon', unit: 'mS/cm', ideal: '1,5–2,0 mS/cm' },
+        tds: { label: 'TDS (ppm)', unit: 'ppm', ideal: '750–1.000 ppm' },
+        temperature: {
+          label: 'Suhu Air',
+          unit: '°C',
+          ideal: '18–26 °C (bawaan, dapat diatur)',
+        },
+      },
+    },
   },
   auth: {
     subtitle: 'Monitoring Hidroponik NFT Pakcoy',

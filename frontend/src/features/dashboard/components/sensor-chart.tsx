@@ -12,13 +12,17 @@ import {
 } from 'recharts'
 import { formatNumber } from '@/lib/format'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { EmptyState } from '@/components/empty-state'
+import { QueryBoundary } from '@/components/query-boundary'
+import { useSensorSeries } from '../api/dashboard-queries'
 import {
   chartRanges,
   idealRanges,
-  sensorSeries,
   type ChartRange,
   type SensorPoint,
+  type SensorSeries,
 } from '../data/sensor-series'
 
 const PH_TICKS = [5, 6, 7]
@@ -56,11 +60,13 @@ function ChartTooltip({
   )
 }
 
-export function SensorChart() {
-  const [range, setRange] = useState<ChartRange>('24h')
-  const series = sensorSeries[range]
-  const rangeLabel = id.dashboard.chart.ranges[range]
-
+function ChartBody({
+  series,
+  rangeLabel,
+}: {
+  series: SensorSeries
+  rangeLabel: string
+}) {
   const allIdeal = series.points.every(
     (point) =>
       point.ph >= idealRanges.ph[0] &&
@@ -73,32 +79,7 @@ export function SensorChart() {
   }`
 
   return (
-    <Card className='gap-0 p-5 shadow-none'>
-      <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
-        <h2 className='text-[15px] font-semibold'>
-          {id.dashboard.chart.title} {rangeLabel}
-        </h2>
-        <Tabs
-          value={range}
-          onValueChange={(value) => setRange(value as ChartRange)}
-        >
-          <TabsList
-            aria-label={id.dashboard.chart.rangeLabel}
-            className='h-[38px]'
-          >
-            {chartRanges.map((item) => (
-              <TabsTrigger
-                key={item}
-                value={item}
-                className='px-3 text-[13px] data-[state=active]:bg-card dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-card'
-              >
-                {id.dashboard.chart.ranges[item]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-
+    <>
       <div className='flex justify-between text-[11px] text-muted-foreground'>
         <span>pH</span>
         <span>EC</span>
@@ -225,6 +206,52 @@ export function SensorChart() {
         </span>
         <span>{id.dashboard.chart.legend.idealEc}</span>
       </div>
+    </>
+  )
+}
+
+export function SensorChart() {
+  const [range, setRange] = useState<ChartRange>('24h')
+  const query = useSensorSeries(range)
+  const rangeLabel = id.dashboard.chart.ranges[range]
+
+  return (
+    <Card className='gap-0 p-5 shadow-none'>
+      <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+        <h2 className='text-[15px] font-semibold'>
+          {id.dashboard.chart.title} {rangeLabel}
+        </h2>
+        <Tabs
+          value={range}
+          onValueChange={(value) => setRange(value as ChartRange)}
+        >
+          <TabsList
+            aria-label={id.dashboard.chart.rangeLabel}
+            className='h-[38px]'
+          >
+            {chartRanges.map((item) => (
+              <TabsTrigger
+                key={item}
+                value={item}
+                className='px-3 text-[13px] data-[state=active]:bg-card dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-card'
+              >
+                {id.dashboard.chart.ranges[item]}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      <QueryBoundary
+        query={query}
+        skeleton={<Skeleton className='h-[300px] w-full' />}
+        empty={{
+          when: (series) => series.points.length === 0,
+          view: <EmptyState title={id.dashboard.chart.empty} />,
+        }}
+      >
+        {(series) => <ChartBody series={series} rangeLabel={rangeLabel} />}
+      </QueryBoundary>
     </Card>
   )
 }

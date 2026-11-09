@@ -9,7 +9,11 @@ import {
 } from 'recharts'
 import { type PlantStatus } from '@/lib/plant-status'
 import { Card } from '@/components/ui/card'
-import { dailyConditions, type DailyCondition } from '../data/daily-conditions'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/empty-state'
+import { QueryBoundary } from '@/components/query-boundary'
+import { useDailyConditions } from '../api/dashboard-queries'
+import { type DailyCondition } from '../data/daily-conditions'
 
 // Bottom to top: this is also the stacking order.
 const STATUSES: PlantStatus[] = ['ok', 'n', 'fe', 'check']
@@ -53,19 +57,13 @@ function DailyTooltip({
   )
 }
 
-export function DailyConditionsChart() {
+function DailyBody({ days }: { days: DailyCondition[] }) {
   return (
-    <Card className='gap-0 p-5 shadow-none'>
-      <div className='mb-4'>
-        <h2 className='text-[15px] font-semibold'>
-          {id.dashboard.daily.title}
-        </h2>
-      </div>
-
+    <>
       <div role='img' aria-label={id.dashboard.daily.ariaLabel}>
         <ResponsiveContainer width='100%' height={210}>
           <BarChart
-            data={dailyConditions}
+            data={days}
             margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
           >
             <XAxis
@@ -108,6 +106,31 @@ export function DailyConditionsChart() {
           </span>
         ))}
       </div>
+    </>
+  )
+}
+
+export function DailyConditionsChart() {
+  const query = useDailyConditions()
+
+  return (
+    <Card className='gap-0 p-5 shadow-none'>
+      <div className='mb-4'>
+        <h2 className='text-[15px] font-semibold'>
+          {id.dashboard.daily.title}
+        </h2>
+      </div>
+
+      <QueryBoundary
+        query={query}
+        skeleton={<Skeleton className='h-[246px] w-full' />}
+        empty={{
+          when: (days) => days.length === 0,
+          view: <EmptyState title={id.dashboard.daily.empty} />,
+        }}
+      >
+        {(days) => <DailyBody days={days} />}
+      </QueryBoundary>
     </Card>
   )
 }

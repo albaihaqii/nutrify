@@ -8,29 +8,41 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/empty-state'
+import { QueryBoundary } from '@/components/query-boundary'
 import { StatusBadge } from '@/components/status-badge'
-import { plantReadings } from '../data/plants'
+import { usePlantReadings } from '../api/dashboard-queries'
+import { type PlantReading } from '../data/plants'
 
 const SUMMARY_STATUSES: PlantStatus[] = ['ok', 'n', 'fe']
 
-export function PlantMap() {
+function PlantMapSkeleton() {
+  return (
+    <div aria-hidden='true'>
+      <div className='grid grid-cols-3 gap-2.5'>
+        {Array.from({ length: 6 }, (_, index) => (
+          <Skeleton key={index} className='h-[86px] rounded-[10px]' />
+        ))}
+      </div>
+      <div className='mt-4 grid grid-cols-3 gap-2'>
+        {Array.from({ length: 3 }, (_, index) => (
+          <Skeleton key={index} className='h-14' />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function PlantMapBody({ readings }: { readings: PlantReading[] }) {
   const countOf = (status: PlantStatus) =>
-    plantReadings.filter((plant) => plant.status === status).length
+    readings.filter((plant) => plant.status === status).length
   const needCheck = countOf('check')
 
   return (
-    <Card className='gap-0 p-5 shadow-none'>
-      <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
-        <h2 className='text-[15px] font-semibold'>
-          {id.dashboard.plants.title}
-        </h2>
-        <Button asChild variant='outline' className='h-8 px-2.5 text-[13px]'>
-          <Link to='/plants'>{id.dashboard.plants.viewAll}</Link>
-        </Button>
-      </div>
-
+    <>
       <div className='grid grid-cols-3 gap-2.5'>
-        {plantReadings.map((plant) => {
+        {readings.map((plant) => {
           const Icon = plantStatusIcon[plant.status]
           return (
             <div
@@ -79,6 +91,34 @@ export function PlantMap() {
           id.dashboard.plants.noneToCheck
         )}
       </p>
+    </>
+  )
+}
+
+export function PlantMap() {
+  const query = usePlantReadings()
+
+  return (
+    <Card className='gap-0 p-5 shadow-none'>
+      <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+        <h2 className='text-[15px] font-semibold'>
+          {id.dashboard.plants.title}
+        </h2>
+        <Button asChild variant='outline' className='h-8 px-2.5 text-[13px]'>
+          <Link to='/plants'>{id.dashboard.plants.viewAll}</Link>
+        </Button>
+      </div>
+
+      <QueryBoundary
+        query={query}
+        skeleton={<PlantMapSkeleton />}
+        empty={{
+          when: (readings) => readings.length === 0,
+          view: <EmptyState title={id.dashboard.plants.empty} />,
+        }}
+      >
+        {(readings) => <PlantMapBody readings={readings} />}
+      </QueryBoundary>
     </Card>
   )
 }

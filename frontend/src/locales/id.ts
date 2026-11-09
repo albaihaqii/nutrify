@@ -91,6 +91,7 @@ export const id = {
         idealPh: 'Rentang ideal pH 5,5–6,5',
         idealEc: 'Garis titik biru: ideal EC 1,5–2,0',
       },
+      empty: 'Belum ada pembacaan sensor pada rentang ini.',
     },
     plants: {
       title: 'Kondisi Tanaman',
@@ -98,11 +99,13 @@ export const id = {
       noteCount: 'lubang berstatus',
       noteReason: '(model tidak sepakat atau keyakinan rendah).',
       noneToCheck: 'Tidak ada lubang yang perlu dicek.',
+      empty: 'Belum ada hasil deteksi tanaman.',
     },
     daily: {
       title: 'Kondisi Tanaman per Hari',
       ariaLabel:
         'Diagram batang bertumpuk jumlah lubang per status selama 7 hari',
+      empty: 'Belum ada riwayat kondisi tanaman.',
     },
     advisor: {
       title: 'Saran Penasihat Terbaru',
@@ -111,9 +114,11 @@ export const id = {
       disclaimer:
         'Ini saran, bukan tindakan otomatis. Perangkat keras tidak diubah oleh sistem.',
       severity: { low: 'Rendah', medium: 'Sedang', high: 'Tinggi' },
+      empty: 'Belum ada saran dari Penasihat.',
     },
     alerts: {
       title: 'Peringatan Terbaru',
+      empty: 'Tidak ada peringatan.',
     },
     observations: {
       title: 'Pengamatan Terbaru',
@@ -132,12 +137,14 @@ export const id = {
         ec: 'EC',
         temperature: 'Suhu',
       },
+      empty: 'Belum ada pengamatan.',
     },
     models: {
       title: 'Akurasi Model',
       sample: 'Data contoh',
       note: 'Nilai akan diisi dari hasil evaluasi data nyata di halaman Model & Evaluasi.',
       noData: 'belum ada data',
+      empty: 'Belum ada model yang dievaluasi.',
     },
   },
   plantStatus: {

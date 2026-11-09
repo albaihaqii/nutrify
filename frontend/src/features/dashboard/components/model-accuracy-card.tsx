@@ -1,20 +1,30 @@
 import { id } from '@/locales/id'
 import { Card } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { EmptyState } from '@/components/empty-state'
+import { QueryBoundary } from '@/components/query-boundary'
 import { StatusBadge } from '@/components/status-badge'
-import { modelAccuracies } from '../data/models'
+import { useModelAccuracies } from '../api/dashboard-queries'
+import { type ModelAccuracy } from '../data/models'
 
-export function ModelAccuracyCard() {
+function ModelsSkeleton() {
   return (
-    <Card className='gap-0 p-5 shadow-none'>
-      <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
-        <h2 className='text-[15px] font-semibold'>
-          {id.dashboard.models.title}
-        </h2>
-        <StatusBadge tone='check'>{id.dashboard.models.sample}</StatusBadge>
-      </div>
+    <div className='flex flex-col gap-3.5' aria-hidden='true'>
+      {Array.from({ length: 4 }, (_, index) => (
+        <div key={index}>
+          <Skeleton className='mb-1 h-4 w-2/5' />
+          <Skeleton className='h-2.5 w-full' />
+        </div>
+      ))}
+    </div>
+  )
+}
 
+function ModelBars({ models }: { models: ModelAccuracy[] }) {
+  return (
+    <>
       <div className='flex flex-col gap-3.5'>
-        {modelAccuracies.map((model) => {
+        {models.map((model) => {
           const percent =
             model.accuracy === null ? 0 : Math.round(model.accuracy * 100)
           return (
@@ -47,6 +57,32 @@ export function ModelAccuracyCard() {
       <p className='mt-3 border-t pt-3 text-xs text-muted-foreground'>
         {id.dashboard.models.note}
       </p>
+    </>
+  )
+}
+
+export function ModelAccuracyCard() {
+  const query = useModelAccuracies()
+
+  return (
+    <Card className='gap-0 p-5 shadow-none'>
+      <div className='mb-4 flex flex-wrap items-center justify-between gap-3'>
+        <h2 className='text-[15px] font-semibold'>
+          {id.dashboard.models.title}
+        </h2>
+        <StatusBadge tone='check'>{id.dashboard.models.sample}</StatusBadge>
+      </div>
+
+      <QueryBoundary
+        query={query}
+        skeleton={<ModelsSkeleton />}
+        empty={{
+          when: (models) => models.length === 0,
+          view: <EmptyState title={id.dashboard.models.empty} />,
+        }}
+      >
+        {(models) => <ModelBars models={models} />}
+      </QueryBoundary>
     </Card>
   )
 }

@@ -1,12 +1,12 @@
+import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { id } from '@/locales/id'
-import { PagePlaceholder } from '@/components/page-placeholder'
+import { Plants } from '@/features/plants'
+
+const searchSchema = z.object({
+  plant: z.string().optional().catch(undefined),
+})
 
 export const Route = createFileRoute('/_authenticated/plants/')({
-  component: () => (
-    <PagePlaceholder
-      title={id.nav.items.plants}
-      description={id.pages.plants}
-    />
-  ),
+  validateSearch: searchSchema,
+  component: Plants,
 })

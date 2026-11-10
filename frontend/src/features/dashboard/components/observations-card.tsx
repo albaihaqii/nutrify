@@ -99,7 +99,9 @@ function ObservationsTable({ rows }: { rows: Observation[] }) {
                   variant='outline'
                   className='h-8 px-2.5 text-[13px]'
                 >
-                  <Link to='/plants'>{id.dashboard.observations.detail}</Link>
+                  <Link to='/plants' search={{ plant: row.plantId }}>
+                    {id.dashboard.observations.detail}
+                  </Link>
                 </Button>
               </TableCell>
             </TableRow>

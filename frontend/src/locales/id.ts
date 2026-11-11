@@ -377,6 +377,56 @@ export const id = {
       unknown: 'Terjadi kesalahan. Coba lagi.',
     },
   },
+  settings: {
+    subtitle: 'Ambang batas, analisis, dan kalibrasi kamera',
+    readOnly: 'Hanya admin yang dapat mengubah pengaturan sistem.',
+    thresholds: {
+      title: 'Ambang Batas Sensor',
+      groups: {
+        ph: 'pH',
+        ec: 'EC (mS/cm)',
+        temperature: 'Suhu (°C)',
+        sensor: 'Data sensor',
+      },
+      min: 'Minimum',
+      max: 'Maksimum',
+      sensorStale: 'Dianggap lama setelah (detik)',
+    },
+    analysis: {
+      title: 'Analisis',
+      interval: 'Interval analisis kamera',
+      storeInterval: 'Interval simpan observasi',
+      every: 'Setiap {value}',
+      stabilizerWindow: 'Hasil terakhir yang dipertimbangkan',
+      stabilizerVotes: 'Suara minimal untuk mengubah status',
+      stabilizerHint:
+        'Status tanaman baru berubah bila cukup banyak dari hasil terakhir sepakat.',
+      consensus: 'Pemeriksaan model pembanding',
+      consensusDesc:
+        'Bandingkan hasil C4.5 dengan model lain saat analisis berjalan.',
+    },
+    calibration: {
+      title: 'Kalibrasi Kamera',
+      hint: 'Geser 6 kotak agar tepat di atas lubang tanam',
+      boxLabel:
+        'Lubang L{n}. Geser dengan panah, ubah ukuran dengan Shift dan panah.',
+      reset: 'Atur ulang kotak',
+    },
+    actions: { save: 'Simpan perubahan', cancel: 'Batalkan' },
+    toast: { saved: 'Pengaturan disimpan.' },
+    units: { seconds: 'detik', minutes: 'menit' },
+    errors: {
+      number: 'Isi dengan angka.',
+      integer: 'Isi dengan bilangan bulat.',
+      range: 'Harus antara {min} dan {max}.',
+      maxAboveMin: 'Maksimum harus lebih besar dari minimum.',
+      votes: 'Tidak boleh melebihi jumlah hasil yang dipertimbangkan.',
+      network: 'Tidak dapat terhubung ke server. Coba lagi.',
+      forbidden: 'Hanya admin yang boleh melakukan ini.',
+      validation: 'Data tidak valid. Periksa lalu coba lagi.',
+      unknown: 'Terjadi kesalahan. Coba lagi.',
+    },
+  },
   plantStatus: {
     ok: 'Normal',
     n: 'Defisiensi N',

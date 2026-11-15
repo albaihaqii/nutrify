@@ -532,4 +532,72 @@ export const id = {
       unknown: 'Terjadi kesalahan. Coba lagi.',
     },
   },
+  models: {
+    title: 'Model & Evaluasi',
+    subtitle:
+      'C4.5 adalah model utama. SVM, Naive Bayes, dan Random Forest hanya sebagai pembanding.',
+    empty: 'Belum ada model terlatih.',
+    names: {
+      c45: 'C4.5',
+      svm: 'SVM',
+      naive_bayes: 'Naive Bayes',
+      random_forest: 'Random Forest',
+    },
+    shortNames: {
+      c45: 'C4.5',
+      svm: 'SVM',
+      naive_bayes: 'NB',
+      random_forest: 'RF',
+    },
+    roles: { primary: 'Utama', comparator: 'Pembanding' },
+    features: {
+      mean_r: { rule: 'Mean_R', field: 'Mean R' },
+      mean_g: { rule: 'Mean_G', field: 'Mean G' },
+      mean_b: { rule: 'Mean_B', field: 'Mean B' },
+      ph: { rule: 'pH', field: 'pH' },
+      ec: { rule: 'EC', field: 'EC (mS/cm)' },
+      temperature: { rule: 'Suhu', field: 'Suhu (°C)' },
+    },
+    comparison: {
+      title: 'Perbandingan Model',
+      meta: 'Dilatih {date} · {n} data uji',
+      columns: {
+        model: 'Model',
+        role: 'Peran',
+        accuracy: 'Akurasi',
+        precision: 'Presisi',
+        recall: 'Recall',
+        f1: 'F1',
+      },
+    },
+    confusion: {
+      title: 'Confusion Matrix C4.5',
+      axes: 'Baris: sebenarnya · Kolom: prediksi',
+      legend:
+        'Warna lebih pekat berarti jumlah lebih besar; angka selalu ditampilkan.',
+      cell: 'Sebenarnya {actual}, diprediksi {predicted}: {n}',
+    },
+    tree: {
+      title: 'Pohon / Aturan C4.5',
+      views: { group: 'Tampilan', rules: 'Aturan', tree: 'Pohon' },
+      leaf: '{samples} data · {percent}%',
+      diagram: 'Diagram pohon keputusan C4.5',
+    },
+    predict: {
+      title: 'Coba Prediksi',
+      submit: 'Prediksi',
+      result: 'Hasil C4.5:',
+      leaning: 'Condong ke {label}',
+      allAgree: '{names}: sepakat {agree} dari {total}',
+      someAgree: '{agree} dari {total} pembanding sepakat. Berbeda: {names}',
+      errors: {
+        number: 'Isi dengan angka.',
+        range: 'Isi angka {min}–{max}.',
+      },
+    },
+    errors: {
+      network: 'Tidak dapat terhubung ke server. Coba lagi.',
+      unknown: 'Terjadi kesalahan. Coba lagi.',
+    },
+  },
 } as const

@@ -1,12 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { id } from '@/locales/id'
-import { PagePlaceholder } from '@/components/page-placeholder'
+import { Models } from '@/features/models'
 
 export const Route = createFileRoute('/_authenticated/models/')({
-  component: () => (
-    <PagePlaceholder
-      title={id.nav.items.models}
-      description={id.pages.models}
-    />
-  ),
+  component: Models,
 })

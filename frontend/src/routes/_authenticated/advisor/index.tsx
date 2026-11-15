@@ -1,12 +1,16 @@
+import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
-import { id } from '@/locales/id'
-import { PagePlaceholder } from '@/components/page-placeholder'
+import { Advisor } from '@/features/advisor'
+import { sourceFilters } from '@/features/advisor/data/advice'
+import { plantIds } from '@/features/dataset/data/dataset'
+
+const searchSchema = z.object({
+  source: z.enum(sourceFilters).catch('all'),
+  plant: z.enum(plantIds).optional().catch(undefined),
+  page: z.number().int().min(1).catch(1),
+})
 
 export const Route = createFileRoute('/_authenticated/advisor/')({
-  component: () => (
-    <PagePlaceholder
-      title={id.nav.items.advisor}
-      description={id.pages.advisor}
-    />
-  ),
+  validateSearch: searchSchema,
+  component: Advisor,
 })

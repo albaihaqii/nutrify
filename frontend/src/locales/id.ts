@@ -600,4 +600,80 @@ export const id = {
       unknown: 'Terjadi kesalahan. Coba lagi.',
     },
   },
+  advisor: {
+    title: 'Penasihat',
+    subtitle:
+      'Hanya memberi saran. Tidak pernah mengendalikan pompa atau perangkat keras.',
+    fallbackBanner: {
+      title: 'Penasihat LLM tidak tersedia.',
+      text: 'Saran terbaru dibuat dengan Aturan Cadangan di bawah.',
+    },
+    severity: { info: 'Rendah', warning: 'Sedang', critical: 'Tinggi' },
+    history: {
+      title: 'Riwayat Saran',
+      tabs: {
+        group: 'Sumber saran',
+        all: 'Semua',
+        llm: 'LLM',
+        rules: 'Aturan Cadangan',
+      },
+      plant: { label: 'Lubang', all: 'Semua lubang' },
+      columns: {
+        time: 'Waktu',
+        plant: 'Lubang',
+        source: 'Sumber',
+        severity: 'Tingkat',
+        summary: 'Ringkasan',
+        causes: 'Dugaan penyebab',
+        actions: 'Langkah disarankan',
+      },
+      tank: 'Tandon',
+      sources: { llm: 'LLM', rules: 'Aturan Cadangan' },
+      none: '–',
+      empty: {
+        none: 'Belum ada saran.',
+        filtered: 'Tidak ada saran untuk filter ini.',
+      },
+    },
+    rules: {
+      title: 'Aturan Cadangan',
+      columns: {
+        condition: 'Kondisi',
+        actions: 'Saran',
+        edit: 'Aksi',
+      },
+      edit: 'Ubah',
+      editLabel: 'Ubah saran untuk kondisi: {condition}',
+      conditions: {
+        statusIs: 'Status lubang = {status}',
+        nDeficiencyInRange:
+          'Status lubang = {status} dan pH/EC dalam rentang ideal',
+        ph: 'pH di luar {min}–{max}',
+        ec: 'EC di luar {min}–{max} mS/cm',
+        temperature: 'Suhu air di luar {min}–{max} °C',
+        phFallback: 'pH di luar rentang ideal',
+        ecFallback: 'EC di luar rentang ideal',
+        temperatureFallback: 'Suhu air di luar rentang ideal',
+      },
+    },
+    dialog: {
+      title: 'Ubah saran',
+      condition: 'Kondisi: {condition}',
+      actions: 'Langkah disarankan',
+      hint: 'Satu langkah per baris, maksimal {max} langkah.',
+      cancel: 'Batal',
+      save: 'Simpan',
+      errors: {
+        required: 'Isi minimal satu langkah.',
+        tooMany: 'Maksimal {max} langkah.',
+        tooLong: 'Setiap langkah maksimal {max} karakter.',
+      },
+    },
+    toast: { ruleSaved: 'Saran aturan disimpan.' },
+    errors: {
+      network: 'Tidak dapat terhubung ke server. Coba lagi.',
+      forbidden: 'Hanya admin yang boleh mengubah saran.',
+      unknown: 'Terjadi kesalahan. Coba lagi.',
+    },
+  },
 } as const

@@ -477,4 +477,59 @@ export const id = {
       passwordRequired: 'Password wajib diisi.',
     },
   },
+  pagination: {
+    showing: 'Menampilkan {from}–{to} dari {total}',
+    previous: 'Sebelumnya',
+    next: 'Berikutnya',
+  },
+  dataset: {
+    subtitle: 'Beri label pada snapshot untuk melatih model',
+    tabs: {
+      group: 'Status label',
+      unlabeled: 'Belum dilabeli',
+      labeled: 'Sudah dilabeli',
+      all: 'Semua',
+    },
+    filters: {
+      plant: 'Lubang',
+      predicted: 'Prediksi model',
+      allPlants: 'Semua',
+      allPredictions: 'Semua prediksi',
+    },
+    count: '{n} snapshot',
+    summary: {
+      usable: 'Siap dipakai',
+      usableOf: 'dari {n} berlabel',
+    },
+    labels: {
+      normal: 'Normal',
+      n_deficiency: 'Def. N',
+      fe_deficiency: 'Def. Fe',
+    },
+    labelGroup: 'Label {plant}',
+    card: {
+      sensorLine: 'pH {ph} · EC {ec} · {temperature} °C',
+      sensorMissing: 'Sensor tidak tersimpan',
+    },
+    qc: {
+      ok: 'Lengkap',
+      invalid_leaf: 'Daun tidak valid',
+      stale_sensor: 'Sensor kosong',
+      needs_check: 'Perlu dicek',
+    },
+    empty: {
+      unlabeled: 'Semua snapshot sudah dilabeli.',
+      filtered: 'Tidak ada snapshot untuk filter ini.',
+    },
+    toast: {
+      labeled: 'Snapshot {plant} diberi label {label}.',
+      cleared: 'Label snapshot {plant} dihapus.',
+      undo: 'Urungkan',
+    },
+    errors: {
+      network: 'Tidak dapat terhubung ke server. Coba lagi.',
+      forbidden: 'Hanya admin yang boleh memberi label.',
+      unknown: 'Terjadi kesalahan. Coba lagi.',
+    },
+  },
 } as const

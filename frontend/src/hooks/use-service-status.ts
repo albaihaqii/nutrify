@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { REALTIME_INTERVAL_MS } from '@/config/realtime'
 import { getMockScenario, mockRequest } from '@/lib/mock-request'
 
-export type ServiceStatus = {
+type ServiceStatus = {
   webcam: boolean
   sensor: boolean
   advisor: boolean

@@ -47,7 +47,7 @@ export const metricMeta: Record<MetricKey, MetricMeta> = {
   },
 }
 
-export type Level = 'ideal' | 'low' | 'high'
+type Level = 'ideal' | 'low' | 'high'
 
 export function levelOf(value: number, [min, max]: IdealRange): Level {
   if (value < min) return 'low'
@@ -64,7 +64,7 @@ export const levelBadge = {
   { tone: 'ok' | 'low' | 'high'; icon: typeof CircleCheck }
 >
 
-export interface SampleIssue {
+interface SampleIssue {
   metric: MetricKey
   level: 'low' | 'high'
 }

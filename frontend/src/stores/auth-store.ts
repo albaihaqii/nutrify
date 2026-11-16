@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export const SESSION_STORAGE_KEY = 'nutrify.session'
+const SESSION_STORAGE_KEY = 'nutrify.session'
 
 export type UserRole = 'admin' | 'viewer'
 

@@ -32,7 +32,7 @@ export interface SensorRows {
   ideal: IdealRanges
 }
 
-export const idealRanges: IdealRanges = {
+const idealRanges: IdealRanges = {
   ph: [5.5, 6.5],
   ec: [1.5, 2.0],
   tds: [750, 1000],

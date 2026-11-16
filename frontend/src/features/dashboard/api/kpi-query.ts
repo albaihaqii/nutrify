@@ -3,7 +3,7 @@ import { REALTIME_INTERVAL_MS } from '@/config/realtime'
 import { getMockScenario, mockRequest } from '@/lib/mock-request'
 import { kpiMetrics, type KpiMetric } from '../data/kpis'
 
-export type KpiSnapshot = {
+type KpiSnapshot = {
   metrics: KpiMetric[]
   /** When the sensor reading was taken (ms since epoch). */
   measuredAt: number

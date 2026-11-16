@@ -31,7 +31,7 @@ export const predictionFilters = [
   'check',
 ] as const satisfies readonly PlantStatus[]
 
-export const PAGE_SIZE = 8
+const PAGE_SIZE = 8
 
 export interface SnapshotFilters {
   label: LabelFilter

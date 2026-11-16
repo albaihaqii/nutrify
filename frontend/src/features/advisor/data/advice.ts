@@ -1,7 +1,6 @@
 import { type PlantId } from '@/features/dataset/data/dataset'
 
-const severities = ['info', 'warning', 'critical'] as const
-export type Severity = (typeof severities)[number]
+export type Severity = 'info' | 'warning' | 'critical'
 
 const adviceSources = ['llm', 'rules'] as const
 type AdviceSource = (typeof adviceSources)[number]

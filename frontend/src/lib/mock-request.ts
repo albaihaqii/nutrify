@@ -1,4 +1,4 @@
-export type MockScenario = 'loading' | 'error' | 'stale' | 'empty' | 'offline'
+type MockScenario = 'loading' | 'error' | 'stale' | 'empty' | 'offline'
 
 const SCENARIOS: MockScenario[] = [
   'loading',

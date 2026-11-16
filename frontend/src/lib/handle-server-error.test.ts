@@ -1,4 +1,5 @@
 import { AxiosError } from 'axios'
+import { id } from '@/locales/id'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { handleServerError } from './handle-server-error'
 
@@ -10,57 +11,70 @@ vi.mock('sonner', () => ({
   },
 }))
 
+function apiError(status: number, body: unknown) {
+  const error = new AxiosError('Request failed')
+  error.response = { status, data: body } as AxiosError['response']
+  return error
+}
+
 beforeEach(() => {
   vi.mocked(toastError).mockClear()
 })
 
 describe('handleServerError', () => {
-  it('shows a generic message when the error is not recognised', () => {
+  it('shows the generic Indonesian message when the error is not recognised', () => {
     handleServerError(new Error('network'))
 
-    expect(toastError).toHaveBeenCalledWith('Something went wrong!')
+    expect(toastError).toHaveBeenCalledWith(id.errors.unknown)
   })
 
   it('maps a plain object with status 204 to the no-content message', () => {
     handleServerError({ status: 204 })
 
-    expect(toastError).toHaveBeenCalledWith('No content.')
+    expect(toastError).toHaveBeenCalledWith(id.errors.noContent)
   })
 
-  it('prefers the API title when the error is an Axios error with response data', () => {
-    const error = new AxiosError('Bad request')
-    error.response = {
-      status: 422,
-      data: { title: 'Validation failed' },
-    } as AxiosError['response']
+  it('shows the network message when the request never reached the server', () => {
+    handleServerError(new AxiosError('Network Error'))
 
-    handleServerError(error)
-
-    expect(toastError).toHaveBeenCalledWith('Validation failed')
+    expect(toastError).toHaveBeenCalledWith(id.errors.network)
   })
 
-  it('falls back to the generic message when Axios response has no data.title', () => {
-    const error = new AxiosError('Request failed')
-    error.response = {
-      status: 500,
-      data: {},
-    } as AxiosError['response']
+  it.each([
+    ['forbidden', 403, id.errors.forbidden],
+    ['not_found', 404, id.errors.notFound],
+    ['conflict', 409, id.errors.conflict],
+    ['validation_error', 422, id.errors.validation],
+    ['bad_request', 400, id.errors.validation],
+    ['rate_limited', 429, id.errors.rateLimited],
+    ['internal_error', 500, id.errors.server],
+    ['service_unavailable', 503, id.errors.unavailable],
+  ] as const)(
+    'maps the %s code to its Indonesian message',
+    (code, status, message) => {
+      handleServerError(apiError(status, { error: { code } }))
 
-    handleServerError(error)
+      expect(toastError).toHaveBeenCalledWith(message)
+    }
+  )
 
-    expect(toastError).toHaveBeenCalledWith('Something went wrong!')
+  it('never shows the developer message sent by the API', () => {
+    handleServerError(
+      apiError(422, {
+        error: {
+          code: 'something_new',
+          message: 'ph must be between 0 and 14',
+        },
+      })
+    )
+
+    expect(toastError).toHaveBeenCalledWith(id.errors.unknown)
   })
 
-  it('falls back to the generic message when Axios data.title is an empty string', () => {
-    const error = new AxiosError('Bad request')
-    error.response = {
-      status: 400,
-      data: { title: '' },
-    } as AxiosError['response']
+  it('falls back to the generic message when the response has no error body', () => {
+    handleServerError(apiError(500, {}))
 
-    handleServerError(error)
-
-    expect(toastError).toHaveBeenCalledWith('Something went wrong!')
+    expect(toastError).toHaveBeenCalledWith(id.errors.unknown)
   })
 
   it('logs the error to the console in development', () => {

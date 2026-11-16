@@ -1,8 +1,8 @@
+import { useState } from 'react'
 import { id } from '@/locales/id'
-import { LogOut } from 'lucide-react'
+import { KeyRound, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth-store'
 import { getInitials } from '@/lib/initials'
-import useDialogState from '@/hooks/use-dialog-state'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,9 +14,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SignOutDialog } from '@/components/sign-out-dialog'
+import { ChangePasswordDialog } from '@/features/auth/change-password/components/change-password-dialog'
 
 export function UserMenu() {
-  const [open, setOpen] = useDialogState()
+  const [signOutOpen, setSignOutOpen] = useState(false)
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false)
   const user = useAuthStore((state) => state.auth.user)
 
   if (!user) return null
@@ -46,14 +48,22 @@ export function UserMenu() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setOpen(true)}>
+          <DropdownMenuItem onClick={() => setChangePasswordOpen(true)}>
+            <KeyRound />
+            {id.auth.changePassword.menuItem}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setSignOutOpen(true)}>
             <LogOut />
             {id.auth.signOut}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <SignOutDialog open={!!open} onOpenChange={setOpen} />
+      <ChangePasswordDialog
+        open={changePasswordOpen}
+        onOpenChange={setChangePasswordOpen}
+      />
+      <SignOutDialog open={signOutOpen} onOpenChange={setSignOutOpen} />
     </>
   )
 }

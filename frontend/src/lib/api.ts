@@ -2,7 +2,11 @@ import axios, { AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth-store'
 
 type ApiErrorBody = {
-  error?: { code?: string; message?: string }
+  error?: {
+    code?: string
+    message?: string
+    details?: { field?: string }
+  }
 }
 
 export const api = axios.create({
@@ -23,6 +27,15 @@ export function getApiErrorCode(error: unknown): string | null {
   if (error instanceof AxiosError) {
     const body = error.response?.data as ApiErrorBody | undefined
     return body?.error?.code ?? null
+  }
+  return null
+}
+
+/** Returns the offending field name from `error.details.field`, or null. */
+export function getApiErrorField(error: unknown): string | null {
+  if (error instanceof AxiosError) {
+    const body = error.response?.data as ApiErrorBody | undefined
+    return body?.error?.details?.field ?? null
   }
   return null
 }

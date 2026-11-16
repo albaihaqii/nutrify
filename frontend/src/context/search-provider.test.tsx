@@ -1,13 +1,13 @@
+﻿import { id } from '@/locales/id'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, type RenderResult } from 'vitest-browser-react'
 import { userEvent } from 'vitest/browser'
 import { SearchProvider } from '@/context/search-provider'
 
-const COMMAND_MENU_PLACEHOLDER = 'Type a command or search...'
+const COMMAND_MENU_PLACEHOLDER = id.header.searchPlaceholder
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
-  setTheme: vi.fn(),
 }))
 
 vi.mock('@tanstack/react-router', async (importOriginal) => {
@@ -17,10 +17,6 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
     useNavigate: () => mocks.navigate,
   }
 })
-
-vi.mock('@/context/theme-provider', () => ({
-  useTheme: () => ({ setTheme: mocks.setTheme }),
-}))
 
 type ShortcutModifier = 'Control' | 'Meta'
 
@@ -60,20 +56,20 @@ describe('SearchProvider and CommandMenu', () => {
     vi.clearAllMocks()
   })
 
-  it('renders the command palette when the palette is open', async () => {
+  it('renders the page list when the palette is open', async () => {
     const screen = await renderWithSearchProvider()
-    const { getByPlaceholder, getByText } = screen
 
     await openCommandPalette(screen)
 
     await expect
-      .element(getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
+      .element(screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
       .toBeInTheDocument()
-    await expect.element(getByText('Theme')).toBeInTheDocument()
-    await expect.element(getByText('Light')).toBeInTheDocument()
-    await expect.element(getByText('Dark')).toBeInTheDocument()
-    await expect.element(getByText('System')).toBeInTheDocument()
-    await expect.element(getByText('Dashboard')).toBeInTheDocument()
+    await expect
+      .element(screen.getByRole('option', { name: id.nav.items.dashboard }))
+      .toBeInTheDocument()
+    await expect
+      .element(screen.getByRole('option', { name: id.nav.items.settings }))
+      .toBeInTheDocument()
   })
 
   it('does not show the dialog content when search is closed', async () => {
@@ -104,43 +100,42 @@ describe('SearchProvider and CommandMenu', () => {
     }
   )
 
-  it('navigates to a top-level route and closes the palette when a nav item is selected', async () => {
+  it.each([
+    [id.nav.items.dashboard, '/dashboard'],
+    [id.nav.items.plants, '/plants'],
+    [id.nav.items.advisor, '/advisor'],
+    [id.nav.items.settings, '/settings'],
+  ] as const)(
+    'navigates to %s and closes the palette when selected',
+    async (label, url) => {
+      const screen = await renderWithSearchProvider()
+
+      await openCommandPalette(screen)
+
+      await userEvent.click(screen.getByRole('option', { name: label }))
+
+      expect(mocks.navigate).toHaveBeenCalledWith({ to: url })
+      await expect
+        .element(screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
+        .not.toBeInTheDocument()
+    }
+  )
+
+  it('filters the list by the typed text', async () => {
     const screen = await renderWithSearchProvider()
 
     await openCommandPalette(screen)
 
-    await userEvent.click(screen.getByText('Tasks'))
+    await userEvent.fill(
+      screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER),
+      id.nav.items.advisor
+    )
 
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/tasks' })
     await expect
-      .element(screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
-      .not.toBeInTheDocument()
-  })
-
-  it('navigates for nested sidebar items (group with sub-items)', async () => {
-    const screen = await renderWithSearchProvider()
-    const { getByPlaceholder, getByRole } = screen
-
-    await openCommandPalette(screen)
-
-    await userEvent.click(getByRole('option', { name: 'Settings Account' }))
-
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/settings/account' })
+      .element(screen.getByRole('option', { name: id.nav.items.advisor }))
+      .toBeInTheDocument()
     await expect
-      .element(getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
-      .not.toBeInTheDocument()
-  })
-
-  it('applies theme and closes the palette when a theme command is chosen', async () => {
-    const screen = await renderWithSearchProvider()
-
-    await openCommandPalette(screen)
-
-    await userEvent.click(screen.getByText('Dark'))
-
-    expect(mocks.setTheme).toHaveBeenCalledWith('dark')
-    await expect
-      .element(screen.getByPlaceholder(COMMAND_MENU_PLACEHOLDER))
+      .element(screen.getByRole('option', { name: id.nav.items.dashboard }))
       .not.toBeInTheDocument()
   })
 
@@ -154,8 +149,6 @@ describe('SearchProvider and CommandMenu', () => {
       'zzzz-no-match-xxxx'
     )
 
-    await expect
-      .element(screen.getByText('No results found.'))
-      .toBeInTheDocument()
+    await expect.element(screen.getByText(id.search.empty)).toBeInTheDocument()
   })
 })

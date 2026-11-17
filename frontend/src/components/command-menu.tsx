@@ -10,11 +10,12 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-import { sidebarData } from './layout/data/sidebar-data'
+import { useNavGroups } from './layout/nav-groups'
 
 export function CommandMenu() {
   const navigate = useNavigate()
   const { open, setOpen } = useSearch()
+  const navGroups = useNavGroups()
 
   const runCommand = useCallback(
     (command: () => unknown) => {
@@ -35,7 +36,7 @@ export function CommandMenu() {
       <CommandInput placeholder={id.header.searchPlaceholder} />
       <CommandList>
         <CommandEmpty>{id.search.empty}</CommandEmpty>
-        {sidebarData.navGroups.map((group) => (
+        {navGroups.map((group) => (
           <CommandGroup key={group.title} heading={group.title}>
             {group.items.map((item) => {
               if (!item.url) return null

@@ -1,7 +1,7 @@
-export type AdvisorSeverity = 'low' | 'medium' | 'high'
+import { type Severity } from '@/components/severity-badge'
 
 export type AdvisorAdvice = {
-  severity: AdvisorSeverity
+  severity: Severity
   title: string
   cause: string
   steps: string[]
@@ -11,7 +11,7 @@ export type AdvisorAdvice = {
 
 // Dummy data until the advisor API exists.
 export const latestAdvice: AdvisorAdvice = {
-  severity: 'medium',
+  severity: 'warning',
   title: 'Pantau L3: indikasi kekurangan nitrogen',
   cause:
     'daun L3 menguning dan model C4.5 menilai Defisiensi N (88%), sementara pH dan EC tandon masih ideal.',

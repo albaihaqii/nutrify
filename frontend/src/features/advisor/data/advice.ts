@@ -1,6 +1,5 @@
-import { type PlantId } from '@/features/dataset/data/dataset'
-
-export type Severity = 'info' | 'warning' | 'critical'
+import { type PlantId } from '@/lib/plants'
+import { type Severity } from '@/components/severity-badge'
 
 const adviceSources = ['llm', 'rules'] as const
 type AdviceSource = (typeof adviceSources)[number]

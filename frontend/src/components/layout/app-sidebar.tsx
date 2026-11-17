@@ -7,12 +7,13 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { AppTitle } from './app-title'
-import { sidebarData } from './data/sidebar-data'
 import { NavGroup } from './nav-group'
+import { useNavGroups } from './nav-groups'
 import { NavUser } from './nav-user'
 
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
+  const navGroups = useNavGroups()
 
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
@@ -20,7 +21,7 @@ export function AppSidebar() {
         <AppTitle />
       </SidebarHeader>
       <SidebarContent>
-        {sidebarData.navGroups.map((props) => (
+        {navGroups.map((props) => (
           <NavGroup key={props.title} {...props} />
         ))}
       </SidebarContent>

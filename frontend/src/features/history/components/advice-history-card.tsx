@@ -1,25 +1,15 @@
 import { Link } from '@tanstack/react-router'
 import { id } from '@/locales/id'
-import { CircleCheck, TriangleAlert } from 'lucide-react'
 import { formatDayTime } from '@/lib/format-time'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
+import { SeverityBadge } from '@/components/severity-badge'
 import { StatusBadge } from '@/components/status-badge'
 import { useAdviceHistory } from '../api/history-queries'
-import { type AdviceEntry, type AdviceSeverity } from '../data/history'
-
-// Same mapping as the dashboard advisor card (see Design.md).
-const severityBadge = {
-  low: { tone: 'ok', icon: CircleCheck },
-  medium: { tone: 'n', icon: TriangleAlert },
-  high: { tone: 'high', icon: TriangleAlert },
-} as const satisfies Record<
-  AdviceSeverity,
-  { tone: 'ok' | 'n' | 'high'; icon: typeof CircleCheck }
->
+import { type AdviceEntry } from '../data/history'
 
 function AdviceSkeleton() {
   return (
@@ -35,8 +25,6 @@ function AdviceList({ entries }: { entries: AdviceEntry[] }) {
   return (
     <ul className='flex flex-col'>
       {entries.map((entry) => {
-        const badge = severityBadge[entry.severity]
-        const Icon = badge.icon
         return (
           <li
             key={entry.id}
@@ -48,10 +36,7 @@ function AdviceList({ entries }: { entries: AdviceEntry[] }) {
             <StatusBadge tone='check'>
               {id.history.advice.sources[entry.source]}
             </StatusBadge>
-            <StatusBadge tone={badge.tone}>
-              <Icon aria-hidden='true' />
-              {id.history.advice.severity[entry.severity]}
-            </StatusBadge>
+            <SeverityBadge severity={entry.severity} />
             <span className='min-w-0 flex-1'>{entry.summary}</span>
             <Button
               asChild

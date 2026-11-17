@@ -113,7 +113,6 @@ export const id = {
       sourcePrefix: 'Sumber:',
       disclaimer:
         'Ini saran, bukan tindakan otomatis. Perangkat keras tidak diubah oleh sistem.',
-      severity: { low: 'Rendah', medium: 'Sedang', high: 'Tinggi' },
       empty: 'Belum ada saran dari Penasihat.',
     },
     alerts: {
@@ -226,9 +225,6 @@ export const id = {
     subtitle: 'pH, EC, TDS, dan suhu air dari ESP32',
     rangeLabel: 'Rentang waktu',
     ranges: { '1h': '1 Jam', '24h': '24 Jam', '7d': '7 Hari' },
-    exportCsv: 'Ekspor CSV',
-    exporting: 'Menyiapkan…',
-    exportFailed: 'Ekspor gagal. Coba lagi.',
     now: 'Sekarang',
     metrics: {
       ph: { title: 'pH Tandon', short: 'pH' },
@@ -292,16 +288,12 @@ export const id = {
       },
       detail: 'Detail',
       agreement: '{agree} dari {total}',
-      showing: 'Menampilkan {from}–{to} dari {total}',
-      previous: 'Sebelumnya',
-      next: 'Berikutnya',
       empty: 'Tidak ada pengamatan untuk filter ini.',
     },
     advice: {
       title: 'Riwayat Saran',
       view: 'Lihat',
       sources: { llm: 'LLM', fallback: 'Aturan Cadangan' },
-      severity: { low: 'Rendah', medium: 'Sedang', high: 'Tinggi' },
       empty: 'Belum ada saran.',
     },
   },
@@ -446,6 +438,7 @@ export const id = {
     emptyTitle: 'Belum ada data',
     emptyDescription: 'Data akan muncul setelah perangkat mengirim pembacaan.',
   },
+  severity: { info: 'Rendah', warning: 'Sedang', critical: 'Tinggi' },
   errors: {
     unknown: 'Terjadi kesalahan. Coba lagi.',
     noContent: 'Tidak ada konten.',
@@ -644,7 +637,6 @@ export const id = {
       title: 'Penasihat LLM tidak tersedia.',
       text: 'Saran terbaru dibuat dengan Aturan Cadangan di bawah.',
     },
-    severity: { info: 'Rendah', warning: 'Sedang', critical: 'Tinggi' },
     history: {
       title: 'Riwayat Saran',
       tabs: {

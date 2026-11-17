@@ -6,7 +6,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { StatusBadge } from '@/components/status-badge'
-import { type Severity } from '../data/advice'
+
+export type Severity = 'info' | 'warning' | 'critical'
 
 const severityBadge = {
   info: { tone: 'low', icon: Info },
@@ -24,7 +25,7 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
   return (
     <StatusBadge tone={tone}>
       <Icon aria-hidden='true' />
-      {id.advisor.severity[severity]}
+      {id.severity[severity]}
     </StatusBadge>
   )
 }

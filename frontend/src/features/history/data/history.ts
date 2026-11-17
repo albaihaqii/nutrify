@@ -1,10 +1,9 @@
 import { type PlantStatus } from '@/lib/plant-status'
+import { type PlantId } from '@/lib/plants'
+import { type Severity } from '@/components/severity-badge'
 
 export const historyRanges = ['today', '7d', '30d'] as const
 export type HistoryRange = (typeof historyRanges)[number]
-
-export const plantIds = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'] as const
-export type PlantId = (typeof plantIds)[number]
 
 export const statusFilters = [
   'ok',
@@ -51,14 +50,12 @@ export interface ObservationPage {
   pageSize: number
 }
 
-export type AdviceSeverity = 'low' | 'medium' | 'high'
-
 export interface AdviceEntry {
   id: string
   /** ISO timestamp. */
   at: string
   source: 'llm' | 'fallback'
-  severity: AdviceSeverity
+  severity: Severity
   summary: string
 }
 
@@ -179,20 +176,18 @@ export function buildObservationExport(
 }
 
 export function buildAdviceHistory(now: number = Date.now()): AdviceEntry[] {
-  const entries: Array<
-    [number, AdviceEntry['source'], AdviceSeverity, string]
-  > = [
-    [12, 'llm', 'medium', 'Pantau L3: indikasi kekurangan nitrogen'],
+  const entries: Array<[number, AdviceEntry['source'], Severity, string]> = [
+    [12, 'llm', 'warning', 'Pantau L3: indikasi kekurangan nitrogen'],
     [
       215,
       'fallback',
-      'low',
+      'info',
       'Periksa L5 untuk kemungkinan kekurangan zat besi',
     ],
-    [1000, 'llm', 'low', 'Semua lubang normal, lanjutkan pemantauan rutin'],
-    [1500, 'llm', 'medium', 'Periksa konsentrasi larutan nutrisi di tandon'],
-    [2400, 'fallback', 'low', 'Pantau L6: hasil model belum meyakinkan'],
-    [3000, 'llm', 'low', 'Semua lubang normal, lanjutkan pemantauan rutin'],
+    [1000, 'llm', 'info', 'Semua lubang normal, lanjutkan pemantauan rutin'],
+    [1500, 'llm', 'warning', 'Periksa konsentrasi larutan nutrisi di tandon'],
+    [2400, 'fallback', 'info', 'Pantau L6: hasil model belum meyakinkan'],
+    [3000, 'llm', 'info', 'Semua lubang normal, lanjutkan pemantauan rutin'],
   ]
   return entries.map(([minutes, source, severity, summary]) => ({
     id: `advice-${minutes}`,

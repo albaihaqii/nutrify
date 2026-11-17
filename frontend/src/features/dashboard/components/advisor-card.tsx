@@ -1,22 +1,12 @@
 import { id } from '@/locales/id'
-import { CircleCheck, TriangleAlert } from 'lucide-react'
 import { formatAgo } from '@/lib/format'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
-import { StatusBadge } from '@/components/status-badge'
+import { SeverityBadge } from '@/components/severity-badge'
 import { useLatestAdvice } from '../api/dashboard-queries'
-import { type AdvisorAdvice, type AdvisorSeverity } from '../data/advisor'
-
-const severityBadge = {
-  low: { tone: 'ok', icon: CircleCheck },
-  medium: { tone: 'n', icon: TriangleAlert },
-  high: { tone: 'high', icon: TriangleAlert },
-} as const satisfies Record<
-  AdvisorSeverity,
-  { tone: 'ok' | 'n' | 'high'; icon: typeof CircleCheck }
->
+import { type AdvisorAdvice } from '../data/advisor'
 
 function AdviceSkeleton() {
   return (
@@ -56,8 +46,6 @@ function AdviceBody({ advice }: { advice: AdvisorAdvice }) {
 export function AdvisorCard() {
   const query = useLatestAdvice()
   const severity = query.data?.severity
-  const badge = severity ? severityBadge[severity] : null
-  const BadgeIcon = badge?.icon
 
   return (
     <Card className='gap-0 p-5 shadow-none'>
@@ -65,12 +53,7 @@ export function AdvisorCard() {
         <h2 className='text-[15px] font-semibold'>
           {id.dashboard.advisor.title}
         </h2>
-        {badge && BadgeIcon && severity && (
-          <StatusBadge tone={badge.tone}>
-            <BadgeIcon aria-hidden='true' />
-            {id.dashboard.advisor.severity[severity]}
-          </StatusBadge>
-        )}
+        {severity && <SeverityBadge severity={severity} />}
       </div>
 
       <QueryBoundary

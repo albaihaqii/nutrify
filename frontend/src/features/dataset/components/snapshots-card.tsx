@@ -3,7 +3,7 @@ import { id } from '@/locales/id'
 import { toast } from 'sonner'
 import { formatNumber } from '@/lib/format'
 import { type PlantStatus } from '@/lib/plant-status'
-import { cn } from '@/lib/utils'
+import { plantIds, type PlantId } from '@/lib/plants'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import {
@@ -17,14 +17,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { PaginationBar } from '@/components/pagination-bar'
 import { QueryBoundary } from '@/components/query-boundary'
+import { SegmentedControl } from '@/components/segmented-control'
 import { useLabelSnapshot } from '../api/dataset-queries'
 import {
   labelFilters,
-  plantIds,
   predictionFilters,
   type LabelClass,
-  type LabelFilter,
-  type PlantId,
   type Snapshot,
   type SnapshotFilterPatch,
   type SnapshotFilters,
@@ -36,37 +34,10 @@ const ALL = 'all'
 const SELECT_CLASS = 'h-10 data-[size=default]:h-10'
 const LABEL_CLASS = 'text-[13px] font-semibold'
 
-interface LabelTabsProps {
-  value: LabelFilter
-  onChange: (value: LabelFilter) => void
-}
-
-function LabelTabs({ value, onChange }: LabelTabsProps) {
-  return (
-    <div
-      role='group'
-      aria-label={id.dataset.tabs.group}
-      className='inline-flex gap-1 rounded-lg bg-muted p-1'
-    >
-      {labelFilters.map((filter) => (
-        <button
-          key={filter}
-          type='button'
-          aria-pressed={value === filter}
-          onClick={() => onChange(filter)}
-          className={cn(
-            'h-8 rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary',
-            value === filter
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          {id.dataset.tabs[filter]}
-        </button>
-      ))}
-    </div>
-  )
-}
+const labelOptions = labelFilters.map((filter) => ({
+  value: filter,
+  label: id.dataset.tabs[filter],
+}))
 
 interface FiltersProps {
   filters: SnapshotFilters
@@ -78,8 +49,10 @@ function Filters({ filters, total, onChange }: FiltersProps) {
   return (
     <div className='mb-4 flex flex-wrap items-end justify-between gap-3'>
       <div className='flex flex-wrap items-end gap-3'>
-        <LabelTabs
+        <SegmentedControl
           value={filters.label}
+          options={labelOptions}
+          ariaLabel={id.dataset.tabs.group}
           onChange={(label) => onChange({ label })}
         />
 

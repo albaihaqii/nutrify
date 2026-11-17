@@ -7,6 +7,7 @@ import { downloadTextFile } from '@/lib/download'
 import { formatNumber } from '@/lib/format'
 import { formatDayTime } from '@/lib/format-time'
 import { plantStatusIcon, type PlantStatus } from '@/lib/plant-status'
+import { plantIds, type PlantId } from '@/lib/plants'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -28,18 +29,17 @@ import {
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/empty-state'
 import { ExportCsvButton } from '@/components/export-csv-button'
+import { PaginationBar } from '@/components/pagination-bar'
 import { QueryBoundary } from '@/components/query-boundary'
 import { StatusBadge } from '@/components/status-badge'
 import { fetchObservationExport } from '../api/history-queries'
 import {
   historyRanges,
-  plantIds,
   statusFilters,
   type FilterPatch,
   type HistoryRange,
   type ObservationFilters,
   type ObservationPage,
-  type PlantId,
 } from '../data/history'
 import { buildObservationCsv } from '../lib/csv'
 
@@ -226,47 +226,6 @@ function ObservationsTable({ data }: { data: ObservationPage }) {
   )
 }
 
-function Pagination({
-  data,
-  onPageChange,
-}: {
-  data: ObservationPage
-  onPageChange: (page: number) => void
-}) {
-  const from = (data.page - 1) * data.pageSize + 1
-  const to = from + data.rows.length - 1
-  const pageCount = Math.ceil(data.total / data.pageSize)
-
-  return (
-    <div className='mt-4 flex flex-wrap items-center justify-between gap-3'>
-      <span className='text-muted-foreground tabular-nums'>
-        {id.history.table.showing
-          .replace('{from}', formatNumber(from, 0))
-          .replace('{to}', formatNumber(to, 0))
-          .replace('{total}', formatNumber(data.total, 0))}
-      </span>
-      <div className='flex gap-2'>
-        <Button
-          variant='outline'
-          className='h-8 px-2.5 text-[13px]'
-          disabled={data.page <= 1}
-          onClick={() => onPageChange(data.page - 1)}
-        >
-          {id.history.table.previous}
-        </Button>
-        <Button
-          variant='outline'
-          className='h-8 px-2.5 text-[13px]'
-          disabled={data.page >= pageCount}
-          onClick={() => onPageChange(data.page + 1)}
-        >
-          {id.history.table.next}
-        </Button>
-      </div>
-    </div>
-  )
-}
-
 interface ObservationsTableCardProps {
   filters: ObservationFilters
   query: UseQueryResult<ObservationPage>
@@ -307,7 +266,13 @@ export function ObservationsTableCard({
         {(data) => (
           <>
             <ObservationsTable data={data} />
-            <Pagination data={data} onPageChange={onPageChange} />
+            <PaginationBar
+              page={data.page}
+              pageSize={data.pageSize}
+              total={data.total}
+              shown={data.rows.length}
+              onPageChange={onPageChange}
+            />
           </>
         )}
       </QueryBoundary>

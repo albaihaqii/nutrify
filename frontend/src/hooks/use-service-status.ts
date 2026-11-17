@@ -9,6 +9,7 @@ type ServiceStatus = {
 }
 
 // Dummy until the status endpoint exists; the real one replaces queryFn only.
+// The endpoint must be readable by viewers too: the header chips show on every page.
 export function useServiceStatus() {
   return useQuery({
     queryKey: ['service-status'],

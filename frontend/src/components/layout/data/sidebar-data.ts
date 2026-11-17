@@ -46,7 +46,12 @@ export const sidebarData: SidebarData = {
     {
       title: id.nav.groups.system,
       items: [
-        { title: id.nav.items.devices, url: '/devices', icon: Cpu },
+        {
+          title: id.nav.items.devices,
+          url: '/devices',
+          icon: Cpu,
+          adminOnly: true,
+        },
         {
           title: id.nav.items.settings,
           url: '/settings',

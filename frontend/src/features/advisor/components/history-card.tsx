@@ -1,6 +1,7 @@
 import { type UseQueryResult } from '@tanstack/react-query'
 import { id } from '@/locales/id'
 import { formatDayTime } from '@/lib/format-time'
+import { plantIds, type PlantId } from '@/lib/plants'
 import { Card } from '@/components/ui/card'
 import {
   Select,
@@ -22,8 +23,8 @@ import { EmptyState } from '@/components/empty-state'
 import { PaginationBar } from '@/components/pagination-bar'
 import { QueryBoundary } from '@/components/query-boundary'
 import { SegmentedControl } from '@/components/segmented-control'
+import { SeverityBadge } from '@/components/severity-badge'
 import { StatusBadge } from '@/components/status-badge'
-import { plantIds, type PlantId } from '@/features/dataset/data/dataset'
 import {
   sourceFilters,
   type AdviceFilterPatch,
@@ -32,7 +33,6 @@ import {
   type AdvicePage,
   type SourceFilter,
 } from '../data/advice'
-import { SeverityBadge } from './severity-badge'
 import { TextList } from './text-list'
 
 const ALL = 'all'

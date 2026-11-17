@@ -1,17 +1,23 @@
 import { useState } from 'react'
 import { id } from '@/locales/id'
+import { downloadTextFile } from '@/lib/download'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EmptyState } from '@/components/empty-state'
+import { ExportCsvButton } from '@/components/export-csv-button'
 import { Main } from '@/components/layout/main'
 import { PageHead } from '@/components/page-head'
 import { QueryBoundary } from '@/components/query-boundary'
-import { useSensorHistory, useSensorRows } from './api/sensors-queries'
-import { ExportButton } from './components/export-button'
+import {
+  fetchSensorExport,
+  useSensorHistory,
+  useSensorRows,
+} from './api/sensors-queries'
 import { MetricChartCard } from './components/metric-chart-card'
 import { SensorTableCard } from './components/sensor-table-card'
 import { metricKeys, sensorRanges, type SensorRange } from './data/sensors'
+import { buildExportFilename, buildSensorCsv } from './lib/csv'
 
 const GRID = 'grid grid-cols-1 gap-6 @3xl/content:grid-cols-2'
 
@@ -34,6 +40,15 @@ export function Sensors() {
   const [range, setRange] = useState<SensorRange>('24h')
   const history = useSensorHistory(range)
   const rows = useSensorRows(range)
+
+  async function handleExport() {
+    const samples = await fetchSensorExport(range)
+    downloadTextFile(
+      buildExportFilename(range),
+      buildSensorCsv(samples),
+      'text/csv;charset=utf-8'
+    )
+  }
 
   return (
     <Main className='flex flex-col gap-6 p-6'>
@@ -59,7 +74,7 @@ export function Sensors() {
               ))}
             </TabsList>
           </Tabs>
-          <ExportButton range={range} />
+          <ExportCsvButton onExport={handleExport} />
         </div>
       </div>
 

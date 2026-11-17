@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
+import { plantIds } from '@/lib/plants'
 import { Dataset } from '@/features/dataset'
 import {
   labelFilters,
-  plantIds,
   predictionFilters,
 } from '@/features/dataset/data/dataset'
 

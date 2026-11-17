@@ -9,6 +9,8 @@ type User = {
 type BaseNavItem = {
   title: string
   badge?: string
+  /** Hidden from viewers; the backend still enforces the permission. */
+  adminOnly?: boolean
   icon?: React.ElementType
 }
 

@@ -1,11 +1,8 @@
 import { z } from 'zod'
 import { createFileRoute } from '@tanstack/react-router'
+import { plantIds } from '@/lib/plants'
 import { HistoryView } from '@/features/history'
-import {
-  historyRanges,
-  plantIds,
-  statusFilters,
-} from '@/features/history/data/history'
+import { historyRanges, statusFilters } from '@/features/history/data/history'
 
 const searchSchema = z.object({
   range: z.enum(historyRanges).default('7d').catch('7d'),

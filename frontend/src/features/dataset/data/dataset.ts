@@ -1,4 +1,5 @@
 import { type PlantStatus } from '@/lib/plant-status'
+import { type PlantId, plantIds } from '@/lib/plants'
 
 export const labelClasses = ['normal', 'n_deficiency', 'fe_deficiency'] as const
 export type LabelClass = (typeof labelClasses)[number]
@@ -20,9 +21,6 @@ export const qcStatuses = [
   'needs_check',
 ] as const
 export type QcStatus = (typeof qcStatuses)[number]
-
-export const plantIds = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'] as const
-export type PlantId = (typeof plantIds)[number]
 
 export const predictionFilters = [
   'ok',
@@ -309,7 +307,7 @@ export const DATASET_CSV_HEADER =
 
 /**
  * Plain CSV, deliberately without a BOM or quotes: the file goes straight into
- * pandas, where a BOM would turn the first column into "\ufeffMean_R".
+ * pandas, where a BOM would corrupt the name of the first column.
  */
 export function buildDatasetCsv(now: number = Date.now()): string {
   const rows = usableRecords(now)

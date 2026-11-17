@@ -7,7 +7,7 @@
 | Design source | [`assets/design/nutrify-ui-design.html`](assets/design/nutrify-ui-design.html) (one canvas, 16 artboards) |
 | Images        | [`assets/design/`](assets/design/) (16 PNG, numbered in artboard order)                                   |
 | UI language   | Indonesian (strings live in `frontend/src/locales/id.ts`)                                                 |
-| Last updated  | 2026-11-05                                                                                                |
+| Last updated  | 2026-11-17                                                                                                |
 | Related       | [PRD](PRD.md), [API](API.md), [Rules](Rules.md), [Schema](Schema.md)                                      |
 
 This document turns the visual design into implementation rules: tokens, layout, component
@@ -199,33 +199,36 @@ Sensor values use `in_range` (label "Ideal"), `low` ("Rendah"), `high` ("Tinggi"
 
 Plant labels are `L1` to `L6` ("Lubang" 1 to 6), built from `position`.
 
-Advice severity labels: `info` shows "Info", `warning` shows "Sedang", `critical` shows
-"Tinggi" (proposed mapping; the design shows "Sedang").
+Advice severity labels: `info` shows "Rendah" (info icon), `warning` shows "Sedang" (triangle),
+`critical` shows "Tinggi" (octagon). One shared badge (`SeverityBadge`) is used on the Dashboard,
+History, and Advisor pages.
 
 ## 6. Screens
 
 Each screen lists its contents, the API calls it needs ([API](API.md)), and who can use it.
 All pages handle loading, empty, error, and stale states (section 8).
 
-| Screen                | Route          | Main content                                                                                                                                                                                                                                                            | API                                                                                                                                                               | Access                                  |
-| --------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| Login                 | `/login`       | Email and password form; error state "Gagal masuk"                                                                                                                                                                                                                      | `POST /auth/login`                                                                                                                                                | Public                                  |
-| Dashboard             | `/`            | 4 KPI cards (pH, EC, TDS, water temperature) with ideal-range bar and change vs 1 hour ago; pH and EC chart with ideal band and 1h/24h/7d tabs; plant status map and counts; daily status chart; latest advice; latest alerts; latest observations; model accuracy card | `GET /dashboard/summary`, `GET /sensor-readings`, `GET /advice/latest`, `GET /alerts`, `GET /observations`, `GET /models`                                         | Viewer                                  |
-| Live camera           | `/live-camera` | Annotated video with 6 regions; snapshot, pause, fullscreen; time of last analysis; sensor context; C4.5 result and rule path per plant; comparator agreement; advice                                                                                                   | `GET /camera/stream`, `GET /camera/status`, `POST /camera/captures`, `GET /plants`, `GET /plants/{position}`, `GET /sensor-readings/latest`, `GET /advice/latest` | Viewer (snapshot: admin)                |
-| Plants                | `/plants`      | 3 x 2 plant list; detail for the selected plant: latest photo, leaf segmentation, mean RGB, rule path, status history                                                                                                                                                   | `GET /plants`, `GET /plants/{position}`, `GET /observations`                                                                                                      | Viewer                                  |
-| Reservoir sensors     | `/sensors`     | One chart per metric with ideal band; data table; CSV export                                                                                                                                                                                                            | `GET /sensor-readings`, `GET /settings`                                                                                                                           | Viewer                                  |
-| History               | `/history`     | Observations table with filters (date range, plant, status) and pagination; advice history                                                                                                                                                                              | `GET /observations`, `GET /advice`                                                                                                                                | Viewer                                  |
-| Dataset               | `/dataset`     | Snapshots to label (unlabeled, labeled, all); label control; CSV export; column order note                                                                                                                                                                              | `GET /observations`, `PATCH /observations/{id}/label`, `GET /dataset/summary`, `GET /dataset/export`                                                              | Viewer (view), Admin (label, export)    |
-| Models and evaluation | `/models`      | C4.5 primary and three comparators; metrics table; confusion matrix; rule tree; "try a prediction" form                                                                                                                                                                 | `GET /models`, `GET /models/active/tree`                                                                                                                          | Viewer                                  |
-| Advisor               | `/advisor`     | Advice history with source filter; fallback rules table                                                                                                                                                                                                                 | `GET /advice`, `POST /advice/generate`                                                                                                                            | Viewer (rules read-only for viewer)     |
-| Devices               | `/devices`     | Webcam card; ESP32 card with firmware and last seen; API key reveal and rotate with confirmation                                                                                                                                                                        | `GET /devices`, `POST /devices/{id}/rotate-key`                                                                                                                   | Admin (key section hidden from viewers) |
-| Settings              | `/settings`    | Sensor thresholds; analysis interval; auto-save snapshots; camera calibration with 6 draggable boxes; account; theme (light, dark, system)                                                                                                                              | `GET /settings`, `PUT /settings`, `PUT /auth/password`                                                                                                            | Viewer (account, theme), Admin (rest)   |
+| Screen                | Route        | Main content                                                                                                                                                                                                                                                            | API                                                                                                                                                               | Access                                       |
+| --------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Login                 | `/sign-in`   | Email and password form; error state "Gagal masuk"                                                                                                                                                                                                                      | `POST /auth/login`                                                                                                                                                | Public                                       |
+| Dashboard             | `/dashboard` | 4 KPI cards (pH, EC, TDS, water temperature) with ideal-range bar and change vs 1 hour ago; pH and EC chart with ideal band and 1h/24h/7d tabs; plant status map and counts; daily status chart; latest advice; latest alerts; latest observations; model accuracy card | `GET /dashboard/summary`, `GET /sensor-readings`, `GET /advice/latest`, `GET /alerts`, `GET /observations`, `GET /models`                                         | Viewer                                       |
+| Live camera           | `/live`      | Annotated video with 6 regions; snapshot, pause, fullscreen; time of last analysis; sensor context; C4.5 result and rule path per plant; comparator agreement; advice                                                                                                   | `GET /camera/stream`, `GET /camera/status`, `POST /camera/captures`, `GET /plants`, `GET /plants/{position}`, `GET /sensor-readings/latest`, `GET /advice/latest` | Viewer (snapshot: admin)                     |
+| Plants                | `/plants`    | 3 x 2 plant list; detail for the selected plant: latest photo, leaf segmentation, mean RGB, rule path, status history                                                                                                                                                   | `GET /plants`, `GET /plants/{position}`, `GET /observations`                                                                                                      | Viewer                                       |
+| Reservoir sensors     | `/sensors`   | One chart per metric with ideal band; data table; CSV export                                                                                                                                                                                                            | `GET /sensor-readings`, `GET /settings`                                                                                                                           | Viewer                                       |
+| History               | `/history`   | Observations table with filters (date range, plant, status) and pagination; advice history                                                                                                                                                                              | `GET /observations`, `GET /advice`                                                                                                                                | Viewer                                       |
+| Dataset               | `/dataset`   | Snapshots to label (unlabeled, labeled, all); label control; CSV export; column order note                                                                                                                                                                              | `GET /observations`, `PATCH /observations/{id}/label`, `GET /dataset/summary`, `GET /dataset/export`                                                              | Viewer (view), Admin (label, export)         |
+| Models and evaluation | `/models`    | C4.5 primary and three comparators; metrics table; confusion matrix; rule tree; "try a prediction" form                                                                                                                                                                 | `GET /models`, `GET /models/c45/tree`, `POST /models/predict`                                                                                                     | Viewer                                       |
+| Advisor               | `/advisor`   | Advice history with source filter; fallback rules table (admin edits the suggested actions)                                                                                                                                                                             | `GET /advice`, `GET /advice/rules`, `PUT /advice/rules/{code}`                                                                                                    | Viewer (rules read-only), Admin (edit rules) |
+| Devices               | `/devices`   | Webcam card; ESP32 card with firmware and last seen; API key reveal and rotate with confirmation                                                                                                                                                                        | `GET /devices`, `POST /devices/{id}/rotate-key`                                                                                                                   | Admin (key section hidden from viewers)      |
+| Settings              | `/settings`  | Sensor thresholds; analysis and stabiliser settings; model comparison check; camera calibration with 6 draggable boxes                                                                                                                                                  | `GET /settings`, `PUT /settings`                                                                                                                                  | Viewer (read-only), Admin (edit)             |
 
 Page-level rules:
 
 - The page title block shows a short description and, where relevant, the age of the data
   ("Data terakhir 1 menit lalu").
-- Tables use TanStack Table. Filters sit top left, export top right.
+- Tables use the plain shadcn `Table`. Filters sit top left, export top right. Filters and the
+  page number live in the URL search parameters, so a filtered view can be shared and survives
+  a reload. Paging is done by the server ([API](API.md) section 1.4).
 - The Dashboard "Detail" and "Lihat semua" links go to the matching full page.
 - Rule paths use Indonesian feature labels in the UI (`Mean_G`, `EC`) as they appear in the
   design; the raw feature names come from the API.
@@ -239,17 +242,17 @@ Mapping of each design element to shadcn/ui, from artboard 16.
 | Grouped, collapsible sidebar              | Sidebar                                           | Template shadcn-admin; becomes a Sheet on mobile                   |
 | Header, breadcrumb                        | Breadcrumb, Separator                             |                                                                    |
 | Search `Ctrl+K`                           | Command (CommandDialog)                           |                                                                    |
-| Status chips Webcam, Sensor, Advisor      | Badge (outline)                                   | Dot plus text, not colour alone                                    |
+| Status chips Webcam, Sensor, Advisor      | Custom chip (dot plus text)                       | Dot plus text, not colour alone                                    |
 | Theme toggle, user menu                   | Button (icon), DropdownMenu                       |                                                                    |
 | KPI card                                  | Card, Badge, Chart (Recharts sparkline), Progress | Custom ideal-range bar on top of Progress                          |
 | pH and EC chart, daily bars               | Chart (Recharts LineChart, BarChart)              | `ReferenceArea` for the ideal band                                 |
 | Time range 1 hour, 24 hours, 7 days       | Tabs or ToggleGroup                               |                                                                    |
 | 3 x 2 plant map                           | Card, Badge                                       | Status = colour, icon, text                                        |
-| Observation, history, sensor tables       | Table plus TanStack Table                         | Filters top left, export top right                                 |
-| Date, plant, status filters               | Popover plus Calendar, Select                     |                                                                    |
+| Observation, history, sensor tables       | Table (shadcn) plus `PaginationBar`               | Filters top left, export top right                                 |
+| Date, plant, status filters               | Select (range: today, 7 days, 30 days)            |                                                                    |
 | C4.5 rule path                            | Collapsible or Accordion                          |                                                                    |
 | Advice, alerts                            | Card, Alert                                       | Source label: LLM or fallback rules                                |
-| Dataset label                             | ToggleGroup (single)                              |                                                                    |
+| Dataset label                             | Custom radio group (`LabelPicker`)                |                                                                    |
 | Threshold form, try-a-prediction, account | Form, Input, Label, Select                        |                                                                    |
 | Switch                                    | Switch                                            |                                                                    |
 | Rotate API key confirmation               | AlertDialog or Dialog                             | Destructive actions always need confirmation                       |
@@ -324,7 +327,8 @@ provide. Each needs a decision before the screen is built.
 | 12  | Status "Perlu Dicek" and "Belum ada data"                                                                                                                 | `qc_status` and `current_class = null`                                                             | Mapping in section 5; confirm that `invalid_leaf` should also display as "Perlu Dicek"                                                                                                                                                                                         |
 
 Items 2 to 9 and 11 are additions to [API](API.md) and [Schema](Schema.md); they are written
-into those documents when each screen is built, in the same pull request.
+into those documents when each screen is built, in the same pull request. How the frontend
+resolved each item is recorded in section 13.
 
 ## 12. Implementation notes
 
@@ -333,8 +337,50 @@ into those documents when each screen is built, in the same pull request.
 - Clean the template first: remove pages and dependencies that Nutrify does not use (Tasks,
   Chats, Apps, Users, Clerk authentication), keep the sidebar, header, theme, and command
   components.
-- Replace the template authentication with the backend login (`POST /auth/login`, token in
-  memory and `sessionStorage` or a secure cookie decision recorded in an ADR).
+- Replace the template authentication with the backend login (`POST /auth/login`). The session
+  is kept in `localStorage`; see [ADR 0005](adr/0005-token-in-local-storage.md).
 - Theme choice (light, dark, system) is stored in `localStorage` as a per-viewer convenience,
   wrapped in try and catch.
 - Routes are English paths; labels come from `locales/id.ts`.
+
+## 13. As built: differences from the artboards
+
+The frontend was built page by page with dummy data behind one switch point per query hook (the
+endpoints each hook will call are listed in a comment at its top). This section records where
+the built screens differ from the artboards, and why. Where the artboards and this section
+disagree, this section describes the code.
+
+### 13.1 Application
+
+| Area                | Artboard or earlier text      | As built                                                                                                               | Why                                                                                     |
+| ------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Routes              | `/login`, `/`, `/live-camera` | `/sign-in`, `/dashboard`, `/live`                                                                                      | Routes follow the file-based router; English path names                                 |
+| Tables              | TanStack Table                | Plain `Table` with server paging and URL search parameters                                                             | The tables only filter and page; no client-side sorting or column logic was needed      |
+| Date filter         | Popover with Calendar         | Select: today, 7 days, 30 days                                                                                         | Three ranges cover the use; the Calendar component was removed                          |
+| Header status chips | Static chips                  | Chips read `useServiceStatus`; the real source is `GET /status`, readable by viewers ([API](API.md) section 3)         | `GET /devices` is admin only, but the chips show on every page for every role           |
+| Navigation          | All items for everyone        | The Perangkat item is hidden from viewers (`adminOnly`), in the sidebar and in `Ctrl+K`                                | The page is admin only; the backend still returns `403` if a viewer opens the URL       |
+| Profile menu        | Avatar menu with sign out     | Adds "Ganti kata sandi" (current, new 8 to 128 characters, repeat); a wrong current password shows an inline error     | Account section removed from Settings (see 13.2); name and email are read-only (gap 11) |
+| Error toasts        | English template messages     | Indonesian messages chosen by the API `error.code` ([API](API.md) section 1.3); the developer `message` is never shown | The API `message` is for logs; one table of codes keeps the wording consistent          |
+| Advice severity     | One badge per page            | One shared `SeverityBadge`: info "Rendah", warning "Sedang", critical "Tinggi"                                         | Same meaning must look the same on Dashboard, History, and Advisor                      |
+
+### 13.2 Pages
+
+| Page     | As built                                                                                                                                                                                                                                                                                                                                                                    | Note                                                                                                                                                                                                                           |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Settings | Thresholds, analysis (camera interval, observation store interval, stabiliser window and votes, model comparison switch), and camera calibration with six boxes that can be dragged or moved with the arrow keys. No account or theme section and no "auto-save snapshots" switch. Viewers see the values read-only.                                                        | Both intervals are shown (gap 8). The theme toggle is in the header and the password dialog in the profile menu. Auto-save needs a backend setting first (gap 9).                                                              |
+| Dataset  | Tabs: Belum dilabeli, Sudah dilabeli, Semua; eight snapshots per page; filters for hole and model prediction; a summary tile "Siap dipakai" (labelled and quality `ok`, the exact rows the export contains). Pressing the active label again clears it, and a toast offers to undo. Only admins can label and export.                                                       | The model prediction is only a filter and is never drawn on a card, so it cannot bias the person labelling. Thumbnails are the raw frame cropped by the saved region ([API](API.md) section 7).                                |
+| Models   | Comparison table (accuracy, precision, recall, F1 as macro averages), confusion matrix of C4.5 with the number always printed, the tree as a rules list or a diagram, and "Coba Prediksi" with range checks. A prediction below the confidence threshold is shown as "Perlu Dicek"; comparators show how many agree.                                                        | All values come from the training notebook exports. The threshold (0.6) and the form's starting values are placeholders to replace with the live worker's threshold and real examples.                                         |
+| Advisor  | Advice history with source tabs (Semua, LLM, Aturan Cadangan) and a hole filter; a banner when the latest advice came from the rules; a table of the six fallback rules. Admins can edit the suggested actions of a rule (1 to 5 steps, up to 300 characters each); the condition is fixed and is written from the rule code and the Settings ranges. No "generate" button. | Resolves gap 10 differently from the proposal: rules are editable in version 1, stored in `advice_rules` ([Schema](Schema.md) section 4.10). The wording needs expert review before the demo ([Roadmap](Roadmap.md) risk R10). |
+| Devices  | Admin sees the device cards and the key dialogs; the key is shown once.                                                                                                                                                                                                                                                                                                     | A viewer does not see the page in the menu.                                                                                                                                                                                    |
+
+### 13.3 Still open
+
+- **Comparator agreement.** History, Live camera, and the Models form show how many comparators
+  agree, but no column stores the votes (gap 1). Decide before the model milestone; see
+  [Roadmap](Roadmap.md) section 6.
+- **CSV exports.** Sensors and History build the file in the browser from all rows. A server
+  export endpoint (gap 4) is still needed for large ranges.
+- **Wording.** The sign-in screen says "password"; the profile dialog says "kata sandi". Pick one
+  term before the demo.
+- **Placeholders.** The values listed in section 9 are still dummy data until the matching
+  endpoint is connected.

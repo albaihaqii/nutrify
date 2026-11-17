@@ -5,7 +5,7 @@
 | Product          | Nutrify                                                                          |
 | Version          | 0.1 (draft)                                                                      |
 | Planning horizon | 4 weeks of build after the documentation week                                    |
-| Last updated     | 2026-11-05                                                                       |
+| Last updated     | 2026-11-17                                                                       |
 | Related          | [PRD](PRD.md), [Architecture](Architecture.md), [Design](Design.md), [ML](ML.md) |
 
 This document is the schedule and the status board. It orders the work, names what "done"
@@ -16,17 +16,17 @@ PRD is updated to match.
 
 ## 1. Status
 
-| Area                                                                           | Status                                        |
-| ------------------------------------------------------------------------------ | --------------------------------------------- |
-| Repository, tooling, MySQL, backend skeleton, frontend template running        | Done                                          |
-| Documents: PRD, Architecture, Schema, Rules, API, ML, Domain, Hardware, Design | Done                                          |
-| Documents: ADRs                                                                | Next                                          |
-| Document: Setup                                                                | After the first full run (needs tested steps) |
-| Backend features                                                               | Not started                                   |
-| Frontend features                                                              | Not started                                   |
-| Vision worker, model training                                                  | Not started                                   |
-| Firmware                                                                       | Not started                                   |
-| Real dataset collection                                                        | Not started (see risk R1)                     |
+| Area                                                                           | Status                                                              |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Repository, tooling, MySQL, backend skeleton, frontend template running        | Done                                                                |
+| Documents: PRD, Architecture, Schema, Rules, API, ML, Domain, Hardware, Design | Done                                                                |
+| Documents: ADRs (0001 to 0005)                                                 | Done                                                                |
+| Document: Setup                                                                | After the first full run (needs tested steps)                       |
+| Backend features                                                               | Not started                                                         |
+| Frontend pages                                                                 | Built with dummy data; each is switched to the API in its milestone |
+| Vision worker, model training                                                  | Not started                                                         |
+| Firmware                                                                       | Not started                                                         |
+| Real dataset collection                                                        | Not started (see risk R1)                                           |
 
 ## 2. Strategy
 
@@ -34,6 +34,9 @@ PRD is updated to match.
   appear early instead of at integration.
 - **Backend before frontend pages.** A small backend (schema, seed, login, ingestion) comes
   first so every screen connects to the real API from its first day. No throw-away mock data.
+  _In practice the frontend pages were built first, so the design could be reviewed. Each query
+  hook has one switch point (`mockRequest`) and lists the endpoints it will call, so connecting a
+  page means replacing that call, not rewriting the page ([Design](Design.md) section 13)._
 - **Parallel tracks.** Hardware and data collection start in week 1 and run beside the
   software, because they depend on time and plants, not on code.
 - **Priority order (MoSCoW).** If time runs short, Could items are dropped first, then Should.
@@ -197,34 +200,40 @@ Done when:
 - [ ] `Setup.md` is written from a clean-machine run and verified.
 - [ ] A scripted demonstration runs from start without manual fixes.
 - [ ] Validation items in [Domain](Domain.md) section 9 are reviewed or marked open.
+- [ ] The seeded admin password is changed through `PUT /auth/password` before the demo, and no
+      real password is committed.
+- [ ] The placeholders in [Design](Design.md) section 9 are replaced by real data or an empty
+      state.
 - [ ] A short final report states results, limitations, and future work.
 
 ## 5. Risks
 
-| ID  | Risk                                                                                                 | Effect                   | Mitigation                                                                                                                                                                                                     |
-| --- | ---------------------------------------------------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | Real deficiency samples take time and may be too few (only 2 real nitrogen-deficiency photos so far) | Weak or untestable model | Start collection in week 1; record conditions; report per-class results with the sample counts; never present synthetic data as real performance; agree with the supervisor on how a small dataset is reported |
-| R2  | Lighting or camera drift changes colour                                                              | Model accuracy drops     | Lock camera settings; fixed lighting; recalibrate and retrain when conditions change                                                                                                                           |
-| R3  | Sensor values act as a shortcut for the label                                                        | Misleading accuracy      | Ablation study ([ML](ML.md) section 4.1)                                                                                                                                                                       |
-| R4  | pH and EC probes interfere                                                                           | Noisy readings           | Time-multiplexed measurement; bench test ([Hardware](Hardware.md) section 3.4)                                                                                                                                 |
-| R5  | LLM access or quota unavailable                                                                      | Advisor incomplete       | Rule fallback is the baseline; provider is replaceable                                                                                                                                                         |
-| R6  | The four-week plan is tight                                                                          | Late delivery            | Strict MoSCoW; drop Could, then Should; vertical slices keep a working system at every step                                                                                                                    |
-| R7  | Supervisor expectations differ (primary model, "embedded" wording, LLM role)                         | Rework                   | Confirm early (section 6)                                                                                                                                                                                      |
-| R8  | Webcam does not hold locked settings                                                                 | Inconsistent colour      | Test driver behaviour in week 1 ([Hardware](Hardware.md) section 6.3)                                                                                                                                          |
-| R9  | Windows development setup differs from the final environment                                         | Late surprises           | Keep configuration in `.env`; write and verify `Setup.md` from a clean run                                                                                                                                     |
+| ID  | Risk                                                                                                  | Effect                                   | Mitigation                                                                                                                                                                                                     |
+| --- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Real deficiency samples take time and may be too few (only 2 real nitrogen-deficiency photos so far)  | Weak or untestable model                 | Start collection in week 1; record conditions; report per-class results with the sample counts; never present synthetic data as real performance; agree with the supervisor on how a small dataset is reported |
+| R2  | Lighting or camera drift changes colour                                                               | Model accuracy drops                     | Lock camera settings; fixed lighting; recalibrate and retrain when conditions change                                                                                                                           |
+| R3  | Sensor values act as a shortcut for the label                                                         | Misleading accuracy                      | Ablation study ([ML](ML.md) section 4.1)                                                                                                                                                                       |
+| R4  | pH and EC probes interfere                                                                            | Noisy readings                           | Time-multiplexed measurement; bench test ([Hardware](Hardware.md) section 3.4)                                                                                                                                 |
+| R5  | LLM access or quota unavailable                                                                       | Advisor incomplete                       | Rule fallback is the baseline; provider is replaceable                                                                                                                                                         |
+| R6  | The four-week plan is tight                                                                           | Late delivery                            | Strict MoSCoW; drop Could, then Should; vertical slices keep a working system at every step                                                                                                                    |
+| R7  | Supervisor expectations differ (primary model, "embedded" wording, LLM role)                          | Rework                                   | Confirm early (section 6)                                                                                                                                                                                      |
+| R8  | Webcam does not hold locked settings                                                                  | Inconsistent colour                      | Test driver behaviour in week 1 ([Hardware](Hardware.md) section 6.3)                                                                                                                                          |
+| R9  | Windows development setup differs from the final environment                                          | Late surprises                           | Keep configuration in `.env`; write and verify `Setup.md` from a clean run                                                                                                                                     |
+| R10 | The fallback advice texts and the thresholds were written by the developer, not by an agronomy expert | Wrong or unsafe advice shown in the demo | Ask a hydroponics expert to review the six rule texts and the ranges before the demo ([Domain](Domain.md) section 9); admins can correct a rule text in the Advisor page without a deployment                  |
 
 ## 6. Decisions needed
 
-| Decision                                                                                | Owner                      | Needed by                           |
-| --------------------------------------------------------------------------------------- | -------------------------- | ----------------------------------- |
-| Show or hide comparator agreement in version 1 ([Design](Design.md) section 11, item 1) | Project owner              | Before M5 pages                     |
-| Whether another model may become primary if it wins ([ML](ML.md) section 8.1)           | Supervisor                 | Before M5                           |
-| "Embedded vision" versus webcam and PC                                                  | Supervisor                 | Week 1                              |
-| LLM provider and API access                                                             | Project owner              | Before M6                           |
-| Telegram notifications in or out of version 1                                           | Project owner              | Before M6                           |
-| Valid water temperature and EC ranges                                                   | Agronomy expert or partner | Before M8                           |
-| Webcam and sensor module models                                                         | Project owner              | Week 1                              |
-| Token storage for web login (memory, `sessionStorage`, cookie)                          | Project owner              | Before M2 login, recorded as an ADR |
+| Decision                                                                                | Owner                      | Needed by                                               |
+| --------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------- |
+| Show or hide comparator agreement in version 1 ([Design](Design.md) section 11, item 1) | Project owner              | Before M5 pages                                         |
+| Whether another model may become primary if it wins ([ML](ML.md) section 8.1)           | Supervisor                 | Before M5                                               |
+| "Embedded vision" versus webcam and PC                                                  | Supervisor                 | Week 1                                                  |
+| LLM provider and API access                                                             | Project owner              | Before M6                                               |
+| Telegram notifications in or out of version 1                                           | Project owner              | Before M6                                               |
+| Valid water temperature and EC ranges                                                   | Agronomy expert or partner | Before M8                                               |
+| Webcam and sensor module models                                                         | Project owner              | Week 1                                                  |
+| Token storage for web login                                                             | Project owner              | Decided: [ADR 0005](adr/0005-token-in-local-storage.md) |
+| C4.5 implementation: own `c45.py` ([ML](ML.md) section 6.1) or the chefboost library    | Project owner, supervisor  | Before M5                                               |
 
 ## 7. After version 1 (backlog)
 

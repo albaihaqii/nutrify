@@ -6,7 +6,7 @@
 | Version                | 0.1 (draft)                                                             |
 | Base URL (development) | `http://127.0.0.1:5000/api`                                             |
 | Format                 | JSON over HTTP (except the camera and export endpoints)                 |
-| Last updated           | 2026-11-05                                                              |
+| Last updated           | 2026-11-17                                                              |
 | Related                | [Architecture](Architecture.md), [Schema](Schema.md), [Rules](Rules.md) |
 
 This document is the contract between the backend, the frontend, and the ESP32 firmware.
@@ -99,6 +99,7 @@ first unless stated otherwise.
 | Group        | Method and path                   | Access |
 | ------------ | --------------------------------- | ------ |
 | Health       | `GET /health`                     | Public |
+|              | `GET /status`                     | Viewer |
 | Auth         | `POST /auth/login`                | Public |
 |              | `GET /auth/me`                    | Viewer |
 |              | `PUT /auth/password`              | Viewer |
@@ -122,9 +123,12 @@ first unless stated otherwise.
 |              | `GET /camera/captures`            | Viewer |
 |              | `GET /camera/captures/{id}/image` | Viewer |
 | Models       | `GET /models`                     | Viewer |
-|              | `GET /models/active/tree`         | Viewer |
+|              | `GET /models/c45/tree`            | Viewer |
+|              | `POST /models/predict`            | Viewer |
 | Advice       | `GET /advice`                     | Viewer |
 |              | `GET /advice/latest`              | Viewer |
+|              | `GET /advice/rules`               | Viewer |
+|              | `PUT /advice/rules/{code}`        | Admin  |
 |              | `POST /advice/generate`           | Admin  |
 | Alerts       | `GET /alerts`                     | Viewer |
 |              | `POST /alerts/{id}/acknowledge`   | Viewer |
@@ -150,6 +154,27 @@ Checks that the API and the database respond.
 
 Returns `503` with `{ "status": "degraded", "database": "error" }` when the database is
 unreachable.
+
+### `GET /status` (Viewer)
+
+A cheap summary for the three status chips in the page header (Webcam, Sensor, Penasihat). The
+header shows on every page and polls this endpoint, so it must be light and readable by
+viewers. `GET /devices` is admin only and is not used for this.
+
+```json
+{
+  "webcam": true,
+  "sensor": true,
+  "advisor": true,
+  "checked_at": "2026-11-17T02:40:05.000Z"
+}
+```
+
+| Field     | `true` when                                                                               |
+| --------- | ----------------------------------------------------------------------------------------- |
+| `webcam`  | The latest frame is newer than 10 seconds (same rule as `GET /camera/status`)             |
+| `sensor`  | An active sensor node was seen within `sensor_stale_seconds`                              |
+| `advisor` | An LLM provider is configured and its last call succeeded; `false` means rules are in use |
 
 ## 4. Auth and users
 
@@ -420,18 +445,33 @@ explain the result. Errors: `404 not_found` for a position outside 1 to 6.
 
 ### `GET /observations` (Viewer)
 
-| Parameter           | Description              |
-| ------------------- | ------------------------ |
-| `plant`             | Position 1 to 6          |
-| `from`, `to`        | Time window              |
-| `class`             | Filter by `stable_class` |
-| `qc_status`         | Filter by QC status      |
-| `labeled`           | `true` or `false`        |
-| `page`, `page_size` | Pagination               |
+| Parameter           | Description                                                                   |
+| ------------------- | ----------------------------------------------------------------------------- |
+| `plant`             | Position 1 to 6                                                               |
+| `from`, `to`        | Time window                                                                   |
+| `class`             | Filter by `stable_class`                                                      |
+| `qc_status`         | Filter by QC status                                                           |
+| `labeled`           | `true` or `false`                                                             |
+| `has_image`         | `true`: only observations that have a stored frame (used by the Dataset page) |
+| `page`, `page_size` | Pagination                                                                    |
 
 Each item has the observation fields from [Schema](Schema.md) section 4.6 in the same nested
-shape as `latest_observation` above, plus `plant_position`, `label_class`, `labeled_by`, and
-`labeled_at`.
+shape as `latest_observation` above, plus `plant_position`, `label_class`, `labeled_by`,
+`labeled_at`, and `image`:
+
+```json
+"image": {
+  "url": "/api/camera/captures/77/image",
+  "roi": { "x": 0.08, "y": 0.12, "w": 0.2, "h": 0.3 }
+}
+```
+
+`image` is `null` when the observation has no `capture_id`. `url` is the stored raw frame of
+the capture (open it with `?token=` in an `<img>` tag). `roi` is this plant's region in that
+frame as fractions (0 to 1) of the frame width and height, taken from the capture's
+`roi_config` ([Schema](Schema.md) section 4.5), so it stays correct even if the calibration
+changes later. The Dataset page crops the thumbnail in the browser with this region; the backend
+does not store crops.
 
 ### `PATCH /observations/{id}/label` (Admin)
 
@@ -498,7 +538,8 @@ Returns the latest annotated frame as a single `image/jpeg`.
 
 ### `POST /camera/captures` (Admin)
 
-Saves the current frame to `storage/snapshots/` and creates a `captures` row. Response `201`:
+Saves the current **raw** frame (without the drawn regions and labels) to `storage/snapshots/`
+and creates a `captures` row that also stores a copy of the current `roi_config`. Response `201`:
 
 ```json
 {
@@ -514,44 +555,58 @@ Paginated list: `{ "items": [ { "id", "captured_at", "image_url" } ], ... }`.
 
 ### `GET /camera/captures/{id}/image` (Viewer)
 
-Returns the stored image as `image/jpeg`. Accepts `?token=` for use in `<img>` tags.
+Returns the stored raw frame as `image/jpeg`. Accepts `?token=` for use in `<img>` tags.
 
 ## 10. Models
 
 ### `GET /models` (Viewer)
 
-Reads `ml/models/registry.json`. The active model is the one used at runtime; the others are
-offline comparators.
+Reads `ml/models/registry.json`, which the training notebook writes. Version 1 has one primary
+model (C4.5) and three comparators; the comparators exist only to be compared with it.
 
 ```json
 {
   "active_version": "c45-0.1.0",
-  "items": [
+  "trained_at": "2026-11-20T03:12:00.000Z",
+  "test_size": 120,
+  "features": ["Mean_R", "Mean_G", "Mean_B", "pH", "EC", "Temperature"],
+  "classes": ["normal", "n_deficiency", "fe_deficiency"],
+  "models": [
     {
+      "id": "c45",
       "version": "c45-0.1.0",
-      "algorithm": "c45",
       "role": "primary",
-      "trained_at": "2026-11-20",
-      "features": ["Mean_R", "Mean_G", "Mean_B", "pH", "EC", "Temperature"],
-      "classes": ["normal", "n_deficiency", "fe_deficiency"],
-      "metrics": { "accuracy": 0.0, "macro_f1": 0.0, "per_class": {} }
+      "metrics": { "accuracy": 0.0, "precision": 0.0, "recall": 0.0, "f1": 0.0 }
     },
     {
+      "id": "svm",
       "version": "svm-0.1.0",
-      "algorithm": "svm",
       "role": "comparator",
-      "metrics": {}
+      "metrics": { "accuracy": 0.0, "precision": 0.0, "recall": 0.0, "f1": 0.0 }
     }
+  ],
+  "confusion": [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
   ]
 }
 ```
 
-Metric values above are placeholders; real values come from the registry after training.
-`role` is `primary` or `comparator`.
+- `models[].id` is one of `c45`, `svm`, `naive_bayes`, `random_forest`. `role` is `primary` or
+  `comparator`.
+- Every metric is from 0 to 1, computed on the same test set of `test_size` rows. `precision`,
+  `recall`, and `f1` are macro averages over the three classes.
+- `confusion` belongs to the C4.5 model. Rows are the actual class and columns the predicted
+  class, both in the order of `classes`.
+- Metric values above are placeholders; real values come from the registry after training.
+  Before the first training the endpoint returns `404 not_found`, and the Models page shows an
+  empty state.
 
-### `GET /models/active/tree` (Viewer)
+### `GET /models/c45/tree` (Viewer)
 
-Returns the active C4.5 tree as nested nodes for the rule-visualisation page:
+Returns the trained C4.5 tree as nested nodes, for the rules list and the diagram on the Models
+page. A node with `feature` is a split; a node with `class` is a leaf.
 
 ```json
 {
@@ -559,22 +614,67 @@ Returns the active C4.5 tree as nested nodes for the rule-visualisation page:
   "root": {
     "feature": "mean_g",
     "threshold": 165.5,
-    "left": { "class": "n_deficiency", "samples": 60, "purity": 0.91 },
-    "right": { "class": "normal", "samples": 250, "purity": 0.97 }
+    "left": { "class": "n_deficiency", "samples": 60, "confidence": 0.91 },
+    "right": { "class": "normal", "samples": 250, "confidence": 0.97 }
   }
 }
 ```
+
+`left` holds rows whose value is less than or equal to `threshold`; `right` holds the rest.
+In a leaf, `samples` is the number of training rows that ended there and `confidence` is the
+share of those rows that belong to `class` (the same definition as the observation
+`confidence`). `feature` uses the lowercase names `mean_r`, `mean_g`, `mean_b`, `ph`, `ec`, and
+`temperature`. Returns `404 not_found` before the first training.
+
+### `POST /models/predict` (Viewer)
+
+A what-if for the "Coba Prediksi" form. Nothing is stored.
+
+Request:
+
+```json
+{
+  "features": {
+    "mean_r": 148,
+    "mean_g": 152,
+    "mean_b": 64,
+    "ph": 6.1,
+    "ec": 1.72,
+    "temperature": 24.6
+  }
+}
+```
+
+Response `200`:
+
+```json
+{
+  "class": "normal",
+  "confidence": 0.94,
+  "comparators": [
+    { "model_id": "svm", "class": "normal" },
+    { "model_id": "naive_bayes", "class": "normal" },
+    { "model_id": "random_forest", "class": "n_deficiency" }
+  ]
+}
+```
+
+`class` and `confidence` come from C4.5. Each comparator returns only its class. All six
+features are required. Accepted ranges: `mean_r`, `mean_g`, `mean_b` 0 to 255, `pH` 0 to 14,
+`ec` 0 to 10, `temperature` 0 to 50; anything else returns `422 validation_error` with
+`details.field`. Returns `404 not_found` before the first training.
 
 ## 11. Advice
 
 ### `GET /advice` (Viewer)
 
-| Parameter           | Description                      |
-| ------------------- | -------------------------------- |
-| `plant`             | Position 1 to 6                  |
-| `trigger`           | `plant_status` or `sensor_range` |
-| `from`, `to`        | Time window                      |
-| `page`, `page_size` | Pagination                       |
+| Parameter           | Description                                                     |
+| ------------------- | --------------------------------------------------------------- |
+| `source`            | `llm` or `rules`; leave out for both (Advisor page source tabs) |
+| `plant`             | Position 1 to 6                                                 |
+| `trigger`           | `plant_status` or `sensor_range`                                |
+| `from`, `to`        | Time window                                                     |
+| `page`, `page_size` | Pagination                                                      |
 
 Item shape:
 
@@ -598,11 +698,51 @@ Item shape:
 ```
 
 `summary`, `likely_causes`, and `suggested_actions` are Indonesian. `source` is `llm` or
-`rules`; `rules` means the rule-based fallback produced the advice.
+`rules`; `rules` means the rule-based fallback produced the advice. `plant_position` is `null`
+for advice about the reservoir as a whole (shown as "Tandon").
 
 ### `GET /advice/latest` (Viewer)
 
 Query `plant` (optional). Returns the newest advice item, or `404 not_found` when none exists.
+The web app treats that `404` as "no advice yet", not as an error.
+
+### `GET /advice/rules` (Viewer)
+
+The rule-based fallback advice. Each rule has a fixed condition in the backend
+(`advisor/rules.py`) and suggested actions that an admin may edit.
+
+```json
+{
+  "items": [
+    {
+      "code": "n_deficiency_in_range",
+      "suggested_actions": [
+        "Periksa konsentrasi larutan nutrisi",
+        "Pantau selama 24 jam"
+      ],
+      "updated_at": null,
+      "updated_by": null
+    }
+  ]
+}
+```
+
+`code` is one of `n_deficiency_in_range`, `fe_deficiency`, `ph_out_of_range`,
+`ec_out_of_range`, `temperature_out_of_range`, and `needs_check`. The response always lists all
+six rules: a rule that was never edited returns its default actions from code, with
+`updated_at` and `updated_by` set to `null`. Edited actions are stored in `advice_rules`
+([Schema](Schema.md) section 4.10). The condition text is not part of the response: the web app
+builds it from `code` and the ranges in `GET /settings`.
+
+### `PUT /advice/rules/{code}` (Admin)
+
+Replaces the suggested actions of one rule.
+
+Request: `{ "suggested_actions": ["...", "..."] }`. Rules: 1 to 5 items, each a non-empty string
+of at most 300 characters after trimming. Response `200` with the updated rule. Errors:
+`404 not_found` for an unknown `code`, `422 validation_error` for invalid actions, and
+`403 forbidden` for a viewer. The change applies to advice created after the save; stored
+advice is not rewritten.
 
 ### `POST /advice/generate` (Admin)
 
@@ -611,7 +751,9 @@ Generates advice on demand for a plant or for the current sensor values.
 Request: `{ "trigger": "plant_status", "plant": 3 }` or `{ "trigger": "sensor_range" }`.
 Response `201` with the advice item. The advisor receives measured facts only and never decides
 the plant class. Responses may be reused from the cache (same status and sensor band).
-Limited to one request per plant per minute; otherwise `429 rate_limited`.
+Limited to one request per plant per minute; otherwise `429 rate_limited`. The version 1 web
+app has no button for this; advice is created by the backend when a plant status or sensor
+condition triggers it.
 
 ## 12. Alerts
 

@@ -14,14 +14,15 @@ it. ADRs explain _why_, so the reasons are not lost. How the system works is des
 
 ## Index
 
-| ADR                                    | Title                           | Status   |
-| -------------------------------------- | ------------------------------- | -------- |
-| [0001](0001-flask-and-mysql.md)        | Flask and MySQL for the backend | Accepted |
-| [0002](0002-c45-as-primary-model.md)   | C4.5 as the primary model       | Accepted |
-| [0003](0003-separate-vision-worker.md) | Separate vision worker process  | Accepted |
-| [0004](0004-advice-only-llm.md)        | LLM gives advice only           | Accepted |
+| ADR                                    | Title                                        | Status   |
+| -------------------------------------- | -------------------------------------------- | -------- |
+| [0001](0001-flask-and-mysql.md)        | Flask and MySQL for the backend              | Accepted |
+| [0002](0002-c45-as-primary-model.md)   | C4.5 as the primary model                    | Accepted |
+| [0003](0003-separate-vision-worker.md) | Separate vision worker process               | Accepted |
+| [0004](0004-advice-only-llm.md)        | LLM gives advice only                        | Accepted |
+| [0005](0005-token-in-local-storage.md) | Keep the web login session in `localStorage` | Accepted |
 
-Candidates for later ADRs: web login token storage; comparator consensus at runtime.
+Candidates for later ADRs: comparator consensus at runtime; C4.5 implementation (own code or a library).
 
 ## Template
 

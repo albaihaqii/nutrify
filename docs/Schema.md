@@ -6,7 +6,7 @@
 | Version      | 0.1 (draft)                                                 |
 | Database     | MySQL 8.0 (InnoDB, `utf8mb4`)                               |
 | Migrations   | Flask-Migrate (Alembic), files in `backend/migrations/`     |
-| Last updated | 2026-11-06                                                  |
+| Last updated | 2026-11-17                                                  |
 | Related      | [Architecture](Architecture.md), [API](API.md), [ML](ML.md) |
 
 ## 1. Conventions
@@ -29,6 +29,7 @@ erDiagram
     users ||--o{ observations : labels
     users ||--o{ alerts : acknowledges
     users ||--o{ settings : updates
+    users ||--o{ advice_rules : edits
     devices ||--o{ sensor_readings : sends
     devices ||--o{ captures : produces
     devices ||--o{ alerts : raises
@@ -114,16 +115,23 @@ Six fixed rows (positions 1 to 6) holding the current state of each hole.
 
 ### 4.5 `captures`
 
-Stored snapshots of the full frame (taken periodically or on demand).
+Stored snapshots of the full raw frame, without drawn regions or labels (taken periodically
+or on demand).
 
-| Column      | Type            | Null | Notes                            |
-| ----------- | --------------- | ---- | -------------------------------- |
-| id          | BIGINT UNSIGNED | no   | PK                               |
-| device_id   | BIGINT UNSIGNED | no   | FK `devices.id` (the webcam)     |
-| image_path  | VARCHAR(255)    | no   | Relative to `storage/snapshots/` |
-| captured_at | DATETIME(3)     | no   | UTC                              |
+| Column      | Type            | Null | Notes                                                                                 |
+| ----------- | --------------- | ---- | ------------------------------------------------------------------------------------- |
+| id          | BIGINT UNSIGNED | no   | PK                                                                                    |
+| device_id   | BIGINT UNSIGNED | no   | FK `devices.id` (the webcam)                                                          |
+| image_path  | VARCHAR(255)    | no   | Relative to `storage/snapshots/`                                                      |
+| captured_at | DATETIME(3)     | no   | UTC                                                                                   |
+| roi_config  | JSON            | no   | The six regions in force when the frame was stored, copied from `settings.roi_config` |
 
 Index: `(captured_at)`.
+
+`roi_config` has the same shape as the setting (a list of `{position, x, y, w, h}`, fractions of
+the frame). It is stored with each capture because the calibration can change later, and a
+thumbnail must still be cropped to where the hole was when the frame was taken. Crops are not
+stored; the web app crops the raw frame with the region of the observation's plant.
 
 ### 4.6 `observations`
 
@@ -223,6 +231,21 @@ Default keys:
 | `consensus_enabled`                  | false     | Optional runtime check with a comparator model                                                    |
 | `roi_config`                         | 6 regions | Calibrated hole regions: JSON list of `{position, x, y, w, h}`, normalised to 0 to 1 of the frame |
 
+### 4.10 `advice_rules`
+
+Admin-edited suggested actions for the rule-based fallback advice. The conditions are fixed in
+code (`advisor/rules.py`); only the actions can be changed from the web app.
+
+| Column            | Type            | Null | Notes                                                            |
+| ----------------- | --------------- | ---- | ---------------------------------------------------------------- |
+| code              | VARCHAR(50)     | no   | PK. One of the six rule codes listed in [API](API.md) section 11 |
+| suggested_actions | JSON            | no   | List of 1 to 5 strings, each at most 300 characters              |
+| updated_at        | DATETIME(3)     | no   |                                                                  |
+| updated_by        | BIGINT UNSIGNED | yes  | FK `users.id`                                                    |
+
+A row exists only for a rule that was edited. The API returns the default actions from code for
+every other rule, so the table can start empty.
+
 ## 5. Referential rules
 
 | Relationship                                                    | On delete |
@@ -236,6 +259,7 @@ Default keys:
 | `advice.plant_id`, `advice.observation_id`                      | SET NULL  |
 | `alerts.plant_id`, `alerts.device_id`, `alerts.acknowledged_by` | SET NULL  |
 | `settings.updated_by` to `users`                                | SET NULL  |
+| `advice_rules.updated_by` to `users`                            | SET NULL  |
 
 `plants` and `observations` reference each other, so the foreign key
 `plants.last_observation_id` is added by the migration after both tables exist.
@@ -278,6 +302,8 @@ that already exist are kept.
 - two `devices` rows (`sensor-node-1`, `webcam-1`); the sensor node key is generated at seed
   time and shown once, only its hash is stored,
 - the default `settings` keys above.
+
+The `advice_rules` table starts empty (see section 4.10).
 
 The `viewer` role exists in the schema. Viewer accounts are created later by an admin through
 the API.

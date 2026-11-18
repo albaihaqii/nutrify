@@ -5,7 +5,7 @@
 | Product          | Nutrify                                                                          |
 | Version          | 0.1 (draft)                                                                      |
 | Planning horizon | 4 weeks of build after the documentation week                                    |
-| Last updated     | 2026-11-17                                                                       |
+| Last updated     | 2026-11-19                                                                       |
 | Related          | [PRD](PRD.md), [Architecture](Architecture.md), [Design](Design.md), [ML](ML.md) |
 
 This document is the schedule and the status board. It orders the work, names what "done"
@@ -223,17 +223,19 @@ Done when:
 
 ## 6. Decisions needed
 
-| Decision                                                                                | Owner                      | Needed by                                               |
-| --------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------- |
-| Show or hide comparator agreement in version 1 ([Design](Design.md) section 11, item 1) | Project owner              | Before M5 pages                                         |
-| Whether another model may become primary if it wins ([ML](ML.md) section 8.1)           | Supervisor                 | Before M5                                               |
-| "Embedded vision" versus webcam and PC                                                  | Supervisor                 | Week 1                                                  |
-| LLM provider and API access                                                             | Project owner              | Before M6                                               |
-| Telegram notifications in or out of version 1                                           | Project owner              | Before M6                                               |
-| Valid water temperature and EC ranges                                                   | Agronomy expert or partner | Before M8                                               |
-| Webcam and sensor module models                                                         | Project owner              | Week 1                                                  |
-| Token storage for web login                                                             | Project owner              | Decided: [ADR 0005](adr/0005-token-in-local-storage.md) |
-| C4.5 implementation: own `c45.py` ([ML](ML.md) section 6.1) or the chefboost library    | Project owner, supervisor  | Before M5                                               |
+| Decision                                                                                        | Owner                      | Needed by                                               |
+| ----------------------------------------------------------------------------------------------- | -------------------------- | ------------------------------------------------------- |
+| Show or hide comparator agreement in version 1 ([Design](Design.md) section 11, item 1)         | Project owner              | Before M5 pages                                         |
+| Whether another model may become primary if it wins ([ML](ML.md) section 8.1)                   | Supervisor                 | Before notebook 03 runs                                 |
+| Confirm the selection thresholds of [ML](ML.md) section 8.1 and how to report the small dataset | Supervisor                 | Before notebook 03 runs                                 |
+| Whether `stale_sensor` still blocks classification in version 1 ([ML](ML.md) section 5)         | Project owner              | Before M5                                               |
+| "Embedded vision" versus webcam and PC                                                          | Supervisor                 | Week 1                                                  |
+| LLM provider and API access                                                                     | Project owner              | Before M6                                               |
+| Telegram notifications in or out of version 1                                                   | Project owner              | Before M6                                               |
+| Valid water temperature and EC ranges                                                           | Agronomy expert or partner | Before M8                                               |
+| Webcam and sensor module models                                                                 | Project owner              | Week 1                                                  |
+| Token storage for web login                                                                     | Project owner              | Decided: [ADR 0005](adr/0005-token-in-local-storage.md) |
+| C4.5 implementation: own `c45.py` ([ML](ML.md) section 6.1) or the chefboost library            | Project owner, supervisor  | Decided: own `c45.py`                                   |
 
 ## 7. After version 1 (backlog)
 

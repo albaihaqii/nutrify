@@ -4,7 +4,7 @@
 | ------------ | --------------------------------------------------------------------------------- |
 | Product      | Nutrify                                                                           |
 | Version      | 0.1 (draft)                                                                       |
-| Last updated | 2026-11-05                                                                        |
+| Last updated | 2026-11-19                                                                        |
 | Related      | [PRD](PRD.md), [Schema](Schema.md), [API](API.md), [ML](ML.md), [Rules](Rules.md) |
 
 ## 1. Goals of the architecture
@@ -84,12 +84,12 @@ Rule: routes contain no business logic; services never import Flask request obje
 
 ### 4.3 Vision worker (`backend/app/services/vision/`)
 
-| Module             | Responsibility                                                                          |
-| ------------------ | --------------------------------------------------------------------------------------- |
-| `webcam.py`        | Open the camera, fix exposure and white balance, grab frames                            |
-| `roi.py`           | Load the 6 calibrated regions and crop them from a frame                                |
-| `preprocessing.py` | Resize, blur, HSV conversion, colour threshold, morphology, contour selection, mean RGB |
-| `stabilizer.py`    | Per-hole majority vote over recent results                                              |
+| Module             | Responsibility                                                                                |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| `webcam.py`        | Open the camera, fix exposure and white balance, grab frames                                  |
+| `roi.py`           | Load the 6 calibrated regions and crop them from a frame                                      |
+| `preprocessing.py` | Resize, blur, CIELAB conversion, Otsu threshold on a\*, morphology, masking, mean RGB and Lab |
+| `stabilizer.py`    | Per-hole majority vote over recent results                                                    |
 
 The preprocessing code is shared with the ML workspace (`ml/src`) so training and runtime use
 identical steps. Its parameters are stored in a versioned file next to the model artifacts.

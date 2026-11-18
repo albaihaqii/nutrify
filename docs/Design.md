@@ -7,7 +7,7 @@
 | Design source | [`assets/design/nutrify-ui-design.html`](assets/design/nutrify-ui-design.html) (one canvas, 16 artboards) |
 | Images        | [`assets/design/`](assets/design/) (16 PNG, numbered in artboard order)                                   |
 | UI language   | Indonesian (strings live in `frontend/src/locales/id.ts`)                                                 |
-| Last updated  | 2026-11-17                                                                                                |
+| Last updated  | 2026-11-19                                                                                                |
 | Related       | [PRD](PRD.md), [API](API.md), [Rules](Rules.md), [Schema](Schema.md)                                      |
 
 This document turns the visual design into implementation rules: tokens, layout, component
@@ -384,3 +384,8 @@ disagree, this section describes the code.
   term before the demo.
 - **Placeholders.** The values listed in section 9 are still dummy data until the matching
   endpoint is connected.
+- **Model inputs.** The "Coba Prediksi" form and the example input still show six features
+  including pH, EC, and temperature. Version 1 predicts from colour features only
+  ([ML](ML.md) section 2.1, [API](API.md) section 10), so the form changes to the active
+  model's feature list from `GET /models`. The Models page also needs a short note that the
+  sensors act through the advice rules until version 2.

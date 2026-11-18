@@ -6,7 +6,7 @@
 | Version                | 0.1 (draft)                                                             |
 | Base URL (development) | `http://127.0.0.1:5000/api`                                             |
 | Format                 | JSON over HTTP (except the camera and export endpoints)                 |
-| Last updated           | 2026-11-17                                                              |
+| Last updated           | 2026-11-19                                                              |
 | Related                | [Architecture](Architecture.md), [Schema](Schema.md), [Rules](Rules.md) |
 
 This document is the contract between the backend, the frontend, and the ESP32 firmware.
@@ -509,6 +509,10 @@ Columns: `Mean_R, Mean_G, Mean_B, pH, EC, Temperature, label`, then the traceabi
 `observation_id, plant_position, observed_at`. Optional parameters `from` and `to` limit the
 window. See [Schema](Schema.md) section 7.
 
+The export is the training path of version 2 ([ML](ML.md) section 7.5), where each row pairs
+the leaf colour with the sensor values of the same moment. Version 1 is trained from the image
+dataset described in [ML](ML.md) section 7.1 and does not use this export.
+
 ## 9. Camera
 
 ### `GET /camera/status` (Viewer)
@@ -569,7 +573,7 @@ model (C4.5) and three comparators; the comparators exist only to be compared wi
   "active_version": "c45-0.1.0",
   "trained_at": "2026-11-20T03:12:00.000Z",
   "test_size": 120,
-  "features": ["Mean_R", "Mean_G", "Mean_B", "pH", "EC", "Temperature"],
+  "features": ["Mean_R", "Mean_G", "Mean_B"],
   "classes": ["normal", "n_deficiency", "fe_deficiency"],
   "models": [
     {
@@ -593,6 +597,9 @@ model (C4.5) and three comparators; the comparators exist only to be compared wi
 }
 ```
 
+- `features` is the feature list of the active model, in order. Version 1 uses colour features
+  only (`Mean_R`, `Mean_G`, `Mean_B`, and optionally `Lab_L`, `Lab_a`, `Lab_b`); version 2 adds
+  `pH`, `EC`, and `Temperature` ([ML](ML.md) section 4).
 - `models[].id` is one of `c45`, `svm`, `naive_bayes`, `random_forest`. `role` is `primary` or
   `comparator`.
 - Every metric is from 0 to 1, computed on the same test set of `test_size` rows. `precision`,
@@ -623,8 +630,9 @@ page. A node with `feature` is a split; a node with `class` is a leaf.
 `left` holds rows whose value is less than or equal to `threshold`; `right` holds the rest.
 In a leaf, `samples` is the number of training rows that ended there and `confidence` is the
 share of those rows that belong to `class` (the same definition as the observation
-`confidence`). `feature` uses the lowercase names `mean_r`, `mean_g`, `mean_b`, `ph`, `ec`, and
-`temperature`. Returns `404 not_found` before the first training.
+`confidence`). `feature` uses the lowercase names `mean_r`, `mean_g`, `mean_b`, `lab_l`,
+`lab_a`, `lab_b`, `ph`, `ec`, and `temperature`; only the names in the active feature list
+appear. Returns `404 not_found` before the first training.
 
 ### `POST /models/predict` (Viewer)
 
@@ -637,10 +645,7 @@ Request:
   "features": {
     "mean_r": 148,
     "mean_g": 152,
-    "mean_b": 64,
-    "ph": 6.1,
-    "ec": 1.72,
-    "temperature": 24.6
+    "mean_b": 64
   }
 }
 ```
@@ -659,10 +664,16 @@ Response `200`:
 }
 ```
 
-`class` and `confidence` come from C4.5. Each comparator returns only its class. All six
-features are required. Accepted ranges: `mean_r`, `mean_g`, `mean_b` 0 to 255, `pH` 0 to 14,
-`ec` 0 to 10, `temperature` 0 to 50; anything else returns `422 validation_error` with
-`details.field`. Returns `404 not_found` before the first training.
+`class` and `confidence` come from C4.5. Each comparator returns only its class. The request
+must contain exactly the features of the active model (`features` in `GET /models`), with
+lowercase names. A missing or extra feature returns `422 validation_error` with
+`details.field`. Accepted ranges: `mean_r`, `mean_g`, `mean_b` 0 to 255, `lab_l` 0 to 100,
+`lab_a` and `lab_b` -128 to 127, `ph` 0 to 14, `ec` 0 to 10, `temperature` 0 to 50; anything
+else returns `422 validation_error` with `details.field`. Returns `404 not_found` before the
+first training.
+
+Version 1 takes colour features only, so the sensor inputs of the "Coba Prediksi" form are
+removed until version 2 ([ML](ML.md) section 2.1).
 
 ## 11. Advice
 

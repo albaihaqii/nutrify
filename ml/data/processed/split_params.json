@@ -1,0 +1,72 @@
+{
+  "created_at": "2026-11-19T14:01:34",
+  "features_sha1": "b99f19dd22302bf9ad372c6e7e9a7276e28d11f3",
+  "sklearn": "1.5.2",
+  "strategy": "holdout",
+  "seed": 42,
+  "n_folds": 5,
+  "test_fraction": 0.2,
+  "repeat_seeds": [
+    42,
+    43,
+    44
+  ],
+  "min_groups_per_class": 15,
+  "min_test_groups_per_class": 3,
+  "chosen_holdout_fold": 1,
+  "holdout_deviation_D_k": 0.0474,
+  "groups_per_class": {
+    "normal": 72,
+    "n_deficiency": 20,
+    "fe_deficiency": 44
+  },
+  "partition_counts": {
+    "train": {
+      "normal": {
+        "files": 92,
+        "groups": 57
+      },
+      "n_deficiency": {
+        "files": 70,
+        "groups": 16
+      },
+      "fe_deficiency": {
+        "files": 142,
+        "groups": 35
+      }
+    },
+    "test": {
+      "normal": {
+        "files": 20,
+        "groups": 15
+      },
+      "n_deficiency": {
+        "files": 22,
+        "groups": 4
+      },
+      "fe_deficiency": {
+        "files": 34,
+        "groups": 9
+      }
+    },
+    "external": {
+      "normal": {
+        "files": 8,
+        "groups": 1
+      },
+      "n_deficiency": {
+        "files": 0,
+        "groups": 0
+      },
+      "fe_deficiency": {
+        "files": 0,
+        "groups": 0
+      }
+    }
+  },
+  "reference_distance_d_ref": 0.1009,
+  "test_below_reference_share": 0.0789,
+  "ks_statistic": 0.1217,
+  "ks_pvalue": 0.314,
+  "identical_files_across_groups": 0
+}

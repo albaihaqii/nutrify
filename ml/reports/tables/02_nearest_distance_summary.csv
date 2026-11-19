@@ -1,0 +1,4 @@
+,n,persentil_5,median,persentil_95
+Salinan foto sumber yang sama (latih),236.0,0.2387,0.8718,2.0053
+Foto sumber lain (latih ke latih),304.0,0.1009,0.38,0.9875
+Uji ke latih,76.0,0.0885,0.3444,0.8938

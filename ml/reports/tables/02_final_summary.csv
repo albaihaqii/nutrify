@@ -1,0 +1,12 @@
+item,nilai
+Strategi,holdout
+Lipatan uji terpilih,1
+Berkas latih,304
+Berkas uji,76
+Berkas eksternal (primer),8
+Foto sumber latih,108
+Foto sumber uji,28
+Irisan foto sumber latih dan uji,0
+"Proporsi uji <= d_ref (harapan sekitar 0,05)",0.0789
+p-value KS uji ke latih vs latih ke foto sumber lain,0.314
+Berkas identik lintas foto sumber,0

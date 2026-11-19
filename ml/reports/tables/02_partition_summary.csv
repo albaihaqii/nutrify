@@ -1,0 +1,7 @@
+partition,label,berkas,foto_sumber
+test,Defisiensi Fe,34,9
+test,Defisiensi N,22,4
+test,Normal,20,15
+train,Defisiensi Fe,142,35
+train,Defisiensi N,70,16
+train,Normal,92,57

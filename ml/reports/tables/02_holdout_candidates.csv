@@ -1,0 +1,6 @@
+lipatan,berkas_uji,porsi_uji,foto_normal,foto_n_deficiency,foto_fe_deficiency,selisih_normal,selisih_n_deficiency,selisih_fe_deficiency,D_k,memenuhi_minimum
+0,81,0.2132,13,4,10,0.0108,0.0693,0.0801,0.0801,True
+1,76,0.2,15,4,9,0.0316,0.0474,0.0158,0.0474,True
+2,53,0.1395,14,4,5,0.0638,0.1164,0.1801,0.1801,True
+3,80,0.2105,15,5,8,0.0178,0.0579,0.0757,0.0757,True
+4,90,0.2368,15,3,12,0.017,0.0977,0.1146,0.1146,True

@@ -1,0 +1,4 @@
+pengulangan,seed,satu_lipatan_per_foto_sumber,lima_lipatan_terisi,setiap_kelas_ada_di_setiap_lipatan,min_foto_sumber_per_kelas_lipatan
+fold_r1,42,True,True,True,2
+fold_r2,43,True,True,True,3
+fold_r3,44,True,True,True,2

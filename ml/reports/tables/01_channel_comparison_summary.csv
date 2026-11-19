@@ -1,0 +1,4 @@
+label,median luas a,median luas b,median luas chroma,dice_a_b,dice_a_chroma,dice_b_chroma,menyimpang a,menyimpang b,menyimpang chroma
+normal,0.39,0.388,0.384,0.973,0.955,0.962,2,0,8
+n_deficiency,0.422,0.398,0.407,0.922,0.924,0.995,11,0,0
+fe_deficiency,0.425,0.431,0.432,0.975,0.97,0.985,0,0,0

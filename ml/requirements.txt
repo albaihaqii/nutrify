@@ -1,0 +1,13 @@
+# Machine learning workspace (Python 3.10.6). Versions are pinned so results can be reproduced
+# and so the comparator models saved with joblib load in the backend with the same scikit-learn.
+numpy==1.26.4
+pandas==2.2.3
+scipy==1.13.1
+scikit-learn==1.5.2
+scikit-image==0.24.0
+opencv-python-headless==4.10.0.84
+matplotlib==3.9.2
+pillow==10.4.0
+joblib==1.4.2
+psutil==6.1.0
+ipykernel==6.29.5

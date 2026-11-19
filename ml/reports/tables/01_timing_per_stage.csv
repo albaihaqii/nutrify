@@ -1,0 +1,10 @@
+,rata-rata (ms),simpangan baku (ms),median (ms),persentil 95 (ms)
+baca berkas,10.589,17.833,2.801,53.331
+1 resize,3.858,6.154,1.051,20.332
+2 gaussian blur,0.201,0.046,0.194,0.283
+3 konversi CIELAB,0.343,0.081,0.324,0.514
+4 threshold Otsu,0.455,0.164,0.403,0.822
+5 morfologi,0.8,0.222,0.741,1.082
+6-7 masking + kontur,0.503,0.172,0.446,0.846
+8 ekstraksi warna,1.774,0.276,1.731,2.241
+total (tanpa baca berkas),7.935,6.155,5.222,23.797

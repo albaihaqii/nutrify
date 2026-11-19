@@ -76,17 +76,17 @@ important rule in this document: if the two paths differ, reported accuracy is m
 Each plant hole is a fixed region of interest (ROI) in the frame. The pipeline runs per ROI. The
 training images of version 1 already show one plant each, so step 0 is skipped for them.
 
-| Step | Operation                                                           | Purpose                                      |
-| ---- | ------------------------------------------------------------------- | -------------------------------------------- |
-| 0    | Crop the ROI from the frame (runtime only)                          | Isolate one plant                            |
-| 1    | Resize to 256 x 256 (area interpolation)                            | Make area and speed comparable               |
-| 2    | Gaussian blur, 5 x 5 kernel, sigma computed from the kernel         | Suppress noise before segmentation           |
-| 3    | Convert to CIELAB                                                   | Separate colour from lightness               |
-| 4    | Threshold the a\* channel with Otsu's method                        | Binary mask of leaf pixels (leaf = 1)        |
-| 5    | Morphology: opening, then closing, 5 x 5 ellipse; keep largest blob | Remove specks, fill holes, keep one leaf set |
-| 6    | Apply the mask to the resized, unblurred image                      | Segmented leaf, background removed           |
-| 7    | Find contours and the bounding box                                  | Visual check and quality control only        |
-| 8    | Compute colour features on the masked pixels                        | `Mean_R`, `Mean_G`, `Mean_B`, Lab means      |
+| Step | Operation                                                                               | Purpose                                  |
+| ---- | --------------------------------------------------------------------------------------- | ---------------------------------------- |
+| 0    | Crop the ROI from the frame (runtime only)                                              | Isolate one plant                        |
+| 1    | Resize to 256 x 256 (area interpolation)                                                | Make area and speed comparable           |
+| 2    | Gaussian blur, 5 x 5 kernel, sigma computed from the kernel                             | Suppress noise before segmentation       |
+| 3    | Convert to CIELAB                                                                       | Separate colour from lightness           |
+| 4    | Threshold one colour channel with Otsu's method (a\*, b\*, or chroma)                   | Binary mask of leaf pixels (leaf = 1)    |
+| 5    | Morphology: opening, then closing, 5 x 5 ellipse; keep leaf blobs by the component rule | Remove specks, fill holes, keep the leaf |
+| 6    | Apply the mask to the resized, unblurred image                                          | Segmented leaf, background removed       |
+| 7    | Find contours and the bounding box                                                      | Visual check and quality control only    |
+| 8    | Compute colour features on the masked pixels                                            | `Mean_R`, `Mean_G`, `Mean_B`, Lab means  |
 
 The blur is used only to obtain the mask. Colour features are measured on the unblurred image so
 that blur does not average leaf colour with its surroundings. Step 7 does not change any feature.
@@ -110,8 +110,9 @@ training.
 
 ### 3.2 Known limitations
 
-- Yellowing leaves have a\* closer to zero than green leaves. Otsu on a\* can therefore cut off
-  exactly the leaf area that shows the deficiency. Section 3.4 describes how this is checked.
+- Yellowing leaves have a\* closer to zero than green leaves, so Otsu on a\* can cut off leaf area.
+  On the project's dataset the opposite also happened: with a\*, background (board, soil) leaked
+  into the masks of `n_deficiency` photos. Section 3.4 describes how the channel is chosen.
 - Close-up photos can leak background into the mask; the leaf area ratio check (section 5)
   flags these.
 - Colour depends on lighting. Locked camera settings reduce this but do not remove it; a new
@@ -143,18 +144,41 @@ $$
 
 where $\omega_{0}, \omega_{1}$ are the shares of pixels below and above $t$, and
 $\mu_{0}, \mu_{1}$ are their mean values. Green leaf pixels have a low a\*, so the leaf is the
-class below the threshold. Otsu is implemented in `ml/src/` and verified against the OpenCV and
+class below the threshold; for the b\* and chroma channels the leaf is the class above it. Otsu is implemented in `ml/src/` and verified against the OpenCV and
 scikit-image implementations on the dataset images.
 
 ### 3.4 Mask quality check
 
-Before any model is trained, notebook 01 compares masks per class on a fixed sample of images.
-The comparison uses the mask area ratio and a visual overlay, never model accuracy.
+Before any model is trained, notebook 01 chooses the segmentation channel and the component rule
+from mask quality only, never from model accuracy. Every Roboflow image is segmented with each
+channel (a\*, b\*, and chroma $C^{*} = \sqrt{a^{*2} + b^{*2}}$).
 
-- If the a\* mask cuts yellow or pale areas of `n_deficiency` leaves, the alternatives are the
-  b\* channel and a combination of a\* and b\*. The channel is chosen once, from mask quality
-  only, and then frozen for training and runtime.
-- Images whose mask area ratio is outside the limits become `invalid_leaf` and are excluded.
+- **Channel.** An image counts as a disagreement when the lowest pairwise Dice coefficient between
+  the three masks is below 0.85. In that case the channel with the lowest mean Dice against the
+  other two is the outlier. For each channel, the share of outlier images is computed per class,
+  and the channel is scored by its worst class, so a failure concentrated in one class is not
+  hidden by the others. Channels within 0.05 of the best score are tied, and the tie is broken in
+  the order a\*, b\*, chroma.
+- **Component rule.** `largest` keeps only the largest blob after morphology. `relative` keeps every
+  blob whose area is at least 5 percent of the largest blob, so leaves that are separated in the
+  image are not dropped. The notebook reports how much mask area each rule gives and shows the
+  affected images; the rule is then fixed by the project owner.
+- The chosen channel and component rule are frozen for training and runtime and stored in the
+  registry.
+- Images whose mask area ratio is outside the limits (section 5) become `invalid_leaf`.
+
+Decisions from the full run on the project's data (380 Roboflow images):
+
+- **Channel b\*.** Worst-class share of outlier images: a\* 0.120 (`n_deficiency`, where the board
+  and soil leaked into 11 masks), chroma 0.071 (`normal`), b\* 0.
+- **Component rule `relative`** (5 percent of the largest blob). The mask area grows by more than
+  10 percent in 3 to 9 percent of the images, and the added blobs are real leaves.
+- **Area limits with k = 3:** 0.02 to 0.825, no image removed. With k = 1.5 the limits 0.174 to
+  0.648 would have removed 19 images, all of them valid framing variants (wide shots and
+  close-ups). The limits come from close-up photos and are recalculated on webcam data before
+  they are used at runtime.
+- **Result:** 380 of 380 images pass quality control. Independent source photos: 72 (`normal`),
+  20 (`n_deficiency`), 44 (`fe_deficiency`).
 
 ## 4. Features
 
@@ -212,16 +236,16 @@ mask comparison (section 3.4) address it.
 
 `ml/data/processed/features.csv`, written by notebook 01:
 
-| Column                       | Meaning                                                     |
-| ---------------------------- | ----------------------------------------------------------- |
-| `image_id`                   | File name of the image                                      |
-| `source_group`               | Source photo, taken from the file name prefix               |
-| `label`                      | Class code                                                  |
-| `origin`                     | `roboflow` or `primary`                                     |
-| `qc_status`                  | `ok` or `invalid_leaf`                                      |
-| `mask_area_ratio`            | Leaf pixels divided by all pixels, for quality control only |
-| `Mean_R`, `Mean_G`, `Mean_B` | Colour features                                             |
-| `Lab_L`, `Lab_a`, `Lab_b`    | Lab colour features                                         |
+| Column                       | Meaning                                                        |
+| ---------------------------- | -------------------------------------------------------------- |
+| `image_id`                   | File name of the image                                         |
+| `source_group`               | Class plus file name prefix (`n_deficiency:203`), or `primary` |
+| `label`                      | Class code                                                     |
+| `origin`                     | `roboflow` or `primary`                                        |
+| `qc_status`                  | `ok` or `invalid_leaf`                                         |
+| `mask_area_ratio`            | Leaf pixels divided by all pixels, for quality control only    |
+| `Mean_R`, `Mean_G`, `Mean_B` | Colour features                                                |
+| `Lab_L`, `Lab_a`, `Lab_b`    | Lab colour features                                            |
 
 `ml/data/processed/splits.csv`, written by notebook 02:
 
@@ -244,7 +268,8 @@ A frame result is stored with a `qc_status` and excluded from datasets unless it
 | `needs_check`  | Classified, but confidence below the review threshold                                     | Kept, shown for review           |
 
 The leaf area limits are derived from the mask area ratios of the training images in notebook 01
-and stored in the registry, not hard-coded. The confidence threshold is calibrated on the
+(Tukey fences, Q1 minus k IQR and Q3 plus k IQR with k = 3, bounded to 0.02 and 0.98) and stored in the
+registry, not hard-coded. The confidence threshold is calibrated on the
 validation folds.
 
 Version 1 does not use sensor values for classification, so `stale_sensor` mainly protects the
@@ -393,8 +418,13 @@ The out-of-bag error is reported against the number of trees.
 
 - Roboflow applies augmentation to the `train` split, so one source photo appears several times
   with flips, rotations, or brightness changes. The file name prefix before `_png` (for
-  example `203`) identifies the source photo. Notebook 01 counts the real number of
-  independent source photos per class; that count, not the number of files, is the sample size.
+  example `203`) identifies the source photo inside its class folder. The numbering can restart
+  in each class, so a source group is the class plus the prefix (`n_deficiency:203`). Notebook 01
+  counts the real number of independent source photos per class and checks for identical files
+  across classes; that count, not the number of files, is the sample size.
+- Neighbouring numbers (for example `243` and `244`) may show the same plant photographed in
+  sequence. Notebook 02 checks this and, once the project team confirms it, groups neighbouring
+  numbers into blocks, so that near-identical frames never fall on both sides of a split.
 - The eight own images are one group. They are excluded from training and testing and serve only
   as a check that the pipeline gives plausible colour values on the project's webcam.
 - The dataset is frozen before modelling. Notebook 01 writes a manifest (file names and counts
@@ -562,8 +592,10 @@ values.
       "preprocessing": {
         "resize": [256, 256],
         "blur_kernel": 5,
-        "segmentation_channel": "a",
+        "segmentation_channel": null,
         "threshold": "otsu",
+        "component_rule": null,
+        "min_component_ratio": 0.05,
         "morphology": {
           "kernel": "ellipse",
           "size": 5,
@@ -589,8 +621,8 @@ values.
 }
 ```
 
-`null` means "written by the notebook". The leaf area limits and the segmentation channel are
-results of notebook 01. A version 2 entry lists the sensor columns in `features`. Each version is
+`null` means "written by the notebook". The leaf area limits, the segmentation channel, and the
+component rule are results of notebook 01. A version 2 entry lists the sensor columns in `features`. Each version is
 immutable; retraining creates a new version.
 
 ## 10. Workspace layout
@@ -628,15 +660,15 @@ are loaded, and the scikit-learn version is pinned and recorded.
 Preprocessing and modelling are separate. They meet only through `features.csv` and
 `splits.csv`.
 
-| Notebook           | Input                        | Output                                      |
-| ------------------ | ---------------------------- | ------------------------------------------- |
-| `01_preprocessing` | Images in `ml/data/raw/`     | `features.csv`, manifest, mask figures      |
-| `02_dataset_split` | `features.csv`               | `splits.csv`, class and group audit         |
-| `03_c45`           | `features.csv`, `splits.csv` | Results JSON, pruning comparison, tree JSON |
-| `04_svm`           | `features.csv`, `splits.csv` | Results JSON, kernel comparison             |
-| `05_naive_bayes`   | `features.csv`, `splits.csv` | Results JSON                                |
-| `06_random_forest` | `features.csv`, `splits.csv` | Results JSON                                |
-| `07_comparison`    | All results, test partition  | Final test evaluation, ablation, registry   |
+| Notebook           | Input                        | Output                                                              |
+| ------------------ | ---------------------------- | ------------------------------------------------------------------- |
+| `01_preprocessing` | Images in `ml/data/raw/`     | `features.csv`, `preprocessing_params.json`, manifest, mask figures |
+| `02_dataset_split` | `features.csv`               | `splits.csv`, class and group audit                                 |
+| `03_c45`           | `features.csv`, `splits.csv` | Results JSON, pruning comparison, tree JSON                         |
+| `04_svm`           | `features.csv`, `splits.csv` | Results JSON, kernel comparison                                     |
+| `05_naive_bayes`   | `features.csv`, `splits.csv` | Results JSON                                                        |
+| `06_random_forest` | `features.csv`, `splits.csv` | Results JSON                                                        |
+| `07_comparison`    | All results, test partition  | Final test evaluation, ablation, registry                           |
 
 Notebooks 03 to 06 read only the train partition. Each runs both feature sets A1 and A2 and
 saves the out-of-fold predictions. Notebook 07 refits each model with the locked parameters,
@@ -645,16 +677,13 @@ writes the registry.
 
 ### 10.2 Notebook conventions
 
-- The text of the notebooks is Indonesian, like the web app. Code, file names, and column names
-  are English.
-- Headings: the notebook title and its main parts use `###`, subsections `####`, and deeper
-  levels `#####` and `######`.
-- Formulas are written in LaTeX, each defined right after it, with the same symbols in every
-  notebook.
-- Every code cell is preceded by a markdown cell that says what it does, and every table or
-  figure is followed by an interpretation.
-- Each notebook starts with its goal, inputs, outputs, seed, and library versions, and ends with
-  a summary and the files handed to the next notebook.
+- Notebooks contain only headings, formulas, and code. Descriptions and interpretation of results
+  are given in the discussion with the project owner and in the report, not inside the notebook.
+- The headings and formula legends are Indonesian, like the web app. Code, file names, and
+  column names are English.
+- Headings: the notebook title uses `###`, its chapters `####`, subsections `#####`, and deeper
+  levels `######`.
+- Formulas are written in LaTeX, with the same symbols in every notebook.
 - No placeholders: a notebook states only what it has computed.
 - Functions live in `ml/src/`, so a notebook cell calls them instead of containing long code.
 - Seed 42 everywhere; repeated cross-validation uses 42, 43, and 44.

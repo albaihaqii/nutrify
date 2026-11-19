@@ -1,0 +1,43 @@
+{
+  "created_at": "2026-11-19T08:12:30",
+  "seed": 42,
+  "pipeline": {
+    "resize": 256,
+    "blur_kernel": 5,
+    "morphology_size": 5,
+    "segmentation_channel": "b",
+    "component_rule": "relative",
+    "min_component_ratio": 0.05,
+    "min_leaf_area_ratio": 0.02,
+    "max_leaf_area_ratio": 0.825
+  },
+  "selection": {
+    "segmentation_channel_setting": "b",
+    "channel_outlier_counts": {
+      "a": 13,
+      "b": 0,
+      "chroma": 8
+    },
+    "channel_tie_margin_share": 0.05,
+    "channel_worst_class_share": {
+      "a": 0.1196,
+      "b": 0.0,
+      "chroma": 0.0714
+    },
+    "component_rule": "relative",
+    "tukey_k": 3.0
+  },
+  "libraries": {
+    "python": "3.10.6",
+    "numpy": "1.26.4",
+    "opencv": "4.10.0",
+    "scikit_image": "0.24.0",
+    "pandas": "2.2.3"
+  },
+  "dataset": {
+    "files": 388,
+    "roboflow_files": 380,
+    "primary_files": 8,
+    "manifest_sha1": "ad8433fffe733d4da01783e1a7750799ebb33ac6"
+  }
+}

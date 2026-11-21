@@ -1,0 +1,9 @@
+item,nilai
+Himpunan fitur,A1
+Parameter,{'var_smoothing': 0.001}
+F1 makro validasi (rata-rata 15 lipatan),0.596
+SD F1 makro lipatan,0.0621
+Recall Normal,0.6449
+Recall Defisiensi N,0.8143
+Recall Defisiensi Fe,0.4319
+Prediksi per sampel (ms),0.0719

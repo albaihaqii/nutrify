@@ -1,0 +1,6 @@
+,estimate,low,high
+F1 makro,0.703,0.6333,0.7592
+Akurasi,0.6996,0.6338,0.7626
+Recall Defisiensi N,0.7762,0.5903,0.928
+Recall Defisiensi Fe,0.7864,0.7303,0.8439
+Recall Normal,0.5072,0.4023,0.6154

@@ -1,0 +1,7 @@
+pengukuran,nilai,simpangan_baku,satuan
+Praproses per citra,7.935,6.155,ms
+Pelatihan model akhir,0.0049,0.0029,detik
+Penalaan A1 (80 konfigurasi x 15 lipatan),12.7508,,detik
+Penalaan A2 (80 konfigurasi x 15 lipatan),7.4812,,detik
+Prediksi per sampel (kelas C45Classifier),0.0032,0.0005,ms
+"Prediksi per sampel (dari JSON, pustaka standar)",0.0009,0.0002,ms

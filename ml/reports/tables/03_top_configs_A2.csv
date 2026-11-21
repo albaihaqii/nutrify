@@ -1,0 +1,11 @@
+,varian,kedalaman,min_samples_leaf,confidence_factor,val_f1_mean,val_f1_sd,leaves_mean
+44,Pra + pasca,5,2,0.05,0.7307,0.1118,12.0
+45,Pra + pasca,5,2,0.1,0.7265,0.1083,12.3333
+56,Pra + pasca,6,2,0.05,0.7253,0.1005,14.0667
+57,Pra + pasca,6,2,0.1,0.7248,0.0989,14.8667
+72,Pra + pasca,tak terbatas,5,0.05,0.7244,0.1118,10.8667
+60,Pra + pasca,6,5,0.05,0.7229,0.1142,10.6
+48,Pra + pasca,5,5,0.05,0.7228,0.124,9.6
+68,Pra + pasca,tak terbatas,2,0.05,0.7223,0.0995,15.7333
+46,Pra + pasca,5,2,0.25,0.722,0.1112,13.2
+47,Pra + pasca,5,2,0.4,0.722,0.1112,13.2

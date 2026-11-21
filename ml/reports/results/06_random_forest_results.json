@@ -1,0 +1,160 @@
+{
+  "created_at": "2026-11-21T08:36:38",
+  "model": "06_random_forest",
+  "seed": 42,
+  "libraries": {
+    "python": "3.10.6",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scikit_learn": "1.5.2"
+  },
+  "hardware": {
+    "Laptop": "Lenovo LOQ 15IAX9",
+    "CPU": "Intel Core i5-12450HX, 2.40 GHz",
+    "RAM": "12 GB DDR5 (11,7 GB dapat dipakai)",
+    "GPU": "Tidak dipakai (RTX 3050 tersedia, scikit-learn berjalan di CPU)",
+    "Sistem": "Windows 11 Home, 64-bit"
+  },
+  "data": {
+    "train_rows": 304,
+    "train_groups": 108,
+    "fold_columns": [
+      "fold_r1",
+      "fold_r2",
+      "fold_r3"
+    ]
+  },
+  "grid": {
+    "configurations": 27
+  },
+  "feature_set": {
+    "selected": "A1",
+    "features": [
+      "Mean_R",
+      "Mean_G",
+      "Mean_B"
+    ],
+    "source": "03_c45_results.json"
+  },
+  "best_config": {
+    "A1": {
+      "params": {
+        "n_estimators": 500,
+        "max_depth": 5,
+        "min_samples_leaf": 2
+      },
+      "val_macro_f1_mean": 0.7224532040119527,
+      "val_macro_f1_sd": 0.08638741203850528,
+      "train_macro_f1_mean": 0.8861967227108025
+    },
+    "A2": {
+      "params": {
+        "n_estimators": 300,
+        "max_depth": 5,
+        "min_samples_leaf": 1
+      },
+      "val_macro_f1_mean": 0.7588819847182745,
+      "val_macro_f1_sd": 0.10964046189457477,
+      "train_macro_f1_mean": 0.9042083814595692
+    }
+  },
+  "selected": {
+    "feature_set": "A1",
+    "params": {
+      "n_estimators": 500,
+      "max_depth": 5,
+      "min_samples_leaf": 2
+    },
+    "oof_metrics": {
+      "macro_f1_fold_mean": 0.7224532040119526,
+      "macro_f1_fold_sd": 0.08638741203850528,
+      "accuracy_fold_mean": 0.7233210940457097,
+      "per_class_recall": {
+        "normal": 0.6304347826086957,
+        "n_deficiency": 0.8428571428571429,
+        "fe_deficiency": 0.7018779342723005
+      }
+    },
+    "bootstrap_95ci": {
+      "F1 makro": {
+        "estimate": 0.7230745884097961,
+        "low": 0.6462152831128413,
+        "high": 0.7820938033254107
+      },
+      "Akurasi": {
+        "estimate": 0.7127192982456141,
+        "low": 0.6461383285302594,
+        "high": 0.7790429215467559
+      },
+      "Recall Defisiensi N": {
+        "estimate": 0.8428571428571429,
+        "low": 0.6414626891041986,
+        "high": 0.9827659263588544
+      },
+      "Recall Defisiensi Fe": {
+        "estimate": 0.7018779342723005,
+        "low": 0.625,
+        "high": 0.7786330944591576
+      },
+      "Recall Normal": {
+        "estimate": 0.6304347826086957,
+        "low": 0.516815749235474,
+        "high": 0.7567664092664093
+      }
+    }
+  },
+  "model_specific": {
+    "oob_error_final": 0.2730263157894737,
+    "oob_accuracy_best_config": {
+      "A1": 0.7172850052888001,
+      "A2": 0.7724787368634694
+    },
+    "mdi_importance": {
+      "Mean_R": 0.48143416343548107,
+      "Mean_G": 0.3339747327642378,
+      "Mean_B": 0.1845911038002811
+    },
+    "tree_depth": {
+      "mean": 5.0,
+      "min": 5,
+      "max": 5
+    },
+    "tree_leaves": {
+      "mean": 20.936,
+      "min": 9,
+      "max": 30
+    },
+    "decision_region_features": [
+      "Mean_R",
+      "Mean_B"
+    ]
+  },
+  "compute": {
+    "preprocessing_ms_per_image": {
+      "mean": 7.935,
+      "sd": 6.155
+    },
+    "final_train_seconds": {
+      "mean": 0.393902849999904,
+      "sd": 0.02191543104270693,
+      "n": 10
+    },
+    "tuning_seconds": {
+      "A1": 161.73080560000017,
+      "A2": 132.66018559999975
+    },
+    "predict_ms_per_sample": {
+      "mean_ms": 8.367207499999328,
+      "sd_ms": 0.307592178063525,
+      "n_samples": 304,
+      "repeats": 5
+    }
+  },
+  "artifacts": {
+    "model": "models\\candidates\\06_random_forest_candidate.joblib",
+    "oof": [
+      "reports/results/06_random_forest_oof_A1.csv",
+      "reports/results/06_random_forest_oof_A2.csv"
+    ]
+  }
+}

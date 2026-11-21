@@ -1,0 +1,6 @@
+label,pred,jumlah
+Defisiensi Fe,Defisiensi N,9
+Defisiensi Fe,Normal,32
+Defisiensi N,Defisiensi Fe,8
+Defisiensi N,Normal,1
+Normal,Defisiensi Fe,21

@@ -1,0 +1,8 @@
+,A1,A2
+parameter,"{'n_estimators': 500, 'max_depth': 5, 'min_samples_leaf': 2}","{'n_estimators': 300, 'max_depth': 5, 'min_samples_leaf': 1}"
+F1 makro (rata-rata lipatan),0.7224532040119526,0.7588819847182745
+SD lipatan,0.08638741203850528,0.1096404618945748
+akurasi,0.7233210940457097,0.7573677816965385
+recall Normal,0.6304347826086957,0.6992753623188406
+recall Defisiensi N,0.8428571428571429,0.8238095238095238
+recall Defisiensi Fe,0.7018779342723005,0.7417840375586855

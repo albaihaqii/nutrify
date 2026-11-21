@@ -1,0 +1,6 @@
+pengukuran,nilai,simpangan_baku,satuan
+Praproses per citra,7.935,6.155,ms
+Pelatihan model akhir,0.3939,0.0219,detik
+Penalaan A1 (27 konfigurasi x 15 lipatan),161.7308,,detik
+Penalaan A2 (27 konfigurasi x 15 lipatan),132.6602,,detik
+Prediksi per sampel,8.3672,0.3076,ms

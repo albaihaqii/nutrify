@@ -1,0 +1,6 @@
+variant,konfigurasi,kedalaman,min_daun,cf
+Tanpa pemangkasan,1,tak terbatas,1,
+Pra-pemangkasan,15,"3, 4, 5, 6, tak terbatas","2, 5, 10",
+Pasca-pemangkasan,4,tak terbatas,1,"0.05, 0.1, 0.25, 0.4"
+Pra + pasca,60,"3, 4, 5, 6, tak terbatas","2, 5, 10","0.05, 0.1, 0.25, 0.4"
+Total,80,,,

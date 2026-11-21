@@ -1,0 +1,5 @@
+config_id,var_smoothing
+0,1e-09
+1,1e-07
+2,1e-05
+3,0.001

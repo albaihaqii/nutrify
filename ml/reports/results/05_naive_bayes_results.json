@@ -1,0 +1,179 @@
+{
+  "created_at": "2026-11-21T08:29:08",
+  "model": "05_naive_bayes",
+  "seed": 42,
+  "libraries": {
+    "python": "3.10.6",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scikit_learn": "1.5.2"
+  },
+  "hardware": {
+    "Laptop": "Lenovo LOQ 15IAX9",
+    "CPU": "Intel Core i5-12450HX, 2.40 GHz",
+    "RAM": "12 GB DDR5 (11,7 GB dapat dipakai)",
+    "GPU": "Tidak dipakai (RTX 3050 tersedia, scikit-learn berjalan di CPU)",
+    "Sistem": "Windows 11 Home, 64-bit"
+  },
+  "data": {
+    "train_rows": 304,
+    "train_groups": 108,
+    "fold_columns": [
+      "fold_r1",
+      "fold_r2",
+      "fold_r3"
+    ]
+  },
+  "grid": {
+    "configurations": 4
+  },
+  "feature_set": {
+    "selected": "A1",
+    "features": [
+      "Mean_R",
+      "Mean_G",
+      "Mean_B"
+    ],
+    "source": "03_c45_results.json"
+  },
+  "best_config": {
+    "A1": {
+      "params": {
+        "var_smoothing": 0.001
+      },
+      "val_macro_f1_mean": 0.5960068438297295,
+      "val_macro_f1_sd": 0.06213910466566722,
+      "train_macro_f1_mean": 0.6043440507760196
+    },
+    "A2": {
+      "params": {
+        "var_smoothing": 0.001
+      },
+      "val_macro_f1_mean": 0.685335774446117,
+      "val_macro_f1_sd": 0.08430320428594798,
+      "train_macro_f1_mean": 0.7086342215746788
+    }
+  },
+  "selected": {
+    "feature_set": "A1",
+    "params": {
+      "var_smoothing": 0.001
+    },
+    "oof_metrics": {
+      "macro_f1_fold_mean": 0.5960068438297293,
+      "macro_f1_fold_sd": 0.06213910466566723,
+      "accuracy_fold_mean": 0.5938906906517485,
+      "per_class_recall": {
+        "normal": 0.644927536231884,
+        "n_deficiency": 0.8142857142857143,
+        "fe_deficiency": 0.431924882629108
+      }
+    },
+    "bootstrap_95ci": {
+      "F1 makro": {
+        "estimate": 0.5989715352843508,
+        "low": 0.5230260277068447,
+        "high": 0.6578400328275318
+      },
+      "Akurasi": {
+        "estimate": 0.5844298245614035,
+        "low": 0.5147535700268696,
+        "high": 0.654917328042328
+      },
+      "Recall Defisiensi N": {
+        "estimate": 0.8142857142857143,
+        "low": 0.6779613935969868,
+        "high": 0.9272727272727272
+      },
+      "Recall Defisiensi Fe": {
+        "estimate": 0.431924882629108,
+        "low": 0.37646925436841405,
+        "high": 0.4963038548752834
+      },
+      "Recall Normal": {
+        "estimate": 0.644927536231884,
+        "low": 0.5306881787802841,
+        "high": 0.75
+      }
+    }
+  },
+  "model_specific": {
+    "class_priors_weighted": {
+      "normal": 0.3333333333333333,
+      "n_deficiency": 0.33333333333333337,
+      "fe_deficiency": 0.33333333333333337
+    },
+    "epsilon": 1.3780530374610456,
+    "means": {
+      "normal": {
+        "Mean_R": 100.2087,
+        "Mean_G": 128.2717,
+        "Mean_B": 54.6739
+      },
+      "n_deficiency": {
+        "Mean_R": 175.95,
+        "Mean_G": 175.3629,
+        "Mean_B": 68.7643
+      },
+      "fe_deficiency": {
+        "Mean_R": 121.7845,
+        "Mean_G": 139.3042,
+        "Mean_B": 65.6873
+      }
+    },
+    "variances": {
+      "normal": {
+        "Mean_R": 525.4682,
+        "Mean_G": 512.4918,
+        "Mean_B": 414.5811
+      },
+      "n_deficiency": {
+        "Mean_R": 834.988,
+        "Mean_G": 483.687,
+        "Mean_B": 724.2881
+      },
+      "fe_deficiency": {
+        "Mean_R": 528.8074,
+        "Mean_G": 489.7704,
+        "Mean_B": 572.2723
+      }
+    },
+    "mean_abs_feature_correlation": {
+      "Normal": 0.7616789673324013,
+      "Defisiensi N": 0.7256179626072788,
+      "Defisiensi Fe": 0.8668430271109924
+    },
+    "decision_region_features": [
+      "Mean_R",
+      "Mean_G"
+    ]
+  },
+  "compute": {
+    "preprocessing_ms_per_image": {
+      "mean": 7.935,
+      "sd": 6.155
+    },
+    "final_train_seconds": {
+      "mean": 0.0017688600001747544,
+      "sd": 0.00036028015705451147,
+      "n": 10
+    },
+    "tuning_seconds": {
+      "A1": 0.18546560000049794,
+      "A2": 0.19338090000019292
+    },
+    "predict_ms_per_sample": {
+      "mean_ms": 0.07185190789390329,
+      "sd_ms": 0.008820453506550287,
+      "n_samples": 304,
+      "repeats": 5
+    }
+  },
+  "artifacts": {
+    "model": "models\\candidates\\05_naive_bayes_candidate.joblib",
+    "oof": [
+      "reports/results/05_naive_bayes_oof_A1.csv",
+      "reports/results/05_naive_bayes_oof_A2.csv"
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+kernel,C,gamma,SV Normal,SV Defisiensi N,SV Defisiensi Fe,SV total,porsi dari data latih
+Linear,1,,60,20,116,196,0.6447
+RBF,100,0.1,47,17,96,160,0.5263
+Polinomial (derajat 3),1,1.0,50,18,95,163,0.5362

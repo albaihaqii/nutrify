@@ -1,0 +1,6 @@
+,mean,std
+own_macro_f1,0.6762,0.0983
+sklearn_macro_f1,0.6902,0.0809
+own_leaves,47.8667,6.8855
+sklearn_leaves,51.1333,7.909
+prediction_agreement,0.8483,0.0688

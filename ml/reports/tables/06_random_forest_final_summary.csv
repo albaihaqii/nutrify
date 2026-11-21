@@ -1,0 +1,9 @@
+item,nilai
+Himpunan fitur,A1
+Parameter,"{'n_estimators': 500, 'max_depth': 5, 'min_samples_leaf': 2}"
+F1 makro validasi (rata-rata 15 lipatan),0.7225
+SD F1 makro lipatan,0.0864
+Recall Normal,0.6304
+Recall Defisiensi N,0.8429
+Recall Defisiensi Fe,0.7019
+Prediksi per sampel (ms),8.3672

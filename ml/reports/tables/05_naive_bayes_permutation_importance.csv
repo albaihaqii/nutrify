@@ -1,0 +1,4 @@
+feature,importance_mean,importance_sd
+Mean_R,0.1615,0.0786
+Mean_G,0.018,0.0258
+Mean_B,-0.0065,0.0303

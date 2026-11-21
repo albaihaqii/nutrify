@@ -1,0 +1,7 @@
+,precision,recall,f1,support
+Normal,0.6635,0.5072,0.5749,276.0
+Defisiensi N,0.8717,0.7762,0.8212,210.0
+Defisiensi Fe,0.6518,0.7864,0.7128,426.0
+Rata-rata makro,0.729,0.6899,0.703,912.0
+Rata-rata berbobot,0.7059,0.6996,0.696,912.0
+Akurasi,,,0.6996,912.0

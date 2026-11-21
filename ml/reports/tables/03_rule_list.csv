@@ -1,0 +1,6 @@
+no,aturan,kelas,sampel,konfidensi,n_normal,n_n_deficiency,n_fe_deficiency
+1,JIKA Mean_R <= 144.55 DAN Mean_R > 95.75,Defisiensi Fe,153,0.6536,44,9,100
+2,JIKA Mean_R > 144.55 DAN Mean_R <= 172.80 DAN Mean_B > 76.15,Defisiensi Fe,25,0.84,1,3,21
+3,JIKA Mean_R > 144.55 DAN Mean_R > 172.80,Defisiensi N,42,1.0,0,42,0
+4,JIKA Mean_R > 144.55 DAN Mean_R <= 172.80 DAN Mean_B <= 76.15,Defisiensi N,19,0.8421,0,16,3
+5,JIKA Mean_R <= 144.55 DAN Mean_R <= 95.75,Normal,65,0.7231,47,0,18

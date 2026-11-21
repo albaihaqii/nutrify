@@ -1,0 +1,11 @@
+item,nilai
+Himpunan fitur terpilih,A1
+Varian terpilih,Pra + pasca
+Parameter,"{'max_depth': 3, 'min_samples_leaf': 10, 'confidence_factor': 0.4}"
+F1 makro validasi (rata-rata 15 lipatan),0.6988
+SD F1 makro lipatan,0.0804
+Recall Defisiensi N,0.7762
+Recall Defisiensi Fe,0.7864
+Jumlah daun pohon akhir,5
+Kedalaman pohon akhir,3
+Prediksi per sampel dari JSON (ms),0.0009

@@ -1,0 +1,4 @@
+fitur,ambang,gain,split_info,gain_ratio,gain >= rata-rata,terpilih,kiri_n,kanan_n
+Mean_R,144.55,0.502639,0.934458,0.537894,True,True,218,86
+Mean_G,151.45,0.319364,0.994865,0.321012,True,False,183,121
+Mean_B,96.0,0.056413,0.420395,0.134191,False,False,279,25

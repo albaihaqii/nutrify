@@ -1,0 +1,4 @@
+syarat,nilai,terpenuhi
+Selisih F1 makro terhadap model terbaik (SVM) <= 0.05,0.1396,False
+Recall Defisiensi N >= 0.7,0.6364,False
+Recall Defisiensi Fe >= 0.7,0.9412,True

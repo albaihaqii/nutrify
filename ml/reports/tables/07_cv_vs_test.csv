@@ -1,0 +1,5 @@
+,F1 makro validasi silang,SD lipatan,F1 makro uji,selisih (uji - validasi)
+C4.5,0.6988,0.0804,0.7035,0.0047
+SVM,0.7623,0.0926,0.8431,0.0809
+Naive Bayes,0.596,0.0621,0.6363,0.0403
+Random Forest,0.7225,0.0864,0.8156,0.0932

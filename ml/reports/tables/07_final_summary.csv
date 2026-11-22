@@ -1,0 +1,13 @@
+item,nilai
+Himpunan fitur,A1
+Berkas uji / foto sumber uji,76 / 28
+"F1 makro uji, C4.5",0.7035
+"F1 makro uji, SVM",0.8431
+"F1 makro uji, Naive Bayes",0.6363
+"F1 makro uji, Random Forest",0.8156
+Model terbaik (F1 makro uji),SVM
+Selisih C4.5 terhadap terbaik,0.1396
+"Recall Defisiensi N, C4.5",0.6364
+"Recall Defisiensi Fe, C4.5",0.9412
+Seluruh syarat 8.1 terpenuhi,False
+Versi aktif di registry,c45-0.1.0

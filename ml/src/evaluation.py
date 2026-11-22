@@ -622,3 +622,63 @@ def plot_decision_regions(model, frame: pd.DataFrame, features: Sequence[str], p
     ax.set_xlabel(pair[0])
     ax.set_ylabel(pair[1])
     ax.set_title(title, fontsize=9)
+
+
+# ------------------------------------------------------------------ model comparison (notebook 07)
+MODEL_COLORS = {"C4.5": "#1b9e77", "SVM": "#d95f02", "Naive Bayes": "#7570b3", "Random Forest": "#e7298a"}
+
+
+def score_matrix(model, X) -> np.ndarray:
+    return model.predict_scores(X) if hasattr(model, "predict_scores") else model.predict_proba(X)
+
+
+def paired_bootstrap_difference(
+    y_true,
+    pred_a,
+    pred_b,
+    groups,
+    metric: Callable[[np.ndarray, np.ndarray], float],
+    n_boot: int = 2000,
+    level: float = 0.95,
+    seed: int = SEED,
+) -> dict:
+    """metric(A) - metric(B) with the same resampled source groups for both models."""
+    rng = np.random.default_rng(seed)
+    y_true, pred_a, pred_b, groups = (np.asarray(v) for v in (y_true, pred_a, pred_b, groups))
+    unique = np.unique(groups)
+    rows_by_group = {g: np.nonzero(groups == g)[0] for g in unique}
+    differences = np.empty(n_boot)
+    for b in range(n_boot):
+        idx = np.concatenate([rows_by_group[g] for g in rng.choice(unique, size=len(unique), replace=True)])
+        differences[b] = metric(y_true[idx], pred_a[idx]) - metric(y_true[idx], pred_b[idx])
+    alpha = (1.0 - level) / 2.0
+    return {
+        "estimate": float(metric(y_true, pred_a) - metric(y_true, pred_b)),
+        "low": float(np.quantile(differences, alpha)),
+        "high": float(np.quantile(differences, 1.0 - alpha)),
+        "share_positive": float(np.mean(differences > 0)),
+    }
+
+
+def plot_model_curves(frames: dict):
+    """ROC (top) and precision-recall (bottom) per class, one line per model."""
+    fig, axes = plt.subplots(2, len(CLASSES), figsize=(5 * len(CLASSES), 8.4))
+    rows = []
+    for name, frame in frames.items():
+        y = label_binarize(frame["label"], classes=list(CLASSES))
+        scores = frame[[f"score_{c}" for c in CLASSES]].to_numpy()
+        for i, c in enumerate(CLASSES):
+            fpr, tpr, _ = roc_curve(y[:, i], scores[:, i])
+            precision, recall, _ = precision_recall_curve(y[:, i], scores[:, i])
+            roc_auc, ap = float(auc(fpr, tpr)), float(average_precision_score(y[:, i], scores[:, i]))
+            axes[0, i].plot(fpr, tpr, color=MODEL_COLORS[name], label=f"{name} (AUC {roc_auc:.3f})")
+            axes[1, i].plot(recall, precision, color=MODEL_COLORS[name], label=f"{name} (AP {ap:.3f})")
+            rows.append({"model": name, "kelas": CLASS_LABEL_ID[c], "AUC": roc_auc, "AP": ap})
+    for i, c in enumerate(CLASSES):
+        axes[0, i].plot([0, 1], [0, 1], color="grey", linestyle="--", linewidth=0.8)
+        axes[0, i].set(title=f"ROC: {CLASS_LABEL_ID[c]}", xlabel="False positive rate", ylabel="True positive rate")
+        axes[1, i].set(title=f"Precision-Recall: {CLASS_LABEL_ID[c]}", xlabel="Recall", ylabel="Precision")
+        axes[0, i].legend(frameon=False, fontsize=8, loc="lower right")
+        axes[1, i].legend(frameon=False, fontsize=8, loc="lower left")
+    fig.tight_layout()
+    return fig, pd.DataFrame(rows)

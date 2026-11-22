@@ -1,0 +1,217 @@
+{
+  "created_at": "2026-11-21T18:42:41",
+  "seed": 42,
+  "libraries": {
+    "python": "3.10.6",
+    "numpy": "1.26.4",
+    "pandas": "2.2.3",
+    "scikit_learn": "1.5.2"
+  },
+  "hardware": {
+    "Laptop": "Lenovo LOQ 15IAX9",
+    "CPU": "Intel Core i5-12450HX, 2.40 GHz",
+    "RAM": "12 GB DDR5 (11,7 GB dapat dipakai)",
+    "GPU": "Tidak dipakai (RTX 3050 tersedia, scikit-learn berjalan di CPU)",
+    "Sistem": "Windows 11 Home, 64-bit"
+  },
+  "feature_set": "A1",
+  "features": [
+    "Mean_R",
+    "Mean_G",
+    "Mean_B"
+  ],
+  "test": {
+    "rows": 76,
+    "source_groups": 28
+  },
+  "test_summary": {
+    "C4.5": {
+      "akurasi": 0.723684,
+      "F1 makro": 0.703491,
+      "precision makro": 0.83415,
+      "recall makro": 0.675847,
+      "recall Normal": 0.45,
+      "recall Defisiensi N": 0.636364,
+      "recall Defisiensi Fe": 0.941176,
+      "F1 Normal": 0.62069,
+      "F1 Defisiensi N": 0.736842,
+      "F1 Defisiensi Fe": 0.752941
+    },
+    "SVM": {
+      "akurasi": 0.842105,
+      "F1 makro": 0.843131,
+      "precision makro": 0.858863,
+      "recall makro": 0.838057,
+      "recall Normal": 0.95,
+      "recall Defisiensi N": 0.681818,
+      "recall Defisiensi Fe": 0.882353,
+      "F1 Normal": 0.926829,
+      "F1 Defisiensi N": 0.769231,
+      "F1 Defisiensi Fe": 0.833333
+    },
+    "Naive Bayes": {
+      "akurasi": 0.631579,
+      "F1 makro": 0.636307,
+      "precision makro": 0.634543,
+      "recall makro": 0.665954,
+      "recall Normal": 0.8,
+      "recall Defisiensi N": 0.727273,
+      "recall Defisiensi Fe": 0.470588,
+      "F1 Normal": 0.680851,
+      "F1 Defisiensi N": 0.666667,
+      "F1 Defisiensi Fe": 0.561404
+    },
+    "Random Forest": {
+      "akurasi": 0.815789,
+      "F1 makro": 0.815629,
+      "precision makro": 0.869875,
+      "recall makro": 0.790998,
+      "recall Normal": 0.75,
+      "recall Defisiensi N": 0.681818,
+      "recall Defisiensi Fe": 0.941176,
+      "F1 Normal": 0.857143,
+      "F1 Defisiensi N": 0.769231,
+      "F1 Defisiensi Fe": 0.820513
+    }
+  },
+  "bootstrap_95ci": {
+    "C4.5|F1 makro": {
+      "estimate": 0.7034909789687199,
+      "low": 0.4916334288834289,
+      "high": 0.8249206349206349
+    },
+    "C4.5|Akurasi": {
+      "estimate": 0.7236842105263158,
+      "low": 0.5714285714285714,
+      "high": 0.8571886446886444
+    },
+    "C4.5|Recall Normal": {
+      "estimate": 0.45,
+      "low": 0.23076923076923078,
+      "high": 0.6666666666666666
+    },
+    "C4.5|Recall Defisiensi N": {
+      "estimate": 0.6363636363636364,
+      "low": NaN,
+      "high": NaN
+    },
+    "C4.5|Recall Defisiensi Fe": {
+      "estimate": 0.9411764705882353,
+      "low": 0.8181818181818182,
+      "high": 1.0
+    },
+    "SVM|F1 makro": {
+      "estimate": 0.8431311236189285,
+      "low": 0.6312342613813202,
+      "high": 0.951499201357692
+    },
+    "SVM|Akurasi": {
+      "estimate": 0.8421052631578947,
+      "low": 0.6986172137503232,
+      "high": 0.9558823529411765
+    },
+    "SVM|Recall Normal": {
+      "estimate": 0.95,
+      "low": 0.896551724137931,
+      "high": 1.0
+    },
+    "SVM|Recall Defisiensi N": {
+      "estimate": 0.6818181818181818,
+      "low": NaN,
+      "high": NaN
+    },
+    "SVM|Recall Defisiensi Fe": {
+      "estimate": 0.8823529411764706,
+      "low": 0.6782738095238101,
+      "high": 1.0
+    },
+    "Naive Bayes|F1 makro": {
+      "estimate": 0.6363070797561279,
+      "low": 0.47232307020417086,
+      "high": 0.7478723298559364
+    },
+    "Naive Bayes|Akurasi": {
+      "estimate": 0.631578947368421,
+      "low": 0.5180722891566265,
+      "high": 0.7656808035714283
+    },
+    "Naive Bayes|Recall Normal": {
+      "estimate": 0.8,
+      "low": 0.6248511904761908,
+      "high": 0.9473684210526315
+    },
+    "Naive Bayes|Recall Defisiensi N": {
+      "estimate": 0.7272727272727273,
+      "low": NaN,
+      "high": NaN
+    },
+    "Naive Bayes|Recall Defisiensi Fe": {
+      "estimate": 0.47058823529411764,
+      "low": 0.34375,
+      "high": 0.6666666666666666
+    },
+    "Random Forest|F1 makro": {
+      "estimate": 0.8156288156288157,
+      "low": 0.6044318181818182,
+      "high": 0.9426704014939304
+    },
+    "Random Forest|Akurasi": {
+      "estimate": 0.8157894736842105,
+      "low": 0.6712328767123288,
+      "high": 0.9473684210526315
+    },
+    "Random Forest|Recall Normal": {
+      "estimate": 0.75,
+      "low": 0.59375,
+      "high": 1.0
+    },
+    "Random Forest|Recall Defisiensi N": {
+      "estimate": 0.6818181818181818,
+      "low": NaN,
+      "high": NaN
+    },
+    "Random Forest|Recall Defisiensi Fe": {
+      "estimate": 0.9411764705882353,
+      "low": 0.8181818181818182,
+      "high": 1.0
+    }
+  },
+  "paired_test_difference": {
+    "SVM - C4.5": {
+      "estimate": 0.13964014465020858,
+      "low": 0.040272679617488635,
+      "high": 0.24135379176155097,
+      "share_positive": 0.9965
+    },
+    "Naive Bayes - C4.5": {
+      "estimate": -0.06718389921259205,
+      "low": -0.2286396981511793,
+      "high": 0.1051170660100792,
+      "share_positive": 0.2215
+    },
+    "Random Forest - C4.5": {
+      "estimate": 0.1121378366600958,
+      "low": 0.04275714890090733,
+      "high": 0.2276895834157895,
+      "share_positive": 1.0
+    }
+  },
+  "selection_rule": {
+    "primary": "C4.5",
+    "best_model": "SVM",
+    "gap_to_best": 0.13964014465020858,
+    "recall_n": 0.6363636363636364,
+    "recall_fe": 0.9411764705882353,
+    "margin": 0.05,
+    "min_recall": 0.7,
+    "all_conditions_met": false,
+    "thresholds_confirmed_with_supervisor": false
+  },
+  "external_accuracy": {
+    "C4.5": 0.0,
+    "SVM": 0.0,
+    "Naive Bayes": 1.0,
+    "Random Forest": 0.0
+  },
+  "active_version": "c45-0.1.0"
+}

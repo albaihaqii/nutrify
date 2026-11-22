@@ -1,0 +1,9 @@
+model,himpunan,F1 makro validasi,SD
+C4.5,A1,0.6988,0.0804
+C4.5,A2,0.7307,0.1118
+SVM,A1,0.7623,0.0926
+SVM,A2,0.7656,0.0927
+Naive Bayes,A1,0.596,0.0621
+Naive Bayes,A2,0.6853,0.0843
+Random Forest,A1,0.7225,0.0864
+Random Forest,A2,0.7589,0.1096

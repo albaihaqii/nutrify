@@ -1,0 +1,13 @@
+model,kelas,precision,recall,f1,support
+C4.5,Normal,1.0,0.45,0.6207,20.0
+C4.5,Defisiensi N,0.875,0.6364,0.7368,22.0
+C4.5,Defisiensi Fe,0.6275,0.9412,0.7529,34.0
+SVM,Normal,0.9048,0.95,0.9268,20.0
+SVM,Defisiensi N,0.8824,0.6818,0.7692,22.0
+SVM,Defisiensi Fe,0.7895,0.8824,0.8333,34.0
+Naive Bayes,Normal,0.5926,0.8,0.6809,20.0
+Naive Bayes,Defisiensi N,0.6154,0.7273,0.6667,22.0
+Naive Bayes,Defisiensi Fe,0.6957,0.4706,0.5614,34.0
+Random Forest,Normal,1.0,0.75,0.8571,20.0
+Random Forest,Defisiensi N,0.8824,0.6818,0.7692,22.0
+Random Forest,Defisiensi Fe,0.7273,0.9412,0.8205,34.0

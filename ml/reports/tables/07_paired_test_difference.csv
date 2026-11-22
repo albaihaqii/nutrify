@@ -1,0 +1,4 @@
+,estimate,low,high,share_positive
+SVM - C4.5,0.1396,0.0403,0.2414,0.9965
+Naive Bayes - C4.5,-0.0672,-0.2286,0.1051,0.2215
+Random Forest - C4.5,0.1121,0.0428,0.2277,1.0

@@ -1,0 +1,5 @@
+,berkas,ukuran (byte)
+C4.5,c45-0.1.0.json,3227
+SVM,svm-0.1.0.joblib,12050
+Naive Bayes,naive-bayes-0.1.0.joblib,1087
+Random Forest,random-forest-0.1.0.joblib,2004049

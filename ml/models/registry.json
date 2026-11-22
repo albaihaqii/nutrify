@@ -1,0 +1,344 @@
+{
+  "active_version": "c45-0.1.0",
+  "models": [
+    {
+      "version": "c45-0.1.0",
+      "algorithm": "c45",
+      "role": "primary",
+      "trained_at": "2026-11-21T18:42:41",
+      "artifact": "c45-0.1.0.json",
+      "features": [
+        "Mean_R",
+        "Mean_G",
+        "Mean_B"
+      ],
+      "classes": [
+        "normal",
+        "n_deficiency",
+        "fe_deficiency"
+      ],
+      "preprocessing": {
+        "resize": [
+          256,
+          256
+        ],
+        "blur_kernel": 5,
+        "segmentation_channel": "b",
+        "threshold": "otsu",
+        "component_rule": "relative",
+        "min_component_ratio": 0.05,
+        "morphology": {
+          "kernel": "ellipse",
+          "size": 5,
+          "order": [
+            "open",
+            "close"
+          ]
+        },
+        "min_leaf_area_ratio": 0.02,
+        "max_leaf_area_ratio": 0.825
+      },
+      "dataset": {
+        "origin": "roboflow",
+        "rows": 304,
+        "source_groups": 108,
+        "test_rows": 76,
+        "test_source_groups": 28,
+        "seed": 42
+      },
+      "compute": {
+        "cpu": "Intel Core i5-12450HX, 2.40 GHz",
+        "train_seconds": 0.004930610000064917,
+        "predict_ms_per_sample": 0.0008558552622162097
+      },
+      "metrics": {
+        "accuracy": 0.7236842105263158,
+        "macro_f1": 0.7034909789687199,
+        "per_class": {
+          "normal": {
+            "precision": 1.0,
+            "recall": 0.45,
+            "f1": 0.6206896551724138
+          },
+          "n_deficiency": {
+            "precision": 0.875,
+            "recall": 0.6363636363636364,
+            "f1": 0.7368421052631579
+          },
+          "fe_deficiency": {
+            "precision": 0.6274509803921569,
+            "recall": 0.9411764705882353,
+            "f1": 0.7529411764705882
+          }
+        }
+      },
+      "parameters": {
+        "max_depth": 3,
+        "min_samples_leaf": 10,
+        "confidence_factor": 0.4
+      },
+      "feature_set": "A1",
+      "cv_macro_f1": 0.6987996345351546,
+      "libraries": {
+        "scikit_learn": "1.5.2",
+        "numpy": "1.26.4"
+      }
+    },
+    {
+      "version": "svm-0.1.0",
+      "algorithm": "svm",
+      "role": "comparator",
+      "trained_at": "2026-11-21T18:42:41",
+      "artifact": "svm-0.1.0.joblib",
+      "features": [
+        "Mean_R",
+        "Mean_G",
+        "Mean_B"
+      ],
+      "classes": [
+        "normal",
+        "n_deficiency",
+        "fe_deficiency"
+      ],
+      "preprocessing": {
+        "resize": [
+          256,
+          256
+        ],
+        "blur_kernel": 5,
+        "segmentation_channel": "b",
+        "threshold": "otsu",
+        "component_rule": "relative",
+        "min_component_ratio": 0.05,
+        "morphology": {
+          "kernel": "ellipse",
+          "size": 5,
+          "order": [
+            "open",
+            "close"
+          ]
+        },
+        "min_leaf_area_ratio": 0.02,
+        "max_leaf_area_ratio": 0.825
+      },
+      "dataset": {
+        "origin": "roboflow",
+        "rows": 304,
+        "source_groups": 108,
+        "test_rows": 76,
+        "test_source_groups": 28,
+        "seed": 42
+      },
+      "compute": {
+        "cpu": "Intel Core i5-12450HX, 2.40 GHz",
+        "train_seconds": 0.0052446099998633144,
+        "predict_ms_per_sample": 0.11199914473656081
+      },
+      "metrics": {
+        "accuracy": 0.8421052631578947,
+        "macro_f1": 0.8431311236189285,
+        "per_class": {
+          "normal": {
+            "precision": 0.9047619047619048,
+            "recall": 0.95,
+            "f1": 0.926829268292683
+          },
+          "n_deficiency": {
+            "precision": 0.8823529411764706,
+            "recall": 0.6818181818181818,
+            "f1": 0.7692307692307693
+          },
+          "fe_deficiency": {
+            "precision": 0.7894736842105263,
+            "recall": 0.8823529411764706,
+            "f1": 0.8333333333333334
+          }
+        }
+      },
+      "parameters": {
+        "kernel": "rbf",
+        "C": 100,
+        "gamma": 0.1
+      },
+      "feature_set": "A1",
+      "cv_macro_f1": 0.7622661610858945,
+      "libraries": {
+        "scikit_learn": "1.5.2",
+        "numpy": "1.26.4"
+      }
+    },
+    {
+      "version": "naive-bayes-0.1.0",
+      "algorithm": "naive-bayes",
+      "role": "comparator",
+      "trained_at": "2026-11-21T18:42:41",
+      "artifact": "naive-bayes-0.1.0.joblib",
+      "features": [
+        "Mean_R",
+        "Mean_G",
+        "Mean_B"
+      ],
+      "classes": [
+        "normal",
+        "n_deficiency",
+        "fe_deficiency"
+      ],
+      "preprocessing": {
+        "resize": [
+          256,
+          256
+        ],
+        "blur_kernel": 5,
+        "segmentation_channel": "b",
+        "threshold": "otsu",
+        "component_rule": "relative",
+        "min_component_ratio": 0.05,
+        "morphology": {
+          "kernel": "ellipse",
+          "size": 5,
+          "order": [
+            "open",
+            "close"
+          ]
+        },
+        "min_leaf_area_ratio": 0.02,
+        "max_leaf_area_ratio": 0.825
+      },
+      "dataset": {
+        "origin": "roboflow",
+        "rows": 304,
+        "source_groups": 108,
+        "test_rows": 76,
+        "test_source_groups": 28,
+        "seed": 42
+      },
+      "compute": {
+        "cpu": "Intel Core i5-12450HX, 2.40 GHz",
+        "train_seconds": 0.0017688600001747544,
+        "predict_ms_per_sample": 0.07185190789390329
+      },
+      "metrics": {
+        "accuracy": 0.631578947368421,
+        "macro_f1": 0.6363070797561279,
+        "per_class": {
+          "normal": {
+            "precision": 0.5925925925925926,
+            "recall": 0.8,
+            "f1": 0.6808510638297872
+          },
+          "n_deficiency": {
+            "precision": 0.6153846153846154,
+            "recall": 0.7272727272727273,
+            "f1": 0.6666666666666666
+          },
+          "fe_deficiency": {
+            "precision": 0.6956521739130435,
+            "recall": 0.47058823529411764,
+            "f1": 0.5614035087719298
+          }
+        }
+      },
+      "parameters": {
+        "var_smoothing": 0.001
+      },
+      "feature_set": "A1",
+      "cv_macro_f1": 0.5960068438297293,
+      "libraries": {
+        "scikit_learn": "1.5.2",
+        "numpy": "1.26.4"
+      }
+    },
+    {
+      "version": "random-forest-0.1.0",
+      "algorithm": "random-forest",
+      "role": "comparator",
+      "trained_at": "2026-11-21T18:42:41",
+      "artifact": "random-forest-0.1.0.joblib",
+      "features": [
+        "Mean_R",
+        "Mean_G",
+        "Mean_B"
+      ],
+      "classes": [
+        "normal",
+        "n_deficiency",
+        "fe_deficiency"
+      ],
+      "preprocessing": {
+        "resize": [
+          256,
+          256
+        ],
+        "blur_kernel": 5,
+        "segmentation_channel": "b",
+        "threshold": "otsu",
+        "component_rule": "relative",
+        "min_component_ratio": 0.05,
+        "morphology": {
+          "kernel": "ellipse",
+          "size": 5,
+          "order": [
+            "open",
+            "close"
+          ]
+        },
+        "min_leaf_area_ratio": 0.02,
+        "max_leaf_area_ratio": 0.825
+      },
+      "dataset": {
+        "origin": "roboflow",
+        "rows": 304,
+        "source_groups": 108,
+        "test_rows": 76,
+        "test_source_groups": 28,
+        "seed": 42
+      },
+      "compute": {
+        "cpu": "Intel Core i5-12450HX, 2.40 GHz",
+        "train_seconds": 0.393902849999904,
+        "predict_ms_per_sample": 8.367207499999328
+      },
+      "metrics": {
+        "accuracy": 0.8157894736842105,
+        "macro_f1": 0.8156288156288157,
+        "per_class": {
+          "normal": {
+            "precision": 1.0,
+            "recall": 0.75,
+            "f1": 0.8571428571428571
+          },
+          "n_deficiency": {
+            "precision": 0.8823529411764706,
+            "recall": 0.6818181818181818,
+            "f1": 0.7692307692307693
+          },
+          "fe_deficiency": {
+            "precision": 0.7272727272727273,
+            "recall": 0.9411764705882353,
+            "f1": 0.8205128205128205
+          }
+        }
+      },
+      "parameters": {
+        "n_estimators": 500,
+        "max_depth": 5,
+        "min_samples_leaf": 2
+      },
+      "feature_set": "A1",
+      "cv_macro_f1": 0.7224532040119526,
+      "libraries": {
+        "scikit_learn": "1.5.2",
+        "numpy": "1.26.4"
+      }
+    }
+  ],
+  "selection": {
+    "rule": "ML.md 8.1",
+    "macro_f1_margin": 0.05,
+    "min_deficiency_recall": 0.7,
+    "thresholds_confirmed_with_supervisor": false,
+    "best_model_by_test_macro_f1": "SVM",
+    "gap_to_best": 0.1396,
+    "all_conditions_met": false
+  }
+}

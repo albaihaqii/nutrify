@@ -1,0 +1,16 @@
+model,sebenarnya,prediksi,jumlah
+C4.5,Defisiensi Fe,Defisiensi N,2
+C4.5,Defisiensi N,Defisiensi Fe,8
+C4.5,Normal,Defisiensi Fe,11
+SVM,Defisiensi Fe,Defisiensi N,2
+SVM,Defisiensi Fe,Normal,2
+SVM,Defisiensi N,Defisiensi Fe,7
+SVM,Normal,Defisiensi Fe,1
+Naive Bayes,Defisiensi Fe,Defisiensi N,10
+Naive Bayes,Defisiensi Fe,Normal,8
+Naive Bayes,Defisiensi N,Defisiensi Fe,3
+Naive Bayes,Defisiensi N,Normal,3
+Naive Bayes,Normal,Defisiensi Fe,4
+Random Forest,Defisiensi Fe,Defisiensi N,2
+Random Forest,Defisiensi N,Defisiensi Fe,7
+Random Forest,Normal,Defisiensi Fe,5

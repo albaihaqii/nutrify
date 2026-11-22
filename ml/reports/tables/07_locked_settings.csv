@@ -1,0 +1,5 @@
+,himpunan fitur,parameter,F1 makro validasi,SD lipatan
+C4.5,A1,"{'max_depth': 3, 'min_samples_leaf': 10, 'confidence_factor': 0.4}",0.6987996345351546,0.08041262891681128
+SVM,A1,"{'kernel': 'rbf', 'C': 100, 'gamma': 0.1}",0.7622661610858945,0.0926143549667347
+Naive Bayes,A1,{'var_smoothing': 0.001},0.5960068438297293,0.06213910466566723
+Random Forest,A1,"{'n_estimators': 500, 'max_depth': 5, 'min_samples_leaf': 2}",0.7224532040119526,0.08638741203850528

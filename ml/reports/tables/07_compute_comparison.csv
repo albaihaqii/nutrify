@@ -1,0 +1,5 @@
+,pelatihan model akhir (detik),penalaan A1 (detik),penalaan A2 (detik),prediksi per sampel (ms),pelatihan ulang notebook ini (detik),praproses per citra (ms),total per citra (ms)
+C4.5,0.0049,12.7508,7.4812,0.0009,0.0086,7.935,7.9359
+SVM,0.0052,6.0661,10.7193,0.112,0.0079,7.935,8.047
+Naive Bayes,0.0018,0.1855,0.1934,0.0719,0.0021,7.935,8.0069
+Random Forest,0.3939,161.7308,132.6602,8.3672,0.4337,7.935,16.3022

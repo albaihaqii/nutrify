@@ -1,0 +1,5 @@
+,akurasi,F1 makro,precision makro,recall makro,recall Normal,recall Defisiensi N,recall Defisiensi Fe,F1 Normal,F1 Defisiensi N,F1 Defisiensi Fe
+C4.5,0.7237,0.7035,0.8342,0.6758,0.45,0.6364,0.9412,0.6207,0.7368,0.7529
+SVM,0.8421,0.8431,0.8589,0.8381,0.95,0.6818,0.8824,0.9268,0.7692,0.8333
+Naive Bayes,0.6316,0.6363,0.6345,0.666,0.8,0.7273,0.4706,0.6809,0.6667,0.5614
+Random Forest,0.8158,0.8156,0.8699,0.791,0.75,0.6818,0.9412,0.8571,0.7692,0.8205

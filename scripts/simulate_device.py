@@ -24,9 +24,22 @@ SCENARIOS = {
     "hot": {"ph": (5.8, 6.3), "ec": (1.6, 1.9), "temperature": (28.0, 31.0)},
 }
 
+# Value bands per metric, used by the "mixed" scenario (low / ideal / high).
+BANDS = {
+    "ph": {"low": (4.8, 5.3), "ideal": (5.8, 6.3), "high": (6.7, 7.3)},
+    "ec": {"low": (0.8, 1.3), "ideal": (1.6, 1.9), "high": (2.2, 2.8)},
+    "temperature": {"low": (15.0, 17.0), "ideal": (22.0, 25.0), "high": (28.0, 31.0)},
+}
+
 
 def make_reading(scenario: str) -> dict[str, float | str]:
-    ranges = SCENARIOS[scenario]
+    if scenario == "mixed":
+        ranges = {
+            metric: random.choice(list(bands.values())) for metric, bands in BANDS.items()
+        }
+        ranges = {metric: ranges[metric] for metric in ("ph", "ec", "temperature")}
+    else:
+        ranges = SCENARIOS[scenario]
     return {
         "ph": round(random.uniform(*ranges["ph"]), 2),
         "ec": round(random.uniform(*ranges["ec"]), 3),
@@ -53,7 +66,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Send simulated sensor readings to Nutrify.")
     parser.add_argument("--base-url", default="http://127.0.0.1:5000/api")
     parser.add_argument("--api-key", default=os.environ.get("NUTRIFY_DEVICE_KEY"))
-    parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="normal")
+    parser.add_argument("--scenario", choices=sorted([*SCENARIOS, "mixed"]), default="normal")
     parser.add_argument("--count", type=int, default=5, help="number of readings to send")
     parser.add_argument("--interval", type=float, default=1.0, help="seconds between readings")
     args = parser.parse_args()

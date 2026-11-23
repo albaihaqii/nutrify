@@ -1,6 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { REALTIME_INTERVAL_MS } from '@/config/realtime'
-import { getMockScenario, mockRequest } from '@/lib/mock-request'
+import { useLatestReading } from '@/features/sensors/api/sensors-queries'
 
 type ServiceStatus = {
   webcam: boolean
@@ -8,20 +6,19 @@ type ServiceStatus = {
   advisor: boolean
 }
 
-// Dummy until the status endpoint exists; the real one replaces queryFn only.
-// The endpoint must be readable by viewers too: the header chips show on every page.
+// The sensor chip is real: it follows the newest reading. The webcam and the
+// advisor have no endpoint yet, so they show offline until those are built.
+// The final version reads GET /api/status (docs/API.md, section 3).
 export function useServiceStatus() {
-  return useQuery({
-    queryKey: ['service-status'],
-    queryFn: () => {
-      const scenario = getMockScenario()
-      const sensorOnline = scenario !== 'offline' && scenario !== 'stale'
-      return mockRequest<ServiceStatus>({
-        webcam: true,
-        sensor: sensorOnline,
-        advisor: true,
-      })
-    },
-    refetchInterval: REALTIME_INTERVAL_MS,
-  })
+  const latest = useLatestReading()
+
+  const data: ServiceStatus | undefined = latest.isPending
+    ? undefined
+    : {
+        webcam: false,
+        sensor: latest.data ? !latest.data.isStale : false,
+        advisor: false,
+      }
+
+  return { data }
 }

@@ -126,7 +126,7 @@ export function MetricChartCard({
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              padding={{ left: 12, right: 12 }}
+              padding={{ left: 12, right: 32 }}
             />
             <YAxis
               domain={[low, high]}

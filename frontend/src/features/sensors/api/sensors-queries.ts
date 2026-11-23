@@ -1,49 +1,98 @@
+import { useMemo } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { REALTIME_INTERVAL_MS, REFRESH_INTERVAL_MS } from '@/config/realtime'
-import { mockRequest } from '@/lib/mock-request'
+import { type BoundaryQuery } from '@/components/query-boundary'
 import {
-  buildSensorHistory,
-  buildSensorRows,
-  emptyHistory,
-  emptyRows,
   type SensorHistory,
   type SensorRange,
   type SensorRows,
   type SensorSample,
 } from '../data/sensors'
+import { fetchHistory, fetchLatest, fetchSensorSettings } from './sensors-api'
 
-// Dummy data for now. Wiring the backend means replacing the mockRequest(...)
-// calls below (GET /api/sensor-readings and GET /api/settings), nothing else.
+/** How many of the newest rows the table shows. */
+const TABLE_ROWS = 20
 
-/** Chart data: one downsampled series per range, plus the ideal ranges. */
-export function useSensorHistory(range: SensorRange) {
+/** Ideal ranges and the stale limit; edited rarely, so refreshed slowly. */
+export function useSensorSettings() {
   return useQuery({
-    queryKey: ['sensors', 'history', range],
-    queryFn: () =>
-      mockRequest<SensorHistory>(buildSensorHistory(range), emptyHistory),
-    placeholderData: keepPreviousData,
-    refetchInterval:
-      range === '1h' ? REALTIME_INTERVAL_MS : REFRESH_INTERVAL_MS,
+    queryKey: ['sensors', 'settings'],
+    queryFn: fetchSensorSettings,
+    refetchInterval: 30_000,
   })
 }
 
-/** Table data: the newest raw rows and how many rows the range holds. */
-export function useSensorRows(range: SensorRange) {
+/** The newest reading; null when the sensor has never sent one. */
+export function useLatestReading() {
   return useQuery({
-    queryKey: ['sensors', 'rows', range],
-    queryFn: () => mockRequest<SensorRows>(buildSensorRows(range), emptyRows),
-    placeholderData: keepPreviousData,
+    queryKey: ['sensors', 'latest'],
+    queryFn: fetchLatest,
     refetchInterval: REALTIME_INTERVAL_MS,
   })
 }
 
-/** Every row of the range, for the CSV export. */
-export async function fetchSensorExport(
+/**
+ * Chart data: one averaged series per range, plus the ideal ranges. Every
+ * chart and table of a range reads the same cached request.
+ */
+export function useSensorHistory(
   range: SensorRange
-): Promise<SensorSample[]> {
-  const history = await mockRequest<SensorHistory>(
-    buildSensorHistory(range),
-    emptyHistory
+): BoundaryQuery<SensorHistory> {
+  const {
+    data: samplesData,
+    isPending: samplesPending,
+    refetch: refetchSamples,
+  } = useQuery({
+    queryKey: ['sensors', 'history', range],
+    queryFn: () => fetchHistory(range),
+    placeholderData: keepPreviousData,
+    refetchInterval:
+      range === '1h' ? REALTIME_INTERVAL_MS : REFRESH_INTERVAL_MS,
+  })
+  const {
+    data: settingsData,
+    isPending: settingsPending,
+    refetch: refetchSettings,
+  } = useSensorSettings()
+
+  return useMemo(
+    () => ({
+      data:
+        samplesData && settingsData
+          ? { samples: samplesData, ideal: settingsData.ideal }
+          : undefined,
+      isPending: samplesPending || settingsPending,
+      refetch: () => Promise.all([refetchSamples(), refetchSettings()]),
+    }),
+    [
+      samplesData,
+      settingsData,
+      samplesPending,
+      settingsPending,
+      refetchSamples,
+      refetchSettings,
+    ]
   )
-  return history.samples
+}
+
+/** Table data: the newest rows of the same series and how many it holds. */
+export function useSensorRows(range: SensorRange): BoundaryQuery<SensorRows> {
+  const history = useSensorHistory(range)
+
+  return useMemo(
+    () => ({
+      ...history,
+      data: history.data && {
+        rows: history.data.samples.slice(-TABLE_ROWS).reverse(),
+        total: history.data.samples.length,
+        ideal: history.data.ideal,
+      },
+    }),
+    [history]
+  )
+}
+
+/** Every row of the range, for the CSV export. */
+export function fetchSensorExport(range: SensorRange): Promise<SensorSample[]> {
+  return fetchHistory(range)
 }

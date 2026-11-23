@@ -9,7 +9,7 @@ const SCENARIOS: MockScenario[] = [
 ]
 
 /** Reads ?mock=... from the URL. Only works in development. */
-export function getMockScenario(): MockScenario | null {
+function getMockScenario(): MockScenario | null {
   if (!import.meta.env.DEV) return null
   const value = new URLSearchParams(window.location.search).get('mock')
   return SCENARIOS.find((scenario) => scenario === value) ?? null

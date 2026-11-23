@@ -1,9 +1,15 @@
 import { type ReactNode } from 'react'
-import { type UseQueryResult } from '@tanstack/react-query'
 import { ErrorAlert } from '@/components/error-alert'
 
+/** What the boundary needs; a query result or a combination of several fits. */
+export type BoundaryQuery<T> = {
+  isPending: boolean
+  data: T | undefined
+  refetch: () => unknown
+}
+
 type QueryBoundaryProps<T> = {
-  query: UseQueryResult<T>
+  query: BoundaryQuery<T>
   skeleton: ReactNode
   empty?: { when: (data: T) => boolean; view: ReactNode }
   children: (data: T) => ReactNode

@@ -23,3 +23,9 @@ export function formatAgo(minutes: number) {
 
   return `${Math.floor(hours / 24)} ${id.time.daysAgo}`
 }
+
+/** "3 detik lalu" below a minute, then minutes, hours and days. */
+export function formatAgeSeconds(seconds: number) {
+  if (seconds < 60) return `${Math.floor(seconds)} ${id.time.secondsAgo}`
+  return formatAgo(seconds / 60)
+}

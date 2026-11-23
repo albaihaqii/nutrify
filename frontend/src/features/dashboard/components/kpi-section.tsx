@@ -8,7 +8,7 @@ import { KpiCardSkeleton } from './kpi-card-skeleton'
 const GRID =
   'grid grid-cols-1 gap-6 @xl/content:grid-cols-2 @5xl/content:grid-cols-4'
 
-export function KpiSection() {
+export function KpiSection({ stale = false }: { stale?: boolean }) {
   const query = useKpiSnapshot()
 
   return (
@@ -35,7 +35,7 @@ export function KpiSection() {
         {(snapshot) => (
           <div className={GRID}>
             {snapshot.metrics.map((metric) => (
-              <KpiCard key={metric.key} metric={metric} />
+              <KpiCard key={metric.key} metric={metric} stale={stale} />
             ))}
           </div>
         )}

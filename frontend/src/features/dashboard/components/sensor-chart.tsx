@@ -16,10 +16,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
+import { formatIdeal } from '@/features/sensors/lib/metrics'
 import { useSensorSeries } from '../api/dashboard-queries'
 import {
   chartRanges,
-  idealRanges,
   type ChartRange,
   type SensorPoint,
   type SensorSeries,
@@ -69,10 +69,10 @@ function ChartBody({
 }) {
   const allIdeal = series.points.every(
     (point) =>
-      point.ph >= idealRanges.ph[0] &&
-      point.ph <= idealRanges.ph[1] &&
-      point.ec >= idealRanges.ec[0] &&
-      point.ec <= idealRanges.ec[1]
+      point.ph >= series.ideal.ph[0] &&
+      point.ph <= series.ideal.ph[1] &&
+      point.ec >= series.ideal.ec[0] &&
+      point.ec <= series.ideal.ec[1]
   )
   const ariaLabel = `${id.dashboard.chart.ariaSummary} ${rangeLabel}${
     allIdeal ? `, ${id.dashboard.chart.ariaAllIdeal}` : ''
@@ -92,8 +92,8 @@ function ChartBody({
           >
             <ReferenceArea
               yAxisId='ph'
-              y1={idealRanges.ph[0]}
-              y2={idealRanges.ph[1]}
+              y1={series.ideal.ph[0]}
+              y2={series.ideal.ph[1]}
               fill='var(--chart-1)'
               fillOpacity={0.16}
               stroke='none'
@@ -106,7 +106,7 @@ function ChartBody({
                 stroke='var(--border)'
               />
             ))}
-            {idealRanges.ec.map((value) => (
+            {series.ideal.ec.map((value) => (
               <ReferenceLine
                 key={value}
                 yAxisId='ec'
@@ -202,9 +202,17 @@ function ChartBody({
             aria-hidden='true'
             className='size-2.5 rounded-[3px] bg-chart-1 opacity-35'
           />
-          {id.dashboard.chart.legend.idealPh}
+          {id.dashboard.chart.legend.idealPh.replace(
+            '{range}',
+            formatIdeal('ph', series.ideal.ph)
+          )}
         </span>
-        <span>{id.dashboard.chart.legend.idealEc}</span>
+        <span>
+          {id.dashboard.chart.legend.idealEc.replace(
+            '{range}',
+            formatIdeal('ec', series.ideal.ec)
+          )}
+        </span>
       </div>
     </>
   )

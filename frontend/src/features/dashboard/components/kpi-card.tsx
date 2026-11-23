@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, CircleCheck, TriangleAlert } from 'lucide-react'
 import { formatDelta, formatNumber } from '@/lib/format'
 import { Card } from '@/components/ui/card'
 import { StatusBadge } from '@/components/status-badge'
+import { formatIdeal } from '@/features/sensors/lib/metrics'
 import { type KpiMetric } from '../data/kpis'
 import { Sparkline } from './sparkline'
 
@@ -21,7 +22,14 @@ const badges = {
   high: { tone: 'high', icon: TriangleAlert },
 } as const
 
-export function KpiCard({ metric }: { metric: KpiMetric }) {
+export function KpiCard({
+  metric,
+  stale = false,
+}: {
+  metric: KpiMetric
+  /** The newest reading is old: the value is shown dimmed and marked. */
+  stale?: boolean
+}) {
   const text = id.dashboard.kpi.metrics[metric.key]
   const status = getRangeStatus(metric.value, metric.ideal)
   const badge = badges[status]
@@ -31,9 +39,10 @@ export function KpiCard({ metric }: { metric: KpiMetric }) {
   const zoneStart = percent(metric.ideal[0], metric.scale)
   const zoneEnd = percent(metric.ideal[1], metric.scale)
   const valueText = formatNumber(metric.value, metric.decimals)
+  const idealText = `${formatIdeal(metric.key, metric.ideal)}${text.unit && ` ${text.unit}`}`
 
   return (
-    <Card className='gap-2.5 p-5 shadow-none'>
+    <Card className={`gap-2.5 p-5 shadow-none ${stale ? 'opacity-60' : ''}`}>
       <div className='flex items-center justify-between gap-2'>
         <span className='text-[13px] font-semibold text-muted-foreground'>
           {text.label}
@@ -66,7 +75,7 @@ export function KpiCard({ metric }: { metric: KpiMetric }) {
 
       <div
         role='img'
-        aria-label={`${text.label} ${valueText} ${text.unit}. ${id.dashboard.kpi.idealRange} ${text.ideal}`}
+        aria-label={`${text.label} ${valueText} ${text.unit}. ${id.dashboard.kpi.idealRange} ${idealText}`}
         className='relative h-2 rounded bg-muted'
       >
         <span
@@ -83,7 +92,8 @@ export function KpiCard({ metric }: { metric: KpiMetric }) {
       </div>
 
       <div className='text-[11px] text-muted-foreground'>
-        {id.dashboard.kpi.idealPrefix} {text.ideal}
+        {stale && `${id.dashboard.kpi.staleNote} · `}
+        {id.dashboard.kpi.idealPrefix} {idealText}
       </div>
     </Card>
   )

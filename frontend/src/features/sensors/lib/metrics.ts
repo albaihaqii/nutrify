@@ -23,7 +23,7 @@ interface MetricMeta {
 }
 
 export const metricMeta: Record<MetricKey, MetricMeta> = {
-  ph: { decimals: 1, unit: '', domain: [5, 7], step: 0.5, adjustable: false },
+  ph: { decimals: 2, unit: '', domain: [5, 7], step: 0.5, adjustable: false },
   ec: {
     decimals: 2,
     unit: 'mS/cm',

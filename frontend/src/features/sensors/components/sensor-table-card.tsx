@@ -1,4 +1,3 @@
-import { type UseQueryResult } from '@tanstack/react-query'
 import { id } from '@/locales/id'
 import { formatNumber } from '@/lib/format'
 import { Card } from '@/components/ui/card'
@@ -12,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/empty-state'
-import { QueryBoundary } from '@/components/query-boundary'
+import { QueryBoundary, type BoundaryQuery } from '@/components/query-boundary'
 import { StatusBadge } from '@/components/status-badge'
 import {
   type IdealRanges,
@@ -114,7 +113,7 @@ function SensorTable({
 }
 
 interface SensorTableCardProps {
-  query: UseQueryResult<SensorRows>
+  query: BoundaryQuery<SensorRows>
   range: SensorRange
 }
 

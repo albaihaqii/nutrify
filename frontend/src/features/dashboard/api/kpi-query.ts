@@ -1,23 +1,38 @@
-import { useQuery } from '@tanstack/react-query'
-import { REALTIME_INTERVAL_MS } from '@/config/realtime'
-import { getMockScenario, mockRequest } from '@/lib/mock-request'
-import { kpiMetrics, type KpiMetric } from '../data/kpis'
+import { useMemo } from 'react'
+import {
+  useLatestReading,
+  useSensorHistory,
+  useSensorSettings,
+} from '@/features/sensors/api/sensors-queries'
+import { type KpiMetric } from '../data/kpis'
+import { buildKpiMetrics } from '../lib/kpi'
 
-type KpiSnapshot = {
-  metrics: KpiMetric[]
-  /** When the sensor reading was taken (ms since epoch). */
-  measuredAt: number
-}
+type KpiSnapshot = { metrics: KpiMetric[] }
 
-// Dummy until GET /api/sensor-readings/latest is wired in; only queryFn changes.
+/** The four sensor cards, from the newest reading, the settings and the last hour. */
 export function useKpiSnapshot() {
-  return useQuery({
-    queryKey: ['dashboard', 'kpi'],
-    queryFn: async (): Promise<KpiSnapshot> => {
-      const minutesAgo = getMockScenario() === 'stale' ? 14 : 1
-      const metrics = await mockRequest(kpiMetrics, [])
-      return { metrics, measuredAt: Date.now() - minutesAgo * 60_000 }
-    },
-    refetchInterval: REALTIME_INTERVAL_MS,
-  })
+  const latest = useLatestReading()
+  const settings = useSensorSettings()
+  const lastHour = useSensorHistory('1h')
+
+  const data = useMemo((): KpiSnapshot | undefined => {
+    if (latest.data === undefined || settings.data === undefined) {
+      return undefined
+    }
+    if (latest.data === null) return { metrics: [] }
+    return {
+      metrics: buildKpiMetrics(
+        latest.data,
+        settings.data.ideal,
+        lastHour.data?.samples ?? []
+      ),
+    }
+  }, [latest.data, settings.data, lastHour.data])
+
+  return {
+    data,
+    isPending: latest.isPending || settings.isPending,
+    refetch: () =>
+      Promise.all([latest.refetch(), settings.refetch(), lastHour.refetch()]),
+  }
 }

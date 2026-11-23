@@ -222,7 +222,8 @@ void connectWifi() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.printf("\nWi-Fi connected, IP %s\n", WiFi.localIP().toString().c_str());
   } else {
-    Serial.println("\nWi-Fi not connected yet, retrying in the background");
+    Serial.printf("\nWi-Fi not connected yet (status %d), retrying in the background\n",
+                  WiFi.status());
   }
 }
 

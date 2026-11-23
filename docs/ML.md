@@ -577,6 +577,12 @@ train part) is the model that is shipped, so the reported numbers describe it ex
 to find the active model. The example below shows the format only; notebook 07 writes the real
 values.
 
+The `role` stored in an entry is the role at training time. The backend derives the current role
+of every entry from `active_version`, so making another model primary (for example the SVM) means
+changing only `active_version`, with no code change. The backend loads the model files with the
+same library versions as `ml/requirements.txt`; a `.joblib` file saved with another scikit-learn
+version may not load.
+
 ```json
 {
   "active_version": "c45-0.1.0",

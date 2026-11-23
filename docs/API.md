@@ -72,7 +72,9 @@ optional. The frontend maps `code` to Indonesian text.
 | 404  | `not_found`           | Resource does not exist                                                        |
 | 405  | `method_not_allowed`  | HTTP method not supported for this path                                        |
 | 409  | `conflict`            | Duplicate value (for example an email that already exists)                     |
+| 413  | `payload_too_large`   | Upload over the size limit (10 MB)                                             |
 | 422  | `validation_error`    | Body or query parameters failed validation                                     |
+| 422  | `invalid_leaf`        | No leaf found in an uploaded photo (`POST /models/predict`)                    |
 | 429  | `rate_limited`        | Too many requests (login attempts, advice generation)                          |
 | 500  | `internal_error`      | Unexpected server error                                                        |
 | 503  | `service_unavailable` | Dependency down (database, camera frame missing)                               |
@@ -566,14 +568,16 @@ Returns the stored raw frame as `image/jpeg`. Accepts `?token=` for use in `<img
 ### `GET /models` (Viewer)
 
 Reads `ml/models/registry.json`, which the training notebook writes. Version 1 has one primary
-model (C4.5) and three comparators; the comparators exist only to be compared with it.
+model (C4.5) and three comparators; the comparators exist only to be compared with it. The
+primary model is the registry's `active_version`: changing that one value (for example to
+`svm-0.1.0`) makes that model primary everywhere, with no code change.
 
 ```json
 {
   "active_version": "c45-0.1.0",
-  "trained_at": "2026-11-20T03:12:00.000Z",
-  "test_size": 120,
-  "features": ["Mean_R", "Mean_G", "Mean_B"],
+  "trained_at": "2026-11-21T18:42:41",
+  "test_size": 76,
+  "features": ["mean_r", "mean_g", "mean_b"],
   "classes": ["normal", "n_deficiency", "fe_deficiency"],
   "models": [
     {
@@ -597,15 +601,19 @@ model (C4.5) and three comparators; the comparators exist only to be compared wi
 }
 ```
 
-- `features` is the feature list of the active model, in order. Version 1 uses colour features
-  only (`Mean_R`, `Mean_G`, `Mean_B`, and optionally `Lab_L`, `Lab_a`, `Lab_b`); version 2 adds
-  `pH`, `EC`, and `Temperature` ([ML](ML.md) section 4).
-- `models[].id` is one of `c45`, `svm`, `naive_bayes`, `random_forest`. `role` is `primary` or
-  `comparator`.
+- `trained_at` is written as the notebook saved it: local time, without a time zone.
+- `features` is the feature list of the active model, in order, with the lowercase names used
+  everywhere in the API. Version 1 uses colour features only (`mean_r`, `mean_g`, `mean_b`, and
+  optionally `lab_l`, `lab_a`, `lab_b`); version 2 adds `ph`, `ec`, and `temperature`
+  ([ML](ML.md) section 4).
+- `models[].id` is one of `c45`, `svm`, `naive_bayes`, `random_forest`. `role` is `primary` for
+  the active model and `comparator` for the others, whatever the `role` stored in the registry
+  entry. The primary model comes first.
 - Every metric is from 0 to 1, computed on the same test set of `test_size` rows. `precision`,
   `recall`, and `f1` are macro averages over the three classes.
-- `confusion` belongs to the C4.5 model. Rows are the actual class and columns the predicted
-  class, both in the order of `classes`.
+- `confusion` belongs to the primary model, counted from the notebook's test predictions
+  (`ml/reports/results/07_test_predictions.csv`). Rows are the actual class and columns the
+  predicted class, both in the order of `classes`. It is `null` when that file is missing.
 - Metric values above are placeholders; real values come from the registry after training.
   Before the first training the endpoint returns `404 not_found`, and the Models page shows an
   empty state.
@@ -632,45 +640,45 @@ In a leaf, `samples` is the number of training rows that ended there and `confid
 share of those rows that belong to `class` (the same definition as the observation
 `confidence`). `feature` uses the lowercase names `mean_r`, `mean_g`, `mean_b`, `lab_l`,
 `lab_a`, `lab_b`, `ph`, `ec`, and `temperature`; only the names in the active feature list
-appear. Returns `404 not_found` before the first training.
+appear. The tree is the active model when that is C4.5, otherwise the first C4.5 in the
+registry. Returns `404 not_found` before the first training.
 
 ### `POST /models/predict` (Viewer)
 
-A what-if for the "Coba Prediksi" form. Nothing is stored.
+A what-if for the "Coba Prediksi" form: classify one photo of a single plant. Nothing is
+stored.
 
-Request:
-
-```json
-{
-  "features": {
-    "mean_r": 148,
-    "mean_g": 152,
-    "mean_b": 64
-  }
-}
-```
+Request: `multipart/form-data` with one file field, `image` (any format OpenCV reads, such as
+JPEG or PNG, up to 10 MB).
 
 Response `200`:
 
 ```json
 {
-  "class": "normal",
-  "confidence": 0.94,
+  "class": "n_deficiency",
+  "confidence": 0.84,
+  "features": { "mean_r": 170.3, "mean_g": 160.3, "mean_b": 50.9 },
+  "mask_area_ratio": 0.23,
   "comparators": [
-    { "model_id": "svm", "class": "normal" },
-    { "model_id": "naive_bayes", "class": "normal" },
+    { "model_id": "svm", "class": "n_deficiency" },
+    { "model_id": "naive_bayes", "class": "n_deficiency" },
     { "model_id": "random_forest", "class": "n_deficiency" }
   ]
 }
 ```
 
-`class` and `confidence` come from C4.5. Each comparator returns only its class. The request
-must contain exactly the features of the active model (`features` in `GET /models`), with
-lowercase names. A missing or extra feature returns `422 validation_error` with
-`details.field`. Accepted ranges: `mean_r`, `mean_g`, `mean_b` 0 to 255, `lab_l` 0 to 100,
-`lab_a` and `lab_b` -128 to 127, `ph` 0 to 14, `ec` 0 to 10, `temperature` 0 to 50; anything
-else returns `422 validation_error` with `details.field`. Returns `404 not_found` before the
-first training.
+The photo goes through the same pipeline as the training images ([ML](ML.md) section 3), set
+from the `preprocessing` entry of the active model in the registry. `class` and `confidence`
+come from the active (primary) model. `confidence` is the leaf purity for C4.5, the class
+probability for Naive Bayes and Random Forest, and the share of a softmax over the decision
+values for SVM; it is not a calibrated probability. Each comparator returns only its class.
+`features` is the mean colour of the leaf pixels that the models used, and `mask_area_ratio` is
+the share of the photo marked as leaf.
+
+Errors: a missing, empty, or undecodable `image` returns `422 validation_error` with
+`details.field` set to `image`. A photo in which no leaf is found (the segmentation fails the
+quality check) returns `422 invalid_leaf`. A file over 10 MB returns `413 payload_too_large`.
+Returns `404 not_found` before the first training.
 
 Version 1 takes colour features only, so the sensor inputs of the "Coba Prediksi" form are
 removed until version 2 ([ML](ML.md) section 2.1).

@@ -7,3 +7,11 @@ PyMySQL
 cryptography
 python-dotenv
 pydantic
+
+# Model runtime. Same pins as ml/requirements.txt: the comparator models saved with joblib
+# only load with the scikit-learn version they were trained with.
+numpy==1.26.4
+scipy==1.13.1
+scikit-learn==1.5.2
+opencv-python-headless==4.10.0.84
+joblib==1.4.2

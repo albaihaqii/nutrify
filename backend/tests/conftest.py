@@ -2,6 +2,7 @@
 
 from collections.abc import Callable, Iterator
 from datetime import timedelta
+from pathlib import Path
 from typing import ClassVar
 
 import pytest
@@ -27,6 +28,7 @@ class TestConfig:
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=12)
     SQLALCHEMY_DATABASE_URI = "sqlite://"
     CORS_ORIGINS: ClassVar[list[str]] = ["http://localhost:5173"]
+    ML_DIR = Path(__file__).resolve().parents[2] / "ml"
 
 
 @pytest.fixture()

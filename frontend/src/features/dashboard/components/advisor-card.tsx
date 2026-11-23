@@ -61,7 +61,13 @@ export function AdvisorCard() {
         skeleton={<AdviceSkeleton />}
         empty={{
           when: (advice) => advice === null,
-          view: <EmptyState title={id.dashboard.advisor.empty} />,
+          view: (
+            <EmptyState
+              fill
+              title={id.dashboard.advisor.empty}
+              className='min-h-[200px]'
+            />
+          ),
         }}
       >
         {(advice) => advice && <AdviceBody advice={advice} />}

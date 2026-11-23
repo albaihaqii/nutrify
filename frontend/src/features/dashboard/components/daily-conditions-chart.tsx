@@ -126,7 +126,13 @@ export function DailyConditionsChart() {
         skeleton={<Skeleton className='h-[246px] w-full' />}
         empty={{
           when: (days) => days.length === 0,
-          view: <EmptyState title={id.dashboard.daily.empty} />,
+          view: (
+            <EmptyState
+              fill
+              title={id.dashboard.daily.empty}
+              className='min-h-[246px]'
+            />
+          ),
         }}
       >
         {(days) => <DailyBody days={days} />}

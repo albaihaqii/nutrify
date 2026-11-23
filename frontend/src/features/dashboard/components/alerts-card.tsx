@@ -78,7 +78,13 @@ export function AlertsCard() {
         skeleton={<AlertsSkeleton />}
         empty={{
           when: (alerts) => alerts.length === 0,
-          view: <EmptyState title={id.dashboard.alerts.empty} />,
+          view: (
+            <EmptyState
+              fill
+              title={id.dashboard.alerts.empty}
+              className='min-h-[200px]'
+            />
+          ),
         }}
       >
         {(alerts) => <AlertsList alerts={alerts} />}

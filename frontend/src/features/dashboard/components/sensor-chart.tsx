@@ -255,7 +255,12 @@ export function SensorChart() {
         skeleton={<Skeleton className='h-[300px] w-full' />}
         empty={{
           when: (series) => series.points.length === 0,
-          view: <EmptyState title={id.dashboard.chart.empty} />,
+          view: (
+            <EmptyState
+              title={id.dashboard.chart.empty}
+              className='flex h-[300px] flex-col items-center justify-center'
+            />
+          ),
         }}
       >
         {(series) => <ChartBody series={series} rangeLabel={rangeLabel} />}

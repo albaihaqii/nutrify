@@ -114,7 +114,13 @@ export function PlantMap() {
         skeleton={<PlantMapSkeleton />}
         empty={{
           when: (readings) => readings.length === 0,
-          view: <EmptyState title={id.dashboard.plants.empty} />,
+          view: (
+            <EmptyState
+              fill
+              title={id.dashboard.plants.empty}
+              className='min-h-[240px]'
+            />
+          ),
         }}
       >
         {(readings) => <PlantMapBody readings={readings} />}

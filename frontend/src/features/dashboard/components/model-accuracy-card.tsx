@@ -78,7 +78,13 @@ export function ModelAccuracyCard() {
         skeleton={<ModelsSkeleton />}
         empty={{
           when: (models) => models.length === 0,
-          view: <EmptyState title={id.dashboard.models.empty} />,
+          view: (
+            <EmptyState
+              fill
+              title={id.dashboard.models.empty}
+              className='min-h-[200px]'
+            />
+          ),
         }}
       >
         {(models) => <ModelBars models={models} />}

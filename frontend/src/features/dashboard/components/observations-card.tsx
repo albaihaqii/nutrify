@@ -131,7 +131,13 @@ export function ObservationsCard() {
         skeleton={<ObservationsSkeleton />}
         empty={{
           when: (rows) => rows.length === 0,
-          view: <EmptyState title={id.dashboard.observations.empty} />,
+          view: (
+            <EmptyState
+              fill
+              title={id.dashboard.observations.empty}
+              className='min-h-[260px]'
+            />
+          ),
         }}
       >
         {(rows) => <ObservationsTable rows={rows} />}

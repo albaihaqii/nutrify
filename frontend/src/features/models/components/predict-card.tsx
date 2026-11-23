@@ -1,88 +1,117 @@
-import { useState, type FormEvent } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react'
 import { id } from '@/locales/id'
+import { ImagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
 import { useModelReport, usePredict } from '../api/models-queries'
-import { exampleInput, featureKeys, type FeatureKey } from '../data/models'
-import {
-  toDraft,
-  validateDraft,
-  type PredictDraft,
-  type PredictErrors,
-} from '../lib/predict-form'
+import { type ModelId } from '../data/models'
+import { imageProblem } from '../lib/image-file'
+import { primaryModelId } from '../lib/primary'
 import { ModelCard } from './model-card'
 import { PredictionResult } from './prediction-result'
 
-const FIELDS_GRID =
-  'grid grid-cols-2 gap-4 @xl/content:grid-cols-3 @5xl/content:grid-cols-6'
+interface Picked {
+  file: File
+  /** Object URL of the photo, for the preview. */
+  url: string
+}
 
-function PredictForm() {
+function PredictForm({ modelId }: { modelId: ModelId }) {
   const predict = usePredict()
-  const [draft, setDraft] = useState<PredictDraft>(() => toDraft(exampleInput))
-  const [errors, setErrors] = useState<PredictErrors>({})
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [picked, setPicked] = useState<Picked | null>(null)
+  const [problem, setProblem] = useState<string | null>(null)
 
-  // An edited form no longer matches the result next to it.
-  function handleChange(key: FeatureKey, value: string) {
-    setDraft((previous) => ({ ...previous, [key]: value }))
-    setErrors((previous) => {
-      const next = { ...previous }
-      delete next[key]
-      return next
-    })
+  const previewUrl = picked?.url
+  useEffect(
+    () => () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    },
+    [previewUrl]
+  )
+
+  // A new photo no longer matches the result next to it.
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
     predict.reset()
+    const found = imageProblem(file)
+    if (found) {
+      setProblem(id.models.errors[found])
+      return
+    }
+    setProblem(null)
+    setPicked({ file, url: URL.createObjectURL(file) })
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const validation = validateDraft(draft)
-    if (!validation.ok) {
-      setErrors(validation.errors)
-      return
-    }
-    predict.mutate(validation.values)
+    if (picked) predict.mutate(picked.file)
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <div className={FIELDS_GRID}>
-        {featureKeys.map((key) => {
-          const fieldId = `predict-${key}`
-          const error = errors[key]
-          return (
-            <div key={key} className='flex flex-col gap-1.5'>
-              <Label htmlFor={fieldId} className='text-[13px] font-semibold'>
-                {id.models.features[key].field}
-              </Label>
-              <Input
-                id={fieldId}
-                value={draft[key]}
-                inputMode='decimal'
-                autoComplete='off'
-                aria-invalid={error !== undefined}
-                aria-describedby={error ? `${fieldId}-error` : undefined}
-                className='h-10 tabular-nums'
-                onChange={(event) => handleChange(key, event.target.value)}
-              />
-              {error && (
-                <p id={`${fieldId}-error`} className='text-xs text-destructive'>
-                  {error}
-                </p>
-              )}
-            </div>
-          )
-        })}
-      </div>
+    <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
+      <p className='text-muted-foreground'>{id.models.predict.hint}</p>
 
-      <div className='mt-4 flex flex-wrap items-center gap-x-4 gap-y-3'>
-        <Button type='submit' disabled={predict.isPending}>
-          {id.models.predict.submit}
-        </Button>
-        <div aria-live='polite'>
-          {predict.data && <PredictionResult result={predict.data} />}
+      <div className='flex flex-wrap items-start gap-4'>
+        <div className='flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed bg-muted/40'>
+          {picked ? (
+            <img
+              src={picked.url}
+              alt={id.models.predict.previewAlt}
+              className='size-full object-cover'
+            />
+          ) : (
+            <ImagePlus
+              aria-hidden='true'
+              className='size-6 text-muted-foreground'
+            />
+          )}
+        </div>
+
+        <div className='flex min-w-0 flex-1 flex-col gap-3'>
+          <input
+            ref={inputRef}
+            type='file'
+            accept='image/*'
+            hidden
+            onChange={handleChange}
+          />
+          <div className='flex flex-wrap items-center gap-3'>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => inputRef.current?.click()}
+            >
+              {picked ? id.models.predict.change : id.models.predict.choose}
+            </Button>
+            <Button type='submit' disabled={!picked || predict.isPending}>
+              {predict.isPending
+                ? id.models.predict.predicting
+                : id.models.predict.submit}
+            </Button>
+          </div>
+
+          {problem && (
+            <p role='alert' className='text-xs text-destructive'>
+              {problem}
+            </p>
+          )}
+          <div aria-live='polite'>
+            {predict.data && (
+              <PredictionResult result={predict.data} modelId={modelId} />
+            )}
+          </div>
         </div>
       </div>
     </form>
@@ -91,18 +120,19 @@ function PredictForm() {
 
 export function PredictCard() {
   const query = useModelReport()
+  const modelId = primaryModelId(query.data)
 
   return (
     <ModelCard title={id.models.predict.title}>
       <QueryBoundary
         query={query}
-        skeleton={<Skeleton className='h-[120px] w-full' />}
+        skeleton={<Skeleton className='h-[160px] w-full' />}
         empty={{
           when: (data) => data.models.length === 0,
           view: <EmptyState title={id.models.empty} />,
         }}
       >
-        {() => <PredictForm />}
+        {() => (modelId ? <PredictForm modelId={modelId} /> : null)}
       </QueryBoundary>
     </ModelCard>
   )

@@ -7,7 +7,7 @@ import {
 } from '../data/models'
 import { formatThreshold } from './format'
 
-const featureName = (feature: FeatureKey) => id.models.features[feature].rule
+const featureName = (feature: FeatureKey) => id.models.features[feature]
 
 function branches(node: TreeSplit) {
   const threshold = formatThreshold(node.threshold)

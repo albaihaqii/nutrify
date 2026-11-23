@@ -563,7 +563,7 @@ export const id = {
   models: {
     title: 'Model & Evaluasi',
     subtitle:
-      'C4.5 adalah model utama. SVM, Naive Bayes, dan Random Forest hanya sebagai pembanding.',
+      'Model utama dibandingkan dengan tiga model pembanding pada data uji yang sama.',
     empty: 'Belum ada model terlatih.',
     names: {
       c45: 'C4.5',
@@ -579,12 +579,12 @@ export const id = {
     },
     roles: { primary: 'Utama', comparator: 'Pembanding' },
     features: {
-      mean_r: { rule: 'Mean_R', field: 'Mean R' },
-      mean_g: { rule: 'Mean_G', field: 'Mean G' },
-      mean_b: { rule: 'Mean_B', field: 'Mean B' },
-      ph: { rule: 'pH', field: 'pH' },
-      ec: { rule: 'EC', field: 'EC (mS/cm)' },
-      temperature: { rule: 'Suhu', field: 'Suhu (°C)' },
+      mean_r: 'Mean_R',
+      mean_g: 'Mean_G',
+      mean_b: 'Mean_B',
+      lab_l: 'Lab_L',
+      lab_a: 'Lab_a',
+      lab_b: 'Lab_b',
     },
     comparison: {
       title: 'Perbandingan Model',
@@ -599,7 +599,9 @@ export const id = {
       },
     },
     confusion: {
-      title: 'Confusion Matrix C4.5',
+      title: 'Confusion Matrix {model}',
+      fallbackTitle: 'Confusion Matrix',
+      empty: 'Hasil pengujian belum tersedia.',
       axes: 'Baris: sebenarnya · Kolom: prediksi',
       legend:
         'Warna lebih pekat berarti jumlah lebih besar; angka selalu ditampilkan.',
@@ -613,19 +615,27 @@ export const id = {
     },
     predict: {
       title: 'Coba Prediksi',
+      hint: 'Unggah foto satu tanaman pakcoy dari atas. Foto hanya dipakai untuk prediksi dan tidak disimpan.',
+      choose: 'Pilih Foto',
+      change: 'Ganti Foto',
+      previewAlt: 'Pratinjau foto yang dipilih',
       submit: 'Prediksi',
-      result: 'Hasil C4.5:',
+      predicting: 'Memproses…',
+      result: 'Hasil {model}:',
       leaning: 'Condong ke {label}',
       allAgree: '{names}: sepakat {agree} dari {total}',
       someAgree: '{agree} dari {total} pembanding sepakat. Berbeda: {names}',
-      errors: {
-        number: 'Isi dengan angka.',
-        range: 'Isi angka {min}–{max}.',
-      },
+      measured: 'Warna rata-rata daun',
+      leafArea: 'luas daun {percent}%',
     },
     errors: {
       network: 'Tidak dapat terhubung ke server. Coba lagi.',
       unknown: 'Terjadi kesalahan. Coba lagi.',
+      notImage: 'Berkas harus berupa gambar (JPG, PNG, atau WebP).',
+      tooLarge: 'Ukuran foto maksimal 10 MB.',
+      invalidImage: 'Berkas tidak dapat dibaca sebagai gambar.',
+      noLeaf:
+        'Daun tidak terdeteksi. Gunakan foto satu tanaman dengan latar yang polos.',
     },
   },
   advisor: {

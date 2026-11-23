@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
 import { labelClasses } from '@/features/dataset/data/dataset'
 import { useModelReport } from '../api/models-queries'
+import { primaryModelId } from '../lib/primary'
 import { CardHint, ModelCard } from './model-card'
 
 function Matrix({ matrix }: { matrix: number[][] }) {
@@ -76,23 +77,35 @@ function Matrix({ matrix }: { matrix: number[][] }) {
 
 export function ConfusionCard() {
   const query = useModelReport()
+  const primary = primaryModelId(query.data)
 
   return (
     <ModelCard
-      title={id.models.confusion.title}
+      title={
+        primary
+          ? id.models.confusion.title.replace(
+              '{model}',
+              id.models.names[primary]
+            )
+          : id.models.confusion.fallbackTitle
+      }
       aside={<CardHint>{id.models.confusion.axes}</CardHint>}
     >
       <QueryBoundary
         query={query}
         skeleton={<Skeleton className='h-[236px] w-full' />}
         empty={{
-          when: (data) => data.models.length === 0,
-          view: <EmptyState title={id.models.empty} />,
+          when: (data) => data.models.length === 0 || data.confusion === null,
+          view: (
+            <EmptyState
+              title={primary ? id.models.confusion.empty : id.models.empty}
+            />
+          ),
         }}
       >
         {(data) => (
           <>
-            <Matrix matrix={data.confusion} />
+            <Matrix matrix={data.confusion ?? []} />
             <p className='mt-3 text-xs text-muted-foreground'>
               {id.models.confusion.legend}
             </p>

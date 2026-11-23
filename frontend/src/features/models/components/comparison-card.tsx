@@ -48,7 +48,7 @@ function ComparisonTable({ report }: { report: ModelReport }) {
       </TableHeader>
       <TableBody>
         {report.models.map((model) => {
-          const primary = model.id === 'c45'
+          const primary = model.role === 'primary'
           return (
             <TableRow key={model.id}>
               <TableCell className='font-semibold'>

@@ -241,7 +241,7 @@ validation_error`. An admin who tries to deactivate or change the role of their 
 
 ### `POST /sensor-readings` (Device)
 
-Sent by the ESP32 about every 10 seconds.
+Sent by the ESP32 about every 5 seconds.
 
 Request:
 

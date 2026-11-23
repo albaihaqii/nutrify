@@ -15,7 +15,7 @@ The hardware has two independent parts.
 
 | Part                | Job                                                                    | Talks to                         |
 | ------------------- | ---------------------------------------------------------------------- | -------------------------------- |
-| Sensor node (ESP32) | Measures pH, EC, and water temperature and posts them every 10 seconds | Backend API over Wi-Fi           |
+| Sensor node (ESP32) | Measures pH, EC, and water temperature and posts them every 5 seconds | Backend API over Wi-Fi           |
 | Webcam on a PC      | Provides the image of the six plant holes                              | The vision worker on the same PC |
 
 ```mermaid
@@ -146,7 +146,7 @@ PlatformIO settings: `platform = espressif32`, `framework = arduino`, `board = e
 ```mermaid
 flowchart TD
     A[Boot] --> B[Connect Wi-Fi]
-    B --> C[Loop every 10 s]
+    B --> C[Loop every 5 s]
     C --> D[Read temperature]
     D --> E[Read pH, many samples]
     E --> F[Read EC, many samples]

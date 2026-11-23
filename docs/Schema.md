@@ -268,7 +268,7 @@ every other rule, so the table can start empty.
 
 - Classification runs every 10 seconds, but observations are stored every 60 seconds (or when a
   status changes): about 8,600 rows per day for 6 holes.
-- Sensor readings arrive about every 10 seconds: about 8,600 rows per day.
+- Sensor readings arrive about every 5 seconds: about 17,300 rows per day.
 - Snapshot images are stored on disk under `storage/snapshots/`, referenced by `captures`.
 - Optional cleanup: purge unlabeled observations and snapshots older than 90 days. Labeled rows are kept.
 

@@ -193,7 +193,7 @@ Details and sources are in `Domain.md`.
 
 ## 9. Acceptance criteria
 
-1. A new sensor reading appears on the dashboard within 10 seconds of being sent.
+1. A new sensor reading appears on the dashboard within 10 seconds of being sent (5 seconds to send, up to 5 seconds to refresh).
 2. The live camera page shows video with a 3 x 2 overlay and a status for each of the 6 holes.
 3. Changing a leaf in front of the camera changes that hole's status only after the stabiliser
    window is satisfied, and then triggers advice.

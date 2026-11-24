@@ -10,9 +10,6 @@ import {
 } from '../data/sensors'
 import { fetchHistory, fetchLatest, fetchSensorSettings } from './sensors-api'
 
-/** How many of the newest rows the table shows. */
-const TABLE_ROWS = 20
-
 /** Ideal ranges and the stale limit; edited rarely, so refreshed slowly. */
 export function useSensorSettings() {
   return useQuery({
@@ -75,7 +72,7 @@ export function useSensorHistory(
   )
 }
 
-/** Table data: the newest rows of the same series and how many it holds. */
+/** Table data: every row of the same series, newest first. */
 export function useSensorRows(range: SensorRange): BoundaryQuery<SensorRows> {
   const history = useSensorHistory(range)
 
@@ -83,8 +80,7 @@ export function useSensorRows(range: SensorRange): BoundaryQuery<SensorRows> {
     () => ({
       ...history,
       data: history.data && {
-        rows: history.data.samples.slice(-TABLE_ROWS).reverse(),
-        total: history.data.samples.length,
+        rows: [...history.data.samples].reverse(),
         ideal: history.data.ideal,
       },
     }),

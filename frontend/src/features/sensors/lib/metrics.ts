@@ -1,9 +1,13 @@
 import { id } from '@/locales/id'
 import { ArrowDown, ArrowUp, CircleCheck } from 'lucide-react'
 import { formatNumber } from '@/lib/format'
-import { formatClock, formatDayTime } from '@/lib/format-time'
 import {
-  metricKeys,
+  formatBucketSpan,
+  formatClock,
+  formatDateTime,
+  formatDayTime,
+} from '@/lib/format-time'
+import {
   type IdealRange,
   type IdealRanges,
   type MetricKey,
@@ -64,8 +68,14 @@ export const levelBadge = {
   { tone: 'ok' | 'low' | 'high'; icon: typeof CircleCheck }
 >
 
+/**
+ * The metrics a row is judged by. TDS is EC times 500, so it always has the
+ * same level as EC and is not listed twice.
+ */
+const judgedMetrics = ['ph', 'ec', 'temperature'] as const
+
 interface SampleIssue {
-  metric: MetricKey
+  metric: (typeof judgedMetrics)[number]
   level: 'low' | 'high'
 }
 
@@ -74,7 +84,7 @@ export function issuesOf(
   sample: SensorSample,
   ideal: IdealRanges
 ): SampleIssue[] {
-  return metricKeys.flatMap((metric): SampleIssue[] => {
+  return judgedMetrics.flatMap((metric): SampleIssue[] => {
     const level = levelOf(sample[metric], ideal[metric])
     return level === 'ideal' ? [] : [{ metric, level }]
   })
@@ -99,6 +109,23 @@ export function formatIdeal(metric: MetricKey, [min, max]: IdealRange): string {
 
 export function formatSampleTime(range: SensorRange, iso: string): string {
   return range === '7d' ? formatDayTime(iso) : formatClock(iso)
+}
+
+/** Minutes of readings averaged into one row of a range. */
+const bucketMinutes: Record<SensorRange, number> = {
+  '1h': 1,
+  '24h': 5,
+  '7d': 60,
+}
+
+/** "16:35" for the last hour, "Hari ini, 16:35" or "Sab, 21 Nov, 08:00" beyond. */
+export function formatRowTime(range: SensorRange, iso: string): string {
+  return range === '1h' ? formatClock(iso) : formatDateTime(iso)
+}
+
+/** The full date and the span of the bucket, for the tooltip of a row. */
+export function formatRowSpan(range: SensorRange, iso: string): string {
+  return formatBucketSpan(iso, bucketMinutes[range])
 }
 
 export function levelLabel(level: Level): string {

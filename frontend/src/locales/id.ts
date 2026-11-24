@@ -236,8 +236,14 @@ export const id = {
     },
     table: {
       title: 'Data Sensor',
-      count: 'Menampilkan {shown} dari {total} baris',
       empty: 'Belum ada data sensor.',
+      unit: 'baris',
+      average: {
+        '1h': 'Rata-rata per 1 menit',
+        '24h': 'Rata-rata per 5 menit',
+        '7d': 'Rata-rata per 1 jam',
+      },
+      issues: { ph: 'pH', ec: 'EC/TDS', temperature: 'Suhu' },
       columns: {
         time: 'Waktu',
         ph: 'pH',
@@ -509,6 +515,9 @@ export const id = {
     showing: 'Menampilkan {from}–{to} dari {total}',
     previous: 'Sebelumnya',
     next: 'Berikutnya',
+    label: 'Navigasi halaman',
+    page: 'Halaman {page}',
+    pageOf: 'Halaman {page} dari {count}',
   },
   dataset: {
     subtitle: 'Beri label pada snapshot untuk melatih model',

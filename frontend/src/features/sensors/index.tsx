@@ -101,7 +101,7 @@ export function Sensors() {
         )}
       </QueryBoundary>
 
-      <SensorTableCard query={rows} range={range} />
+      <SensorTableCard key={range} query={rows} range={range} />
     </Main>
   )
 }

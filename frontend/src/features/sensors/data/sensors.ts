@@ -25,10 +25,8 @@ export interface SensorHistory {
 }
 
 export interface SensorRows {
-  /** Newest first. */
+  /** Every row of the range, newest first. */
   rows: SensorSample[]
-  /** All rows in the range, not only the ones returned. */
-  total: number
   ideal: IdealRanges
 }
 

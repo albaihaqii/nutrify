@@ -1,114 +1,37 @@
 import { useEffect, useRef, useState } from 'react'
-import { type UseQueryResult } from '@tanstack/react-query'
 import { id } from '@/locales/id'
-import { Image, Maximize, Minimize, Pause, Play } from 'lucide-react'
+import { CameraOff, Image, Maximize, Minimize, Pause, Play } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatAgo } from '@/lib/format'
-import { plantStatusIcon, type PlantStatus } from '@/lib/plant-status'
+import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
+import { useServiceStatus } from '@/hooks/use-service-status'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QueryBoundary } from '@/components/query-boundary'
-import { type LiveAnalysis, type LivePlant } from '../data/live-analysis'
+import { cameraStreamUrl } from '../lib/camera-url'
 
-// Cell outline follows the plant status (same colors as the dashboard map).
-const cellBorder: Record<PlantStatus, string> = {
-  ok: 'border-solid border-chart-1',
-  n: 'border-solid border-chart-3',
-  fe: 'border-solid border-chart-4',
-  check: 'border-dashed border-chart-5',
-}
-
-// Leaf colors of the placeholder illustration only; replaced by the webcam.
-const leafColor: Record<PlantStatus, string> = {
-  ok: '#3E9B57',
-  n: '#B9B84A',
-  fe: '#A9CF86',
-  check: '#7C8F80',
-}
-
-function formatAnalyzed(seconds: number) {
-  const text =
-    seconds < 60
-      ? id.live.camera.secondsAgo.replace('{n}', String(seconds))
-      : formatAgo(Math.floor(seconds / 60))
-  return id.live.camera.analyzedAgo.replace('{time}', text)
-}
-
-function PlantCell({ plant }: { plant: LivePlant }) {
-  const Icon = plantStatusIcon[plant.status]
-  const percent =
-    plant.confidence === null ? '' : ` ${Math.round(plant.confidence * 100)}%`
-
+function OfflineView() {
   return (
-    <div
-      className={cn(
-        'relative flex items-end justify-center rounded-md border-2 bg-black/25 @xl/content:items-center @xl/content:rounded-lg',
-        cellBorder[plant.status]
-      )}
-    >
-      <span className='absolute top-[3px] left-[3px] inline-flex items-center gap-[3px] rounded bg-black/80 px-[5px] py-px text-[10px] font-semibold whitespace-nowrap text-white @xl/content:top-1.5 @xl/content:left-1.5 @xl/content:gap-[5px] @xl/content:rounded-md @xl/content:px-2 @xl/content:py-0.5 @xl/content:text-xs'>
-        <Icon className='size-2.5 @xl/content:size-3' aria-hidden='true' />
-        <span className='@xl/content:hidden'>
-          {plant.id} {id.live.camera.shortStatus[plant.status]}
-          {percent}
-        </span>
-        <span className='hidden @xl/content:inline'>
-          {plant.id} {id.plantStatus[plant.status]}
-          {percent}
-        </span>
-      </span>
-      <svg
-        viewBox='0 0 100 80'
-        className='h-[62%] w-[70%] @xl/content:h-[70%] @xl/content:w-[62%]'
-        aria-hidden='true'
-      >
-        <ellipse
-          cx='34'
-          cy='48'
-          rx='22'
-          ry='12'
-          transform='rotate(-25 34 48)'
-          fill={leafColor[plant.status]}
-        />
-        <ellipse
-          cx='66'
-          cy='48'
-          rx='22'
-          ry='12'
-          transform='rotate(25 66 48)'
-          fill={leafColor[plant.status]}
-        />
-        <ellipse
-          cx='50'
-          cy='36'
-          rx='14'
-          ry='24'
-          fill={leafColor[plant.status]}
-        />
-      </svg>
+    <div className='flex size-full flex-col items-center justify-center gap-2 px-6 text-center text-[#cfd8d3]'>
+      <CameraOff className='size-8' aria-hidden='true' />
+      <p className='font-medium'>{id.live.camera.offline}</p>
+      <p className='text-sm'>{id.live.camera.offlineHint}</p>
     </div>
   )
 }
 
-function FrameSkeleton() {
-  return (
-    <Skeleton
-      aria-hidden='true'
-      className='h-[300px] w-full rounded-xl @xl/content:h-[500px]'
-    />
-  )
-}
-
 interface CameraViewProps {
-  query: UseQueryResult<LiveAnalysis>
   paused: boolean
   onPausedChange: (paused: boolean) => void
 }
 
-export function CameraView({ query, paused, onPausedChange }: CameraViewProps) {
+export function CameraView({ paused, onPausedChange }: CameraViewProps) {
+  const status = useServiceStatus()
+  const accessToken = useAuthStore((state) => state.auth.accessToken)
   const frameRef = useRef<HTMLDivElement>(null)
+  const imageRef = useRef<HTMLImageElement>(null)
+  const stillRef = useRef<HTMLCanvasElement>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
   useEffect(() => {
@@ -126,6 +49,19 @@ export function CameraView({ query, paused, onPausedChange }: CameraViewProps) {
     }
   }
 
+  // Pausing keeps the frame that is on screen: it is copied to a canvas and
+  // the stream is closed, so nothing is downloaded while paused.
+  function togglePaused() {
+    const image = imageRef.current
+    const still = stillRef.current
+    if (!paused && image && still && image.naturalWidth > 0) {
+      still.width = image.naturalWidth
+      still.height = image.naturalHeight
+      still.getContext('2d')?.drawImage(image, 0, 0)
+    }
+    onPausedChange(!paused)
+  }
+
   const FullscreenIcon = isFullscreen ? Minimize : Maximize
   const PauseIcon = paused ? Play : Pause
 
@@ -135,41 +71,53 @@ export function CameraView({ query, paused, onPausedChange }: CameraViewProps) {
         ref={frameRef}
         role='img'
         aria-label={id.live.camera.ariaLabel}
-        className='relative h-[300px] overflow-hidden rounded-xl bg-[#18241E] px-2.5 pt-[34px] pb-2.5 @xl/content:h-[500px] @xl/content:px-7 @xl/content:pt-11 @xl/content:pb-7 dark:bg-[#0A100D] [&:fullscreen]:h-screen [&:fullscreen]:rounded-none'
+        className='relative aspect-video w-full overflow-hidden rounded-xl bg-[#18241E] dark:bg-[#0A100D] [&:fullscreen]:aspect-auto [&:fullscreen]:h-screen [&:fullscreen]:rounded-none'
       >
-        <span className='absolute top-2 left-2.5 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white @xl/content:top-3.5 @xl/content:left-4 @xl/content:px-2.5 @xl/content:py-[3px] @xl/content:text-xs'>
-          <span
-            aria-hidden='true'
-            className={cn(
-              'size-2 rounded-full',
-              paused ? 'bg-chart-5' : 'bg-[#ff6b5e]'
-            )}
-          />
-          {paused ? id.live.camera.paused : id.live.camera.live}
-          <span className='hidden @xl/content:inline'>
-            · {id.live.camera.source}
+        {status.data?.webcam && (
+          <span className='absolute top-2 left-2.5 z-10 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-semibold text-white @xl/content:top-3.5 @xl/content:left-4 @xl/content:px-2.5 @xl/content:py-[3px] @xl/content:text-xs'>
+            <span
+              aria-hidden='true'
+              className={cn(
+                'size-2 rounded-full',
+                paused ? 'bg-chart-5' : 'bg-[#ff6b5e]'
+              )}
+            />
+            {paused ? id.live.camera.paused : id.live.camera.live}
+            <span className='hidden @xl/content:inline'>
+              · {id.live.camera.source}
+            </span>
           </span>
-        </span>
+        )}
 
         <QueryBoundary
-          query={query}
-          skeleton={<FrameSkeleton />}
-          empty={{
-            when: (analysis) => analysis.plants.length === 0,
-            view: (
-              <div className='flex h-full items-center justify-center'>
-                <p className='text-sm text-[#cfd8d3]'>{id.live.camera.empty}</p>
-              </div>
-            ),
-          }}
+          query={status}
+          skeleton={
+            <Skeleton aria-hidden='true' className='size-full rounded-none' />
+          }
         >
-          {(analysis) => (
-            <div className='grid h-full grid-cols-3 grid-rows-2 gap-1.5 @xl/content:gap-3'>
-              {analysis.plants.map((plant) => (
-                <PlantCell key={plant.id} plant={plant} />
-              ))}
-            </div>
-          )}
+          {({ webcam }) =>
+            webcam ? (
+              <>
+                {!paused && (
+                  <img
+                    ref={imageRef}
+                    src={cameraStreamUrl(accessToken)}
+                    alt=''
+                    className='size-full object-contain'
+                  />
+                )}
+                <canvas
+                  ref={stillRef}
+                  className={cn(
+                    'size-full object-contain',
+                    !paused && 'hidden'
+                  )}
+                />
+              </>
+            ) : (
+              <OfflineView />
+            )
+          }
         </QueryBoundary>
       </div>
 
@@ -187,7 +135,7 @@ export function CameraView({ query, paused, onPausedChange }: CameraViewProps) {
             variant='outline'
             className='h-10 flex-1 @xl/content:flex-none'
             aria-pressed={paused}
-            onClick={() => onPausedChange(!paused)}
+            onClick={togglePaused}
           >
             <PauseIcon aria-hidden='true' />
             {paused ? id.live.camera.resume : id.live.camera.pause}
@@ -210,11 +158,6 @@ export function CameraView({ query, paused, onPausedChange }: CameraViewProps) {
             </span>
           </Button>
         </div>
-        {query.data && query.data.plants.length > 0 && (
-          <span className='hidden text-muted-foreground tabular-nums @xl/content:inline'>
-            {formatAnalyzed(query.data.analyzedSecondsAgo)}
-          </span>
-        )}
       </div>
     </Card>
   )

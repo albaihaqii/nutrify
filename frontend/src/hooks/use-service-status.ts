@@ -1,24 +1,24 @@
-import { useLatestReading } from '@/features/sensors/api/sensors-queries'
+import { useQuery } from '@tanstack/react-query'
+import { REALTIME_INTERVAL_MS } from '@/config/realtime'
+import { api } from '@/lib/api'
 
-type ServiceStatus = {
+interface ServiceStatus {
   webcam: boolean
   sensor: boolean
   advisor: boolean
 }
 
-// The sensor chip is real: it follows the newest reading. The webcam and the
-// advisor have no endpoint yet, so they show offline until those are built.
-// The final version reads GET /api/status (docs/API.md, section 3).
+// GET /api/status (docs/API.md, section 3). The advisor chip stays offline
+// until the advisor is built.
+async function fetchServiceStatus(): Promise<ServiceStatus> {
+  const { data } = await api.get<ServiceStatus>('/status')
+  return { webcam: data.webcam, sensor: data.sensor, advisor: data.advisor }
+}
+
 export function useServiceStatus() {
-  const latest = useLatestReading()
-
-  const data: ServiceStatus | undefined = latest.isPending
-    ? undefined
-    : {
-        webcam: false,
-        sensor: latest.data ? !latest.data.isStale : false,
-        advisor: false,
-      }
-
-  return { data }
+  return useQuery({
+    queryKey: ['status'],
+    queryFn: fetchServiceStatus,
+    refetchInterval: REALTIME_INTERVAL_MS,
+  })
 }

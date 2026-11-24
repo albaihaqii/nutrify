@@ -142,21 +142,19 @@ export const id = {
   live: {
     subtitle: 'Satu bingkai webcam untuk 6 lubang pakcoy',
     camera: {
-      ariaLabel: 'Bingkai webcam dengan enam lubang pakcoy',
+      ariaLabel: 'Gambar langsung dari webcam',
       live: 'LIVE',
       paused: 'JEDA',
       source: 'Webcam',
-      placeholder: 'Bingkai ilustrasi: diganti video webcam',
+      offline: 'Webcam tidak terhubung',
+      offlineHint:
+        'Jalankan worker kamera dan pastikan Webcam aktif di halaman Perangkat.',
       snapshot: 'Snapshot',
-      snapshotUnavailable: 'Snapshot tersedia setelah webcam terhubung.',
+      snapshotUnavailable: 'Fitur snapshot belum tersedia.',
       pause: 'Jeda',
       resume: 'Lanjutkan',
       fullscreen: 'Layar Penuh',
       exitFullscreen: 'Keluar Layar Penuh',
-      analyzedAgo: 'Analisis terakhir {time}',
-      secondsAgo: '{n} detik lalu',
-      empty: 'Belum ada bingkai dari webcam.',
-      shortStatus: { ok: 'Normal', n: 'Def. N', fe: 'Def. Fe', check: 'Cek' },
     },
     context: {
       title: 'Konteks Sensor Saat Ini',

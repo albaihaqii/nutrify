@@ -142,7 +142,7 @@ first unless stated otherwise.
 |              | `PUT /settings`                   | Admin  |
 
 The vision worker is not part of this HTTP API. It shares the backend service layer and writes
-to the database and to `storage/live/` directly (see [Architecture](Architecture.md)).
+to the database and to `storage/frames/` directly (see [Architecture](Architecture.md)).
 
 ## 3. Health
 
@@ -174,7 +174,7 @@ viewers. `GET /devices` is admin only and is not used for this.
 
 | Field     | `true` when                                                                               |
 | --------- | ----------------------------------------------------------------------------------------- |
-| `webcam`  | The latest frame is newer than 10 seconds (same rule as `GET /camera/status`)             |
+| `webcam`  | The webcam device is switched on and its latest frame is newer than 10 seconds (the rule of `GET /camera/status`) |
 | `sensor`  | An active sensor node was seen within `sensor_stale_seconds`                              |
 | `advisor` | An LLM provider is configured and its last call succeeded; `false` means rules are in use |
 
@@ -528,7 +528,9 @@ dataset described in [ML](ML.md) section 7.1 and does not use this export.
 }
 ```
 
-`status` is `online` when the latest frame is newer than 10 seconds, otherwise `offline`.
+`status` is `online` when the webcam device is switched on (Devices page) and the latest frame is
+newer than 10 seconds, otherwise `offline`. When it is offline `resolution` is `null`, and
+`last_frame_at` and `frame_age_seconds` are `null` only if no frame was ever written.
 
 ### `GET /camera/stream` (Viewer)
 
@@ -536,7 +538,8 @@ Live annotated video as `multipart/x-mixed-replace` (MJPEG). The worker draws th
 and the current status on each frame; the API only streams the latest stored frame.
 
 Use it in the web app as `<img src="/api/camera/stream?token=<access_token>">`. Returns
-`503 service_unavailable` when no frame is available.
+`503 service_unavailable` when there is no frame newer than 10 seconds. The stream ends when the
+frames stop coming.
 
 ### `GET /camera/snapshot` (Viewer)
 

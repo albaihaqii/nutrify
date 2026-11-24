@@ -56,7 +56,9 @@ flowchart LR
 **Why a separate vision worker.** A webcam can be opened by only one process. Flask's development
 reloader starts the application twice, which would fight over the camera. The worker is a
 separate process that shares the same code package (`backend/app`) but has its own entry point.
-The API never opens the webcam; it only serves the frames the worker writes.
+The API never opens the webcam; it only serves the frames the worker writes. The worker opens the
+camera given by `CAMERA_INDEX` in `backend/.env` (`python scripts/check_camera.py` lists them) and
+only runs while the Webcam device is switched on in the Devices page.
 
 ## 4. Components
 

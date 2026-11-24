@@ -13,13 +13,16 @@ from app.models import Device, UserRole
 from app.services.security import hash_api_key
 
 
-def roles_required(*roles: UserRole) -> Callable:
-    """Allow the request only for a logged-in user with one of the given roles."""
+def roles_required(*roles: UserRole, locations: list[str] | None = None) -> Callable:
+    """Allow the request only for a logged-in user with one of the given roles.
+
+    `locations` says where the token may be: the Authorization header by default.
+    """
 
     def decorator(view: Callable) -> Callable:
         @wraps(view)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            verify_jwt_in_request()
+            verify_jwt_in_request(locations=locations)
             if current_user.role not in roles:
                 raise ApiError(403, "forbidden", "You do not have permission to do this")
             return view(*args, **kwargs)
@@ -31,6 +34,10 @@ def roles_required(*roles: UserRole) -> Callable:
 
 login_required = roles_required(UserRole.ADMIN, UserRole.VIEWER)
 admin_required = roles_required(UserRole.ADMIN)
+# For <img> tags, which cannot send a header: the token may also be in `?token=`.
+image_login_required = roles_required(
+    UserRole.ADMIN, UserRole.VIEWER, locations=["headers", "query_string"]
+)
 
 
 def device_required(view: Callable) -> Callable:

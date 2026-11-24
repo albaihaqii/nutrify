@@ -11,6 +11,8 @@ def create_app(config_class: type = Config) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    app.config["JWT_QUERY_STRING_NAME"] = "token"  # <img> tags pass the token as ?token=
+
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)

@@ -32,8 +32,9 @@ class TestConfig:
 
 
 @pytest.fixture()
-def app() -> Iterator[Flask]:
+def app(tmp_path: Path) -> Iterator[Flask]:
     app = create_app(TestConfig)
+    app.config["STORAGE_DIR"] = tmp_path
     with app.app_context():
         db.create_all()
         yield app
@@ -84,6 +85,13 @@ def admin_headers(client: FlaskClient, admin: User) -> dict[str, str]:
 @pytest.fixture()
 def viewer_headers(client: FlaskClient, viewer: User) -> dict[str, str]:
     return login(client, VIEWER_EMAIL, VIEWER_PASSWORD)
+
+
+@pytest.fixture()
+def webcam(app: Flask) -> Device:
+    device, api_key = device_service.create_device("webcam-1", "Webcam 1", DeviceType.WEBCAM)
+    assert api_key is None
+    return device
 
 
 @pytest.fixture()

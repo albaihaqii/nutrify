@@ -9,10 +9,22 @@ BACKEND = cv2.CAP_DSHOW if sys.platform == "win32" else cv2.CAP_ANY
 WIDTH, HEIGHT, FPS = 1280, 720, 30
 WARM_UP_FRAMES = 15  # the first frames are dark while the camera settles
 
+# cv2.flip codes: the value of CAMERA_FLIP in backend/.env.
+FLIP_CODES = {"none": None, "horizontal": 1, "vertical": 0, "both": -1}
+
+
+def orient(frame: np.ndarray, flip: str) -> np.ndarray:
+    """The frame mirrored as `flip` says (a key of FLIP_CODES)."""
+    code = FLIP_CODES[flip]
+    return frame if code is None else cv2.flip(frame, code)
+
 
 class Webcam:
-    def __init__(self, index: int) -> None:
+    def __init__(self, index: int, flip: str = "none") -> None:
+        if flip not in FLIP_CODES:
+            raise ValueError(f"CAMERA_FLIP must be one of {', '.join(FLIP_CODES)}, not {flip!r}")
         self._index = index
+        self._flip = flip
         self._capture: cv2.VideoCapture | None = None
 
     @property
@@ -38,7 +50,7 @@ class Webcam:
         if self._capture is None:
             return None
         ok, frame = self._capture.read()
-        return frame if ok else None
+        return orient(frame, self._flip) if ok else None
 
     def release(self) -> None:
         if self._capture is not None:

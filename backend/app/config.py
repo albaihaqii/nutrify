@@ -30,6 +30,8 @@ class Config:
     STORAGE_DIR = Path(os.environ.get("STORAGE_DIR", BASE_DIR.parent / "storage"))
     # Which webcam the vision worker opens: `python scripts/check_camera.py` lists them.
     CAMERA_INDEX = int(os.environ.get("CAMERA_INDEX", "0"))
+    # Mirror the picture: none, horizontal (left-right), vertical (up-down) or both.
+    CAMERA_FLIP = os.environ.get("CAMERA_FLIP", "none")
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # largest accepted upload, in bytes
 
     ADMIN_NAME = os.environ.get("ADMIN_NAME", "Admin")

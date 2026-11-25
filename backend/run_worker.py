@@ -16,7 +16,7 @@ def main() -> None:
     store = FrameStore(Path(app.config["STORAGE_DIR"]) / "frames")
 
     with app.app_context():
-        worker = VisionWorker(Webcam(app.config["CAMERA_INDEX"]), store)
+        worker = VisionWorker(Webcam(app.config["CAMERA_INDEX"], app.config["CAMERA_FLIP"]), store)
         logging.info(
             "Vision worker started (camera %s). Press Ctrl+C to stop.", app.config["CAMERA_INDEX"]
         )

@@ -1,12 +1,13 @@
 """Default values for the settings table (see docs/Schema.md section 4.9)."""
 
-# Placeholder ROI layout: a 3 x 2 grid in normalised coordinates
-# (fractions of the frame width and height), numbered row by row.
-# Replaced during camera calibration.
-_COLUMNS_X = (0.05, 0.37, 0.69)
-_ROWS_Y = (0.08, 0.54)
-_REGION_W = 0.26
-_REGION_H = 0.38
+# Placeholder ROI layout, the grid of the Live Kamera artboard: 3 columns by 2 rows in
+# normalised coordinates (fractions of the frame width and height), numbered row by row.
+# The top margin leaves room for the LIVE badge. Replaced during camera calibration; keep it
+# equal to `defaultBoxes()` in the frontend (the reset button of the calibration card).
+_COLUMNS_X = (0.04, 0.3533, 0.6667)
+_ROWS_Y = (0.09, 0.53)
+_REGION_W = 0.2933
+_REGION_H = 0.415
 
 DEFAULT_ROI_CONFIG = [
     {

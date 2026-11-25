@@ -48,26 +48,29 @@ export function resizeBox(box: RoiBox, dw: number, dh: number): RoiBox {
 
 const GRID_COLUMNS = 3
 const GRID_ROWS = 2
-const BOX_WIDTH = 0.26
-const BOX_HEIGHT = 0.38
+// The grid of the Live Kamera artboard. The top margin leaves room for the LIVE badge.
+const MARGIN = { left: 0.04, right: 0.04, top: 0.09, bottom: 0.055 }
+const GAP = { x: 0.02, y: 0.025 }
 
 /**
- * Three columns by two rows with equal margins and equal gaps, so the
- * layout is symmetric around the centre of the frame.
+ * Three columns by two rows, numbered row by row, with the same margins and
+ * gaps as the artboard. Keep it equal to DEFAULT_ROI_CONFIG in the backend.
  */
 export function defaultBoxes(): RoiBox[] {
-  const gapX = (1 - GRID_COLUMNS * BOX_WIDTH) / (GRID_COLUMNS + 1)
-  const gapY = (1 - GRID_ROWS * BOX_HEIGHT) / (GRID_ROWS + 1)
+  const width =
+    (1 - MARGIN.left - MARGIN.right - (GRID_COLUMNS - 1) * GAP.x) / GRID_COLUMNS
+  const height =
+    (1 - MARGIN.top - MARGIN.bottom - (GRID_ROWS - 1) * GAP.y) / GRID_ROWS
 
   return Array.from({ length: ROI_COUNT }, (_, index) => {
     const column = index % GRID_COLUMNS
     const row = Math.floor(index / GRID_COLUMNS)
     return normalizeBox({
       position: index + 1,
-      x: gapX + column * (BOX_WIDTH + gapX),
-      y: gapY + row * (BOX_HEIGHT + gapY),
-      w: BOX_WIDTH,
-      h: BOX_HEIGHT,
+      x: MARGIN.left + column * (width + GAP.x),
+      y: MARGIN.top + row * (height + GAP.y),
+      w: width,
+      h: height,
     })
   })
 }

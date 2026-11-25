@@ -3,13 +3,15 @@ import { id } from '@/locales/id'
 import { CameraOff, Image, Maximize, Minimize, Pause, Play } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
+import { cameraStreamUrl } from '@/lib/camera-url'
 import { cn } from '@/lib/utils'
 import { useServiceStatus } from '@/hooks/use-service-status'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QueryBoundary } from '@/components/query-boundary'
-import { cameraStreamUrl } from '../lib/camera-url'
+import { useSettings } from '@/features/settings/api/settings-queries'
+import { RoiOverlay } from './roi-overlay'
 
 function OfflineView() {
   return (
@@ -28,6 +30,7 @@ interface CameraViewProps {
 
 export function CameraView({ paused, onPausedChange }: CameraViewProps) {
   const status = useServiceStatus()
+  const settings = useSettings()
   const accessToken = useAuthStore((state) => state.auth.accessToken)
   const frameRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
@@ -113,6 +116,7 @@ export function CameraView({ paused, onPausedChange }: CameraViewProps) {
                     !paused && 'hidden'
                   )}
                 />
+                {settings.data && <RoiOverlay boxes={settings.data.roi} />}
               </>
             ) : (
               <OfflineView />

@@ -400,6 +400,7 @@ export const id = {
       boxLabel:
         'Lubang L{n}. Geser dengan panah, ubah ukuran dengan Shift dan panah.',
       reset: 'Atur ulang kotak',
+      refreshFrame: 'Ambil gambar terbaru',
     },
     actions: { save: 'Simpan perubahan', cancel: 'Batalkan' },
     toast: { saved: 'Pengaturan disimpan.' },

@@ -29,7 +29,11 @@ export function Live() {
       <div className='grid grid-cols-1 gap-6 @5xl/content:grid-cols-[minmax(0,65fr)_minmax(0,35fr)] @5xl/content:items-start'>
         <div className={COLUMN}>
           <div className='order-1 min-w-0'>
-            <CameraView paused={paused} onPausedChange={setPaused} />
+            <CameraView
+              paused={paused}
+              onPausedChange={setPaused}
+              analysis={analysis.data}
+            />
           </div>
           <div className='order-5 min-w-0'>
             <SensorContextCard />

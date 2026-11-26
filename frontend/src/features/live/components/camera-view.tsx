@@ -4,13 +4,16 @@ import { CameraOff, Image, Maximize, Minimize, Pause, Play } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { cameraStreamUrl } from '@/lib/camera-url'
+import { formatAgeSeconds } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { useNow } from '@/hooks/use-now'
 import { useServiceStatus } from '@/hooks/use-service-status'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QueryBoundary } from '@/components/query-boundary'
 import { useSettings } from '@/features/settings/api/settings-queries'
+import { type LiveAnalysis } from '../data/live-analysis'
 import { RoiOverlay } from './roi-overlay'
 
 function OfflineView() {
@@ -26,11 +29,17 @@ function OfflineView() {
 interface CameraViewProps {
   paused: boolean
   onPausedChange: (paused: boolean) => void
+  analysis: LiveAnalysis | undefined
 }
 
-export function CameraView({ paused, onPausedChange }: CameraViewProps) {
+export function CameraView({
+  paused,
+  onPausedChange,
+  analysis,
+}: CameraViewProps) {
   const status = useServiceStatus()
   const settings = useSettings()
+  const now = useNow(1_000)
   const accessToken = useAuthStore((state) => state.auth.accessToken)
   const frameRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
@@ -116,7 +125,12 @@ export function CameraView({ paused, onPausedChange }: CameraViewProps) {
                     !paused && 'hidden'
                   )}
                 />
-                {settings.data && <RoiOverlay boxes={settings.data.roi} />}
+                {settings.data && (
+                  <RoiOverlay
+                    boxes={settings.data.roi}
+                    plants={analysis?.plants}
+                  />
+                )}
               </>
             ) : (
               <OfflineView />
@@ -162,6 +176,16 @@ export function CameraView({ paused, onPausedChange }: CameraViewProps) {
             </span>
           </Button>
         </div>
+        {analysis?.analyzedAt && (
+          <p className='text-sm text-muted-foreground'>
+            {id.live.camera.analyzedAgo.replace(
+              '{time}',
+              formatAgeSeconds(
+                Math.max(0, (now - analysis.analyzedAt.getTime()) / 1000)
+              )
+            )}
+          </p>
+        )}
       </div>
     </Card>
   )

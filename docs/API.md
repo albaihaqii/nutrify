@@ -549,6 +549,7 @@ The latest analysis of the six regions, written by the vision worker every
       "status": "normal",
       "confidence": 0.72,
       "observed": "normal",
+      "predicted": "normal",
       "leaf_area_ratio": 0.59,
       "features": { "mean_r": 92.3, "mean_g": 103.9, "mean_b": 53.6 },
       "rule_path": [
@@ -565,7 +566,9 @@ The latest analysis of the six regions, written by the vision worker every
 `no_plant` (nothing green in the region: an empty hole or only the pot) or `needs_check` (the
 leaf area is outside the limits of the model, or the best comparator disagrees when
 `consensus_enabled` is on). It is `null` until one result has `stabilizer_min_votes` votes.
-`observed` is the result of the latest analysis alone. `confidence` is the leaf purity of the
+`observed` is the result of the latest analysis alone. `predicted` is the class of the primary
+model for that analysis (null for `no_plant` and for a leaf area outside the limits), so it is
+still known when the comparators turned `observed` into `needs_check`. `confidence` is the leaf purity of the
 tree, never a probability; `features`, `rule_path` and `comparators` are empty for `no_plant`
 and `needs_check` caused by the leaf area. `comparators` lists every other model only when
 `consensus_enabled` is on.

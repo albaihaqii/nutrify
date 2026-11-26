@@ -155,6 +155,14 @@ export const id = {
       resume: 'Lanjutkan',
       fullscreen: 'Layar Penuh',
       exitFullscreen: 'Keluar Layar Penuh',
+      analyzedAgo: 'Analisis terakhir {time}',
+    },
+    status: { none: 'Tidak terdeteksi' },
+    rule: {
+      noPlant: 'Tidak ada daun hijau di kotak ini.',
+      leafArea: 'Luas daun di luar batas yang dikenali model.',
+      disagree: 'Keyakinan rendah, model pembanding berbeda.',
+      settling: 'Status sedang distabilkan.',
     },
     context: {
       title: 'Konteks Sensor Saat Ini',
@@ -176,7 +184,14 @@ export const id = {
       verdict: { agree: 'Sepakat', partial: 'Sebagian', differ: 'Berbeda' },
       noteCheck: '{plants} ditandai Perlu Dicek karena model tidak sepakat.',
       noteAllAgree: 'Tidak ada lubang yang perlu dicek.',
+      names: {
+        svm: 'SVM',
+        naive_bayes: 'Naive Bayes',
+        random_forest: 'Random Forest',
+      } as Record<string, string>,
       empty: 'Belum ada hasil model pembanding.',
+      emptyHint:
+        'Aktifkan Pemeriksaan model pembanding di Pengaturan dan pastikan kamera menyala.',
     },
     advisor: {
       title: 'Penasihat',

@@ -95,6 +95,7 @@ def test_empty_holes_are_not_detected(app: Flask) -> None:
     analysis = Analyzer().run(frame_with_plants(set()), settings())
     assert [plant.observed for plant in analysis.plants] == ["no_plant"] * 6
     assert all(plant.features is None and plant.rule_path == [] for plant in analysis.plants)
+    assert all(plant.predicted is None for plant in analysis.plants)
 
 
 def test_plants_get_a_class_and_the_rule_that_decided_it(app: Flask) -> None:
@@ -158,6 +159,7 @@ def test_a_plant_the_best_comparator_disagrees_on_needs_a_check(
     plant = Analyzer().run(frame_with_plants({1}), config).plants[0]
     assert plant.status == "needs_check"
     assert plant.confidence is None
+    assert plant.predicted == "normal"
 
 
 def test_comparators_do_not_run_when_consensus_is_off(

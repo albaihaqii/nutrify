@@ -1,13 +1,17 @@
 import { type UseQueryResult } from '@tanstack/react-query'
 import { id } from '@/locales/id'
 import { ChevronDown } from 'lucide-react'
-import { plantStatusIcon } from '@/lib/plant-status'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
 import { StatusBadge } from '@/components/status-badge'
 import { type LiveAnalysis, type LivePlant } from '../data/live-analysis'
+import {
+  isUncertain,
+  liveStatusIcon,
+  liveStatusLabel,
+} from '../lib/live-status'
 
 function C45Skeleton() {
   return (
@@ -24,17 +28,20 @@ function C45List({ plants }: { plants: LivePlant[] }) {
     <>
       <div className='flex flex-col'>
         {plants.map((plant) => {
-          const Icon = plantStatusIcon[plant.status]
+          const Icon = liveStatusIcon[plant.status]
           return (
-            <details key={plant.id} className='group border-b last:border-b-0'>
+            <details
+              key={plant.position}
+              className='group border-b last:border-b-0'
+            >
               <summary className='flex cursor-pointer list-none items-center gap-2 py-2.5 text-[13px] [&::-webkit-details-marker]:hidden'>
-                <strong className='w-7 font-semibold'>{plant.id}</strong>
+                <strong className='w-7 font-semibold'>L{plant.position}</strong>
                 <StatusBadge
-                  tone={plant.status}
-                  dashed={plant.status === 'check'}
+                  tone={plant.status === 'none' ? 'check' : plant.status}
+                  dashed={isUncertain(plant.status)}
                 >
                   <Icon aria-hidden='true' />
-                  {id.plantStatus[plant.status]}
+                  {liveStatusLabel(plant.status)}
                 </StatusBadge>
                 <span className='ms-auto tabular-nums'>
                   {plant.confidence === null

@@ -39,7 +39,7 @@ function ComparatorsSkeleton() {
 function ComparatorsList({ analysis }: { analysis: LiveAnalysis }) {
   const needCheck = analysis.plants
     .filter((plant) => plant.status === 'check')
-    .map((plant) => plant.id)
+    .map((plant) => `L${plant.position}`)
 
   return (
     <>
@@ -50,10 +50,12 @@ function ComparatorsList({ analysis }: { analysis: LiveAnalysis }) {
           const Icon = badge.icon
           return (
             <div
-              key={model.name}
+              key={model.modelId}
               className='flex items-center justify-between gap-2 py-2'
             >
-              <span className='font-medium'>{model.name}</span>
+              <span className='font-medium'>
+                {id.live.comparators.names[model.modelId] ?? model.modelId}
+              </span>
               <span className='ms-auto text-muted-foreground tabular-nums'>
                 {id.live.comparators.agreeOf
                   .replace('{agree}', String(model.agree))
@@ -97,7 +99,12 @@ export function ComparatorsCard({
         skeleton={<ComparatorsSkeleton />}
         empty={{
           when: (analysis) => analysis.comparators.length === 0,
-          view: <EmptyState title={id.live.comparators.empty} />,
+          view: (
+            <EmptyState
+              title={id.live.comparators.empty}
+              description={id.live.comparators.emptyHint}
+            />
+          ),
         }}
       >
         {(analysis) => <ComparatorsList analysis={analysis} />}

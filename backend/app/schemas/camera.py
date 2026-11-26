@@ -38,6 +38,7 @@ class PlantAnalysis(BaseModel):
     status: PlantStatus | None  # after the stabiliser; null until it has enough results
     confidence: float | None
     observed: PlantStatus  # the result of this analysis alone
+    predicted: str | None  # the class of the primary model, even when the comparators disagree
     leaf_area_ratio: float
     features: dict[str, float] | None
     rule_path: list[RuleStep]

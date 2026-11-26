@@ -352,14 +352,21 @@ probability and must not be presented as one.
 
 ### 6.3 Stabiliser
 
-Single-frame predictions flicker. A plant's status changes only when a new class has at least
-`stabilizer_min_votes` of the last `stabilizer_window` results (defaults 3 of 5). Frames with
-`invalid_leaf` or `stale_sensor` do not vote.
+Single-frame predictions flicker. A plant's status changes only when a new result has at least
+`stabilizer_min_votes` of the last `stabilizer_window` results (defaults 2 of 3). With an
+analysis every 2 seconds a plant that is swapped shows its new status after about 4 seconds.
+
+Every analysis votes, with one of five results: the three classes, `no_plant` (nothing green in
+the region, so a removed plant is noticed too) and `needs_check` (leaf area outside the limits of
+the model, or the best comparator disagrees). `no_plant` is decided before the model runs: the
+leaf area is under `min_leaf_area_ratio`, or the colourfulness of the masked pixels (distance
+from grey in CIELAB, `MIN_LEAF_CHROMA`) is too low, as it is for the white pipe and the pot.
 
 ### 6.4 Optional consensus check
 
-When `consensus_enabled` is true, the worker also runs a comparator model and flags
-disagreements as `needs_check`. It is off by default and does not change the displayed class.
+When `consensus_enabled` is true, the worker also runs every comparator model and flags
+a plant as `needs_check` when the comparator with the highest macro F1 disagrees with the
+primary model. It is off by default and does not change the displayed class.
 
 ### 6.5 Comparators
 

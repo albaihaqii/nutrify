@@ -92,6 +92,8 @@ Rule: routes contain no business logic; services never import Flask request obje
 | `roi.py`           | Load the 6 calibrated regions and crop them from a frame                                      |
 | `preprocessing.py` | Resize, blur, CIELAB conversion, Otsu threshold on a\*, morphology, masking, mean RGB and Lab |
 | `stabilizer.py`    | Per-hole majority vote over recent results                                                    |
+| `analyzer.py`      | Crop, run the pipeline and the models on the six regions, stabilise                           |
+| `result_store.py`  | Hand the latest analysis to the API as `storage/frames/analysis.json`                         |
 
 The preprocessing code is shared with the ML workspace (`ml/src`) so training and runtime use
 identical steps. Its parameters are stored in a versioned file next to the model artifacts.

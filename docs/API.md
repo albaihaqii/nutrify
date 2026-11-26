@@ -119,6 +119,7 @@ first unless stated otherwise.
 | Dataset      | `GET /dataset/summary`            | Viewer |
 |              | `GET /dataset/export`             | Admin  |
 | Camera       | `GET /camera/status`              | Viewer |
+|              | `GET /camera/analysis`            | Viewer |
 |              | `GET /camera/stream`              | Viewer |
 |              | `GET /camera/snapshot`            | Viewer |
 |              | `POST /camera/captures`           | Admin  |
@@ -532,6 +533,47 @@ dataset described in [ML](ML.md) section 7.1 and does not use this export.
 newer than 10 seconds, otherwise `offline`. When it is offline `resolution` is `null`, and
 `last_frame_at` and `frame_age_seconds` are `null` only if no frame was ever written.
 
+### `GET /camera/analysis` (Viewer)
+
+The latest analysis of the six regions, written by the vision worker every
+`analysis_interval_seconds` and stabilised over the last `stabilizer_window` results.
+
+```json
+{
+  "analyzed_at": "2026-11-25T02:40:03.000Z",
+  "model_version": "c45-0.1.0",
+  "consensus": false,
+  "plants": [
+    {
+      "position": 1,
+      "status": "normal",
+      "confidence": 0.72,
+      "observed": "normal",
+      "leaf_area_ratio": 0.59,
+      "features": { "mean_r": 92.3, "mean_g": 103.9, "mean_b": 53.6 },
+      "rule_path": [
+        { "feature": "mean_r", "operator": "<=", "threshold": 144.55 },
+        { "feature": "mean_r", "operator": "<=", "threshold": 95.75 }
+      ],
+      "comparators": []
+    }
+  ]
+}
+```
+
+`status` is what the page shows, after the stabiliser: `normal`, `n_deficiency`, `fe_deficiency`,
+`no_plant` (nothing green in the region: an empty hole or only the pot) or `needs_check` (the
+leaf area is outside the limits of the model, or the best comparator disagrees when
+`consensus_enabled` is on). It is `null` until one result has `stabilizer_min_votes` votes.
+`observed` is the result of the latest analysis alone. `confidence` is the leaf purity of the
+tree, never a probability; `features`, `rule_path` and `comparators` are empty for `no_plant`
+and `needs_check` caused by the leaf area. `comparators` lists every other model only when
+`consensus_enabled` is on.
+
+`plants` is an empty list, and the other fields are `null` or `false`, when the camera is
+offline or the last analysis is older than three intervals (at least 10 seconds), so a page
+never shows labels of a plant that is no longer being watched.
+
 ### `GET /camera/stream` (Viewer)
 
 Live annotated video as `multipart/x-mixed-replace` (MJPEG). The worker draws the six regions
@@ -862,10 +904,10 @@ Returns every key from [Schema](Schema.md) section 4.9 as a flat object:
   "ec_max": 2.0,
   "temperature_min": 18,
   "temperature_max": 26,
-  "analysis_interval_seconds": 10,
+  "analysis_interval_seconds": 2,
   "observation_store_interval_seconds": 60,
-  "stabilizer_window": 5,
-  "stabilizer_min_votes": 3,
+  "stabilizer_window": 3,
+  "stabilizer_min_votes": 2,
   "sensor_stale_seconds": 120,
   "consensus_enabled": false,
   "roi_config": []

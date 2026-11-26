@@ -6,6 +6,7 @@ from pathlib import Path
 
 from app import create_app
 from app.services.vision.frame_store import FrameStore
+from app.services.vision.result_store import ResultStore
 from app.services.vision.webcam import Webcam
 from app.services.vision.worker import VisionWorker
 
@@ -13,10 +14,14 @@ from app.services.vision.worker import VisionWorker
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     app = create_app()
-    store = FrameStore(Path(app.config["STORAGE_DIR"]) / "frames")
+    directory = Path(app.config["STORAGE_DIR"]) / "frames"
 
     with app.app_context():
-        worker = VisionWorker(Webcam(app.config["CAMERA_INDEX"], app.config["CAMERA_FLIP"]), store)
+        worker = VisionWorker(
+            Webcam(app.config["CAMERA_INDEX"], app.config["CAMERA_FLIP"]),
+            FrameStore(directory),
+            ResultStore(directory),
+        )
         logging.info(
             "Vision worker started (camera %s). Press Ctrl+C to stop.", app.config["CAMERA_INDEX"]
         )

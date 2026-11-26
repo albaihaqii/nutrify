@@ -5,7 +5,7 @@ Nothing is stored. The image goes through the same pipeline as the training imag
 """
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -25,6 +25,7 @@ from app.services.model_registry import Entry
 class Prediction:
     label: str
     confidence: float
+    rule_path: list[dict[str, Any]] = field(default_factory=list)  # the tree only
 
 
 @lru_cache(maxsize=8)
@@ -47,7 +48,8 @@ def _predict_tree(entry: Entry, values: dict[str, float]) -> Prediction:
     path = registry_service.artifact_path(entry)
     payload = _tree(path, path.stat().st_mtime_ns)
     result = ml_adapter.c45(registry_service.ml_dir()).predict_from_dict(payload, values)
-    return Prediction(result["predicted_class"], float(result["confidence"]))
+    rule_path = [{**step, "feature": step["feature"].lower()} for step in result["rule_path"]]
+    return Prediction(result["predicted_class"], float(result["confidence"]), rule_path)
 
 
 def _predict_sklearn(entry: Entry, values: dict[str, float]) -> Prediction:
@@ -68,7 +70,7 @@ def predict_entry(entry: Entry, values: dict[str, float]) -> Prediction:
     return _predict_sklearn(entry, values)
 
 
-def _pipeline_config(preprocessing: Any, settings: dict[str, Any]) -> Any:
+def pipeline_config(preprocessing: Any, settings: dict[str, Any]) -> Any:
     return preprocessing.PipelineConfig(
         resize=settings["resize"][0],
         blur_kernel=settings["blur_kernel"],
@@ -96,7 +98,7 @@ def predict_image(data: bytes) -> PredictionOut:
     preprocessing = ml_adapter.preprocessing(registry_service.ml_dir())
 
     result = preprocessing.process_image(
-        _decode(data), _pipeline_config(preprocessing, active["preprocessing"])
+        _decode(data), pipeline_config(preprocessing, active["preprocessing"])
     )
     if result.qc_status != preprocessing.QC_OK:
         raise ApiError(422, "invalid_leaf", "No leaf could be found in the image")

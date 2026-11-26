@@ -28,10 +28,10 @@ DEFAULT_SETTINGS = {
     "ec_max": 2.0,
     "temperature_min": 18,  # placeholder, to be validated
     "temperature_max": 26,  # placeholder, to be validated
-    "analysis_interval_seconds": 10,
+    "analysis_interval_seconds": 2,
     "observation_store_interval_seconds": 60,
-    "stabilizer_window": 5,
-    "stabilizer_min_votes": 3,
+    "stabilizer_window": 3,
+    "stabilizer_min_votes": 2,
     "sensor_stale_seconds": 120,
     "consensus_enabled": False,
     "roi_config": DEFAULT_ROI_CONFIG,

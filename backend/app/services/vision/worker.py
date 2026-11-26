@@ -14,10 +14,15 @@ import cv2
 import numpy as np
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.errors import ApiError
 from app.extensions import db
 from app.models import Device, DeviceType
 from app.models.types import utcnow
+from app.services import settings as settings_service
+from app.services.settings_defaults import DEFAULT_SETTINGS
+from app.services.vision.analyzer import Analyzer
 from app.services.vision.frame_store import FrameStore
+from app.services.vision.result_store import ResultStore
 
 log = logging.getLogger("nutrify.worker")
 
@@ -42,10 +47,15 @@ class VisionWorker:
         self,
         source: FrameSource,
         store: FrameStore,
+        results: ResultStore | None = None,
         clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._source = source
         self._store = store
+        self._results = results  # None: only keep the latest frame, do not analyse it
+        self._analyzer = Analyzer()
+        self._settings: dict = dict(DEFAULT_SETTINGS)
+        self._next_analysis = 0.0
         self._clock = clock
         self._active = False
         self._next_check = 0.0
@@ -73,7 +83,8 @@ class VisionWorker:
         self._release("Worker stopped")
 
     def _check_device(self) -> None:
-        """Read the switch of the webcam device and note that it is alive."""
+        """Read the switch of the webcam device, note that it is alive, and reload the settings
+        (the analysis interval, the stabiliser and the six regions can change while running)."""
         try:
             db.session.remove()  # a fresh transaction, so a change made by the API is seen
             device = db.session.scalar(
@@ -84,6 +95,7 @@ class VisionWorker:
                 device.last_seen_at = utcnow()
                 self._wrote_frame = False
             db.session.commit()
+            self._settings = settings_service.get_settings()
         except SQLAlchemyError:
             db.session.rollback()
             log.exception("Cannot reach the database; keeping the last known switch state")
@@ -130,7 +142,19 @@ class VisionWorker:
             self._spent["encode"] += write_at - encode_at
             self._spent["write"] += done_at - write_at
             self._count_frame()
+        if self._results is not None and self._clock() >= self._next_analysis:
+            self._analyze(frame, self._results)
         return 0.0
+
+    def _analyze(self, frame: np.ndarray, results: ResultStore) -> None:
+        """Classify the six regions of this frame and hand the result to the API."""
+        self._next_analysis = self._clock() + self._settings["analysis_interval_seconds"]
+        try:
+            analysis = self._analyzer.run(frame, self._settings)
+        except ApiError as error:  # no trained model yet: the live view stays without labels
+            self._warn_once(f"Cannot analyse: {error.message}")
+            return
+        results.write(analysis)
 
     def _restart_count(self) -> None:
         self._counted_frames = 0

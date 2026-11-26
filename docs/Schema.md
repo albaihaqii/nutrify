@@ -223,10 +223,10 @@ Default keys:
 | `ph_min`, `ph_max`                   | 5.5, 6.5  | Ideal pH range                                                                                    |
 | `ec_min`, `ec_max`                   | 1.5, 2.0  | Ideal EC range (mS/cm)                                                                            |
 | `temperature_min`, `temperature_max` | 18, 26    | Placeholder range (Celsius), to be validated                                                      |
-| `analysis_interval_seconds`          | 10        | How often the worker analyses a frame                                                             |
+| `analysis_interval_seconds`          | 2         | How often the worker analyses a frame                                                             |
 | `observation_store_interval_seconds` | 60        | How often observations are persisted (also stored on status change)                               |
-| `stabilizer_window`                  | 5         | Number of recent results considered                                                               |
-| `stabilizer_min_votes`               | 3         | Votes needed to change a status                                                                   |
+| `stabilizer_window`                  | 3         | Number of recent results considered                                                               |
+| `stabilizer_min_votes`               | 2         | Votes needed to change a status                                                                   |
 | `sensor_stale_seconds`               | 120       | Age after which a reading is considered stale                                                     |
 | `consensus_enabled`                  | false     | Optional runtime check with a comparator model                                                    |
 | `roi_config`                         | 6 regions | Calibrated hole regions: JSON list of `{position, x, y, w, h}`, normalised to 0 to 1 of the frame |

@@ -15,16 +15,23 @@ from flask import current_app
 from app.errors import ApiError
 from app.extensions import db
 from app.models import Device, DeviceType
-from app.schemas.camera import CameraResolution, CameraStatus
+from app.schemas.camera import CameraAnalysis, CameraResolution, CameraStatus
+from app.services import settings as settings_service
 from app.services.vision.frame_store import Frame, FrameStore
+from app.services.vision.result_store import ResultStore
 
 FRAME_STALE_SECONDS = 10  # a frame older than this means the camera is offline
+ANALYSIS_STALE_INTERVALS = 3  # an analysis older than this many intervals is not shown
 STREAM_POLL_SECONDS = 0.01  # well under one frame at 30 per second
 BOUNDARY = "frame"
 
 
 def frame_store() -> FrameStore:
     return FrameStore(Path(current_app.config["STORAGE_DIR"]) / "frames")
+
+
+def result_store() -> ResultStore:
+    return ResultStore(Path(current_app.config["STORAGE_DIR"]) / "frames")
 
 
 def is_online() -> bool:
@@ -61,6 +68,18 @@ def get_status() -> CameraStatus:
         frame_age_seconds=round(frame.age_seconds, 1),
         resolution=_resolution(frame) if online else None,
     )
+
+
+def get_analysis() -> CameraAnalysis:
+    """The latest analysis of the six plants; no plants when the camera is off or the worker has
+    stopped analysing."""
+    stored = result_store().read()
+    if stored is not None and is_online():
+        analysis, age = stored
+        interval = settings_service.get_settings()["analysis_interval_seconds"]
+        if age <= max(FRAME_STALE_SECONDS, ANALYSIS_STALE_INTERVALS * interval):
+            return analysis
+    return CameraAnalysis(analyzed_at=None, model_version=None, consensus=False, plants=[])
 
 
 def _fresh_frame() -> Frame:

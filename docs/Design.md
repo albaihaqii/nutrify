@@ -193,6 +193,7 @@ The UI shows four plant statuses. Three come from the model, one from quality co
 | Fe deficiency | Defisiensi Fe    | `stable_class = fe_deficiency`              | drop  | `fe`, solid      |
 | Needs check   | Perlu Dicek      | `qc_status = needs_check` or `invalid_leaf` | help  | `ck`, **dashed** |
 | No result yet | Belum ada data   | `current_class = null`                      | none  | `ck`, dashed     |
+| Not detected  | Tidak terdeteksi | live analysis `status = no_plant`           | none  | `ck`, dashed     |
 
 Sensor values use `in_range` (label "Ideal"), `low` ("Rendah"), `high` ("Tinggi") with the
 `ok`, `lo`, `hi` pairs. Device state uses `online` and `offline` (dashed).

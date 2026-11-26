@@ -33,5 +33,5 @@ type DraftKey = NumericKey | 'roi'
 export type DraftErrors = Partial<Record<DraftKey, string | undefined>>
 
 /** Choices for the two interval selects; the saved value is added when missing. */
-export const ANALYSIS_INTERVALS = [5, 10, 15, 30, 60] as const
+export const ANALYSIS_INTERVALS = [1, 2, 3, 5, 10, 30] as const
 export const STORE_INTERVALS = [30, 60, 120, 300, 600] as const

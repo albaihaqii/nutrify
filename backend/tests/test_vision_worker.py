@@ -6,10 +6,13 @@ import numpy as np
 import pytest
 from flask import Flask
 
+from app.errors import ApiError
 from app.extensions import db
-from app.models import Device
+from app.models import Device, Setting
+from app.services import model_registry as registry_service
 from app.services.vision import worker as worker_module
 from app.services.vision.frame_store import FrameStore
+from app.services.vision.result_store import ResultStore
 from app.services.vision.worker import VisionWorker
 
 
@@ -58,7 +61,7 @@ def switch(device_id: int, active: bool) -> None:
 
 
 def make_worker(camera: FakeCamera, store: FrameStore, clock: Clock) -> VisionWorker:
-    return VisionWorker(camera, store, clock)
+    return VisionWorker(camera, store, clock=clock)
 
 
 def test_it_opens_the_camera_and_writes_frames(webcam: Device, store: FrameStore) -> None:
@@ -153,3 +156,66 @@ def test_it_logs_the_real_frame_rate(
     lines = [r.message for r in caplog.records if "frames per second" in r.message]
     assert len(lines) == 1
     assert "30.0" in lines[0] or "29." in lines[0]
+
+
+# --- analysis ------------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def results(app: Flask) -> ResultStore:
+    return ResultStore(Path(app.config["STORAGE_DIR"]) / "frames")
+
+
+def analysing_worker(store: FrameStore, results: ResultStore, clock: Clock) -> VisionWorker:
+    worker = VisionWorker(FakeCamera(), store, results, clock)
+    worker.tick()  # opens the camera
+    return worker
+
+
+def test_it_analyses_the_frames_at_the_interval_of_the_settings(
+    webcam: Device, store: FrameStore, results: ResultStore
+) -> None:
+    clock = Clock()
+    worker = analysing_worker(store, results, clock)
+
+    worker.tick()
+    first = results.read()
+    assert first is not None
+    assert len(first[0].plants) == 6
+
+    db.session.add(Setting(key="analysis_interval_seconds", value=30))
+    db.session.commit()
+    clock.now = 2  # the interval of the settings is read at the next device check
+    worker.tick()
+    clock.now = 2.5
+    results.write(first[0].model_copy(update={"model_version": "marker"}))
+    worker.tick()
+    assert results.read()[0].model_version == "marker"  # not analysed again within 30 seconds
+
+    clock.now = 40
+    worker.tick()
+    assert results.read()[0].model_version != "marker"
+
+
+def test_it_keeps_running_when_no_model_has_been_trained(
+    webcam: Device,
+    store: FrameStore,
+    results: ResultStore,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    def no_registry() -> dict:
+        raise ApiError(404, "not_found", "No model has been trained yet")
+
+    monkeypatch.setattr(registry_service, "load_registry", no_registry)
+    clock = Clock()
+    worker = analysing_worker(store, results, clock)
+
+    for _ in range(3):
+        clock.now += 5
+        worker.tick()
+
+    assert store.read() is not None  # frames still flow
+    assert results.read() is None
+    warnings = [r for r in caplog.records if "Cannot analyse" in r.message]
+    assert len(warnings) == 1

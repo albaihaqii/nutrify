@@ -16,6 +16,12 @@ def status() -> Response:
     return jsonify(camera_service.get_status().model_dump(mode="json"))
 
 
+@bp.get("/analysis")
+@login_required
+def analysis() -> Response:
+    return jsonify(camera_service.get_analysis().model_dump(mode="json"))
+
+
 @bp.get("/snapshot")
 @image_login_required
 def snapshot() -> Response:

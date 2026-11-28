@@ -256,3 +256,34 @@ def test_current_since_moves_only_when_the_status_changes(recorder: Recorder, cl
     db.session.refresh(hole)
     assert hole.current_since > since
     assert hole.current_class is PlantClass.FE_DEFICIENCY
+
+
+# --- a capture on request --------------------------------------------------------------------
+
+
+def test_a_capture_stores_the_moment_without_touching_the_holes(
+    recorder: Recorder, clock: Clock
+) -> None:
+    recorder.record(JPEG, analysis(*six()), settings())
+    since = db.session.scalar(db.select(Plant).filter_by(position=1)).current_since
+
+    clock.now = 10
+    stored = recorder.capture_now(JPEG, analysis(*six("fe_deficiency")), settings())
+
+    assert stored is not None
+    assert len(observations()) == 12
+    assert db.session.scalar(db.select(Capture).filter_by(id=stored.id)) is not None
+    hole = db.session.scalar(db.select(Plant).filter_by(position=1))
+    assert hole.current_class is PlantClass.NORMAL
+    assert hole.current_since == since
+    assert hole.last_observation_id == observations()[0].id
+
+
+def test_a_capture_does_not_move_the_schedule(recorder: Recorder, clock: Clock) -> None:
+    recorder.capture_now(JPEG, analysis(*six()), settings())
+    assert recorder.record(JPEG, analysis(*six()), settings())  # still due at once
+
+
+def test_a_capture_needs_a_result_to_store(recorder: Recorder) -> None:
+    assert recorder.capture_now(JPEG, analysis(result(1, None)), settings()) is None
+    assert observations() == []

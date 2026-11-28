@@ -8,12 +8,14 @@ from sqlalchemy import ColumnElement, and_
 
 from app.errors import ApiError
 from app.extensions import db
-from app.models import Observation, Plant, PlantClass, QcStatus
+from app.models import Observation, Plant, PlantClass, QcStatus, User
+from app.models.types import utcnow
 from app.schemas.plants import (
     DailyCondition,
     DailyConditionsOut,
     DailyConditionsQuery,
     ExportRow,
+    LabelIn,
     LastObservation,
     ObservationFeatures,
     ObservationFilters,
@@ -126,6 +128,13 @@ def _conditions(filters: ObservationFilters) -> list[ColumnElement[bool]]:
         conditions.append(Observation.observed_at <= to_naive_utc(filters.to))
     if filters.status is not None:
         conditions.append(STATUS_CONDITIONS[filters.status])
+    if filters.label == "labeled":
+        conditions.append(Observation.label_class.is_not(None))
+    elif filters.label == "unlabeled":
+        conditions.append(Observation.label_class.is_(None))
+    if filters.labelable:
+        conditions.append(Observation.capture_id.is_not(None))
+        conditions.append(Observation.qc_status != QcStatus.NO_PLANT)
     return conditions
 
 
@@ -261,3 +270,25 @@ def get_daily_conditions(query: DailyConditionsQuery) -> DailyConditionsOut:
             )
         )
     return DailyConditionsOut(items=items)
+
+
+def set_label(observation_id: int, body: LabelIn, user: User) -> ObservationOut:
+    """Set or clear the ground-truth label a person gave a result. Who and when are recorded."""
+    row = db.session.execute(
+        db.select(Observation, Plant.position)
+        .join(Plant, Plant.id == Observation.plant_id)
+        .where(Observation.id == observation_id)
+    ).first()
+    if row is None:
+        raise ApiError(404, "not_found", "Observation not found")
+    observation, position = row
+    if body.label_class is None:
+        observation.label_class = None
+        observation.labeled_by = None
+        observation.labeled_at = None
+    else:
+        observation.label_class = PlantClass(body.label_class)
+        observation.labeled_by = user.id
+        observation.labeled_at = utcnow()
+    db.session.commit()
+    return _observation_out(observation, position)

@@ -2,7 +2,7 @@
 
 from flask import Blueprint, Response, jsonify
 
-from app.api.decorators import image_login_required, login_required
+from app.api.decorators import admin_required, image_login_required, login_required
 from app.services import camera as camera_service
 
 bp = Blueprint("camera", __name__)
@@ -26,6 +26,12 @@ def analysis() -> Response:
 @image_login_required
 def snapshot() -> Response:
     return Response(camera_service.snapshot(), mimetype="image/jpeg", headers=NO_CACHE)
+
+
+@bp.post("/captures")
+@admin_required
+def capture() -> tuple[Response, int]:
+    return jsonify(camera_service.capture().model_dump(mode="json")), 201
 
 
 @bp.get("/stream")

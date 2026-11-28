@@ -15,9 +15,10 @@ from flask import current_app
 from app.errors import ApiError
 from app.extensions import db
 from app.models import Device, DeviceType
-from app.schemas.camera import CameraAnalysis, CameraResolution, CameraStatus
+from app.schemas.camera import CameraAnalysis, CameraResolution, CameraStatus, CaptureOut
 from app.services import settings as settings_service
 from app.services.vision.frame_store import Frame, FrameStore
+from app.services.vision.recorder import Recorder
 from app.services.vision.result_store import ResultStore
 
 FRAME_STALE_SECONDS = 10  # a frame older than this means the camera is offline
@@ -91,6 +92,22 @@ def _fresh_frame() -> Frame:
 
 def snapshot() -> bytes:
     return _fresh_frame().jpeg
+
+
+def capture() -> CaptureOut:
+    """Store the current frame and its analysis as dataset material, on request of an admin."""
+    jpeg = _fresh_frame().jpeg
+    analysis = get_analysis()
+    stored = Recorder(Path(current_app.config["STORAGE_DIR"]) / "snapshots").capture_now(
+        jpeg, analysis, settings_service.get_settings()
+    )
+    if stored is None:
+        raise ApiError(503, "service_unavailable", "No analysis of the plants is available")
+    return CaptureOut(
+        id=stored.id,
+        captured_at=stored.captured_at,
+        observations=sum(1 for plant in analysis.plants if plant.status is not None),
+    )
 
 
 def stream() -> Iterator[bytes]:

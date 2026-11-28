@@ -57,3 +57,9 @@ class ServiceStatus(BaseModel):
     sensor: bool
     advisor: bool
     checked_at: UtcDatetime
+
+
+class CaptureOut(BaseModel):
+    id: int
+    captured_at: UtcDatetime
+    observations: int

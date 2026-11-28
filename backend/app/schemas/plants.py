@@ -67,11 +67,23 @@ class ObservationFilters(BaseModel):
     from_: datetime | None = Field(default=None, alias="from")
     to: datetime | None = None
     status: PlantStatusCode | None = None
+    # `labeled` or `unlabeled` by a person; leave out for both.
+    label: Literal["labeled", "unlabeled"] | None = None
+    # Only results that can be labelled: a stored picture and a leaf in the hole.
+    labelable: bool = False
 
 
 class ObservationsQuery(ObservationFilters):
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=20, ge=1, le=100)
+
+
+class LabelIn(BaseModel):
+    """Body of PATCH /observations/{id}/label: a class, or null to clear the label."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    label_class: PlantClassCode | None
 
 
 class ObservationsOut(BaseModel):

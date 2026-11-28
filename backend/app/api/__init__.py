@@ -8,6 +8,7 @@ from app.api import (
     auth,
     camera,
     dashboard,
+    dataset,
     devices,
     health,
     models,
@@ -28,6 +29,7 @@ def register_blueprints(app: Flask) -> None:
     app.register_blueprint(settings.bp, url_prefix="/api/settings")
     app.register_blueprint(camera.bp, url_prefix="/api/camera")
     app.register_blueprint(dashboard.bp, url_prefix="/api/dashboard")
+    app.register_blueprint(dataset.bp, url_prefix="/api/dataset")
     app.register_blueprint(devices.bp, url_prefix="/api/devices")
     app.register_blueprint(models.bp, url_prefix="/api/models")
     app.register_blueprint(observations.bp, url_prefix="/api/observations")

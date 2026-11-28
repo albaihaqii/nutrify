@@ -124,8 +124,6 @@ first unless stated otherwise.
 |              | `GET /camera/stream`              | Viewer |
 |              | `GET /camera/snapshot`            | Viewer |
 |              | `POST /camera/captures`           | Admin  |
-|              | `GET /camera/captures`            | Viewer |
-|              | `GET /camera/captures/{id}/image` | Viewer |
 | Models       | `GET /models`                     | Viewer |
 |              | `GET /models/c45/tree`            | Viewer |
 |              | `POST /models/predict`            | Viewer |
@@ -489,41 +487,21 @@ a stored result, which includes a position outside 1 to 6.
 
 ### `GET /observations` (Viewer)
 
-| Parameter           | Description                                                                   |
-| ------------------- | ----------------------------------------------------------------------------- |
-| `plant`             | Position 1 to 6                                                               |
-| `from`, `to`        | Time window                                                                   |
-| `status`            | One of the `status` values of `GET /plants`                                   |
-| `class`             | Filter by `stable_class`                                                      |
-| `qc_status`         | Filter by QC status                                                           |
-| `labeled`           | `true` or `false`                                                             |
-| `has_image`         | `true`: only observations that have a stored frame (used by the Dataset page) |
-| `page`, `page_size` | Pagination                                                                    |
-
-Until the dataset page uses them, `class`, `qc_status`, `labeled` and `has_image` are not
-applied, and the items have no `labeled_by`, `labeled_at` or `image`; `has_image` in each item
-says whether a snapshot was stored. `plant`, `from`, `to`, `status`, `page` and `page_size` work.
+| Parameter           | Description                                                                |
+| ------------------- | -------------------------------------------------------------------------- |
+| `plant`             | Position 1 to 6                                                            |
+| `from`, `to`        | Time window                                                                |
+| `status`            | One of the `status` values of `GET /plants`                                |
+| `label`             | `labeled` or `unlabeled`: whether a person gave the result a label         |
+| `labelable`         | `true`: only results a person can label, with a stored picture and a plant |
+| `page`, `page_size` | Pagination                                                                 |
 
 Each item has the observation fields from [Schema](Schema.md) section 4.6 in the same nested
-shape as `latest_observation` above, plus `plant_position`, `label_class`, `labeled_by`,
-`labeled_at`, and `image`. `status` is added to every item (the same values as for `GET /plants`)
-so the client does not have to combine `stable_class` and `qc_status`, and the colour and sensor
-values in `features` are `null` when there was no leaf or no fresh sensor reading. `image` is
-the shape below:
-
-```json
-"image": {
-  "url": "/api/camera/captures/77/image",
-  "roi": { "x": 0.08, "y": 0.12, "w": 0.2, "h": 0.3 }
-}
-```
-
-`image` is `null` when the observation has no `capture_id`. `url` is the stored raw frame of
-the capture (open it with `?token=` in an `<img>` tag). `roi` is this plant's region in that
-frame as fractions (0 to 1) of the frame width and height, taken from the capture's
-`roi_config` ([Schema](Schema.md) section 4.5), so it stays correct even if the calibration
-changes later. The Dataset page crops the thumbnail in the browser with this region; the backend
-does not store crops.
+shape as `latest_observation` above, plus `plant_position`, `label_class` and `has_image`.
+`status` is added to every item (the same values as for `GET /plants`) so the client does not
+have to combine `stable_class` and `qc_status`, and the colour and sensor values in `features`
+are `null` when there was no leaf or no fresh sensor reading. The picture of an item is
+`GET /observations/{id}/image` below.
 
 ### `GET /observations/export` (Viewer)
 
@@ -562,7 +540,8 @@ another `view`. Pictures never change, so they are cached for a day.
 Sets or clears the manual ground-truth label used for the dataset.
 
 Request: `{ "label_class": "n_deficiency" }` (use `null` to clear). Response `200` with the
-updated observation. Records `labeled_by` and `labeled_at`.
+updated observation. Records `labeled_by` and `labeled_at`, and clears them with the label.
+Errors: `404 not_found`, `422 validation_error` for another class or extra fields.
 
 ## 8. Dataset
 
@@ -577,13 +556,16 @@ updated observation. Records `labeled_by` and `labeled_at`.
   "by_qc_status": {
     "ok": 402,
     "invalid_leaf": 10,
+    "no_plant": 800,
     "stale_sensor": 6,
     "needs_check": 2
   }
 }
 ```
 
-`usable` means `label_class IS NOT NULL AND qc_status = 'ok'`, the same rule as the export.
+`usable` means a label, `qc_status = 'ok'`, leaf colours and the three sensor values, the same
+rule as the export. `by_class` counts the usable results. `by_qc_status` counts all results; an
+`ok` result stored without sensor values counts as `stale_sensor`.
 
 ### `GET /dataset/export` (Admin)
 
@@ -591,7 +573,8 @@ Returns a CSV file (`text/csv`, `Content-Disposition: attachment; filename="nutr
 
 Columns: `Mean_R, Mean_G, Mean_B, pH, EC, Temperature, label`, then the traceability columns
 `observation_id, plant_position, observed_at`. Optional parameters `from` and `to` limit the
-window. See [Schema](Schema.md) section 7.
+window, and the rows are oldest first. There is no byte order mark and no quoting, so the file
+goes straight into pandas. See [Schema](Schema.md) section 7.
 
 The export is the training path of version 2 ([ML](ML.md) section 7.5), where each row pairs
 the leaf colour with the sensor values of the same moment. Version 1 is trained from the image
@@ -673,24 +656,21 @@ Returns the latest annotated frame as a single `image/jpeg`.
 
 ### `POST /camera/captures` (Admin)
 
-Saves the current **raw** frame (without the drawn regions and labels) to `storage/snapshots/`
-and creates a `captures` row that also stores a copy of the current `roi_config`. Response `201`:
+Stores the current **raw** frame (without the drawn regions and labels) under `storage/snapshots/`
+as a `captures` row with a copy of the current `roi_config`, and one `observations` row for every
+analysed hole with the sensor values of that moment, so the person can label them on the Dataset
+page. The holes keep their current status and the regular storing schedule is not moved. Response
+`201`:
 
 ```json
 {
   "id": 77,
   "captured_at": "2026-11-05T02:41:00.000Z",
-  "image_url": "/api/camera/captures/77/image"
+  "observations": 6
 }
 ```
 
-### `GET /camera/captures` (Viewer)
-
-Paginated list: `{ "items": [ { "id", "captured_at", "image_url" } ], ... }`.
-
-### `GET /camera/captures/{id}/image` (Viewer)
-
-Returns the stored raw frame as `image/jpeg`. Accepts `?token=` for use in `<img>` tags.
+Errors: `503 service_unavailable` when there is no fresh frame or no analysis of the plants.
 
 ## 10. Models
 

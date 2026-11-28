@@ -290,9 +290,8 @@ The `plants` rows are created when the worker first stores a hole.
 
 ## 7. Dataset export
 
-The export joins `observations` with `plants` and keeps only usable, labeled rows:
-
-`label_class IS NOT NULL AND qc_status = 'ok'`
+The export joins `observations` with `plants` and keeps only usable, labeled rows: a label, a
+leaf (`qc_status = 'ok'` and the colours) and the three sensor values of the same moment.
 
 | CSV column    | Source                     |
 | ------------- | -------------------------- |

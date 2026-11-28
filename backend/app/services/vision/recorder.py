@@ -61,7 +61,7 @@ class Recorder:
 
         self._next_store = self._clock() + settings["observation_store_interval_seconds"]
         try:
-            if not self._store(jpeg, analysis, plants, settings):
+            if self._store(jpeg, analysis, plants, settings, track=True) is None:
                 return False
         except (SQLAlchemyError, OSError):
             db.session.rollback()
@@ -71,19 +71,32 @@ class Recorder:
         self._stored = {plant.position: plant.status for plant in plants}  # type: ignore[misc]
         return True
 
+    def capture_now(
+        self, jpeg: bytes, analysis: CameraAnalysis, settings: dict[str, Any]
+    ) -> Capture | None:
+        """Store the moment on request, for the dataset. The holes keep their current status and
+        the schedule of `record` is left alone. None when there is nothing to store."""
+        plants = [plant for plant in analysis.plants if plant.status is not None]
+        if not plants:
+            return None
+        return self._store(jpeg, analysis, plants, settings, track=False)
+
     def _store(
         self,
         jpeg: bytes,
         analysis: CameraAnalysis,
         plants: list[PlantAnalysis],
         settings: dict[str, Any],
-    ) -> bool:
-        """Write the snapshot and the rows. False when there is no webcam device to attach it to."""
+        *,
+        track: bool,
+    ) -> Capture | None:
+        """Write the snapshot and the rows; `track` also makes them the latest of each hole. None
+        when there is no webcam device to attach the snapshot to."""
         device = db.session.scalar(
             db.select(Device).filter_by(type=DeviceType.WEBCAM).order_by(Device.id)
         )
         if device is None:
-            return False
+            return None
         now = utcnow()
         capture = Capture(
             device_id=device.id,
@@ -101,11 +114,11 @@ class Recorder:
             row = self._observation(result, hole, capture, analysis.model_version, sensor, now)
             db.session.add(row)
             db.session.flush()
-            if self._update_hole(hole, result, row, now):
+            if track and self._update_hole(hole, result, row, now):
                 changed.append((hole.id, row.id))
         db.session.commit()
         self._tell(changed, settings)
-        return True
+        return capture
 
     def _tell(self, changed: list[tuple[int, int]], settings: dict[str, Any]) -> None:
         """Pass on the holes that changed status (hole id, observation id). The results are stored

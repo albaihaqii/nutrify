@@ -3,9 +3,9 @@ import { CircleCheck, CircleHelp, TriangleAlert, WifiOff } from 'lucide-react'
 import { formatNumber } from '@/lib/format'
 import { formatDayTime } from '@/lib/format-time'
 import { StatusBadge } from '@/components/status-badge'
+import { ObservationImage } from '@/features/plants/components/observation-image'
 import { type LabelClass, type QcStatus, type Snapshot } from '../data/dataset'
 import { LabelPicker } from './label-picker'
-import { SnapshotThumbnail } from './snapshot-thumbnail'
 
 const qcBadge = {
   ok: { tone: 'ok', icon: CircleCheck, dashed: false },
@@ -51,7 +51,14 @@ export function SnapshotCard({
 
   return (
     <article className='flex flex-col gap-2.5 rounded-xl border bg-card p-3 text-card-foreground'>
-      <SnapshotThumbnail picture={snapshot.picture} />
+      <div className='flex h-[150px] items-center justify-center overflow-hidden rounded-lg bg-[#18241E] dark:bg-[#0A100D]'>
+        <ObservationImage
+          observationId={snapshot.id}
+          view='photo'
+          label={id.dataset.card.photo.replace('{plant}', snapshot.plantId)}
+          className='size-full'
+        />
+      </div>
 
       <div className='flex items-baseline justify-between gap-2'>
         <strong className='font-semibold'>{snapshot.plantId}</strong>

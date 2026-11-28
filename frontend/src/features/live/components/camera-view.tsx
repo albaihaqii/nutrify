@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { id } from '@/locales/id'
-import { CameraOff, Image, Maximize, Minimize, Pause, Play } from 'lucide-react'
+import {
+  CameraOff,
+  Image,
+  LoaderCircle,
+  Maximize,
+  Minimize,
+  Pause,
+  Play,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { cameraStreamUrl } from '@/lib/camera-url'
@@ -12,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QueryBoundary } from '@/components/query-boundary'
+import { useCaptureSnapshot } from '@/features/dataset/api/dataset-queries'
 import { useSettings } from '@/features/settings/api/settings-queries'
 import { type LiveAnalysis } from '../data/live-analysis'
 import { RoiOverlay } from './roi-overlay'
@@ -41,6 +50,8 @@ export function CameraView({
   const settings = useSettings()
   const now = useNow(1_000)
   const accessToken = useAuthStore((state) => state.auth.accessToken)
+  const isAdmin = useAuthStore((state) => state.auth.user?.role === 'admin')
+  const capture = useCaptureSnapshot()
   const frameRef = useRef<HTMLDivElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
   const stillRef = useRef<HTMLCanvasElement>(null)
@@ -52,6 +63,12 @@ export function CameraView({
     document.addEventListener('fullscreenchange', sync)
     return () => document.removeEventListener('fullscreenchange', sync)
   }, [])
+
+  function takeSnapshot() {
+    capture.mutate(undefined, {
+      onSuccess: () => toast.success(id.live.camera.snapshotSaved),
+    })
+  }
 
   function toggleFullscreen() {
     if (document.fullscreenElement) {
@@ -141,14 +158,21 @@ export function CameraView({
 
       <div className='mt-3.5 flex flex-wrap items-center justify-between gap-3'>
         <div className='flex flex-1 gap-2 @xl/content:flex-none'>
-          <Button
-            variant='outline'
-            className='h-10 flex-1 @xl/content:flex-none'
-            onClick={() => toast.info(id.live.camera.snapshotUnavailable)}
-          >
-            <Image aria-hidden='true' />
-            {id.live.camera.snapshot}
-          </Button>
+          {isAdmin && (
+            <Button
+              variant='outline'
+              className='h-10 flex-1 @xl/content:flex-none'
+              disabled={capture.isPending}
+              onClick={takeSnapshot}
+            >
+              {capture.isPending ? (
+                <LoaderCircle className='animate-spin' aria-hidden='true' />
+              ) : (
+                <Image aria-hidden='true' />
+              )}
+              {id.live.camera.snapshot}
+            </Button>
+          )}
           <Button
             variant='outline'
             className='h-10 flex-1 @xl/content:flex-none'

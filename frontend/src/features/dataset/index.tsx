@@ -6,7 +6,8 @@ import { downloadTextFile } from '@/lib/download'
 import { ExportCsvButton } from '@/components/export-csv-button'
 import { Main } from '@/components/layout/main'
 import { PageHead } from '@/components/page-head'
-import { fetchDatasetCsv, useSnapshots } from './api/dataset-queries'
+import { fetchDatasetCsv } from './api/dataset-api'
+import { useSnapshots } from './api/dataset-queries'
 import { SnapshotsCard } from './components/snapshots-card'
 import { SummaryTiles } from './components/summary-tiles'
 import { type SnapshotFilterPatch, type SnapshotFilters } from './data/dataset'
@@ -21,7 +22,7 @@ export function Dataset() {
   const filters: SnapshotFilters = {
     label: search.label,
     plant: search.plant,
-    predicted: search.predicted,
+    status: search.status,
     page: search.page,
   }
   const query = useSnapshots(filters)

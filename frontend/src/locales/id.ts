@@ -142,7 +142,7 @@ export const id = {
       offlineHint:
         'Jalankan worker kamera dan pastikan Webcam aktif di halaman Perangkat.',
       snapshot: 'Snapshot',
-      snapshotUnavailable: 'Fitur snapshot belum tersedia.',
+      snapshotSaved: 'Snapshot tersimpan. Beri label di halaman Dataset.',
       pause: 'Jeda',
       resume: 'Lanjutkan',
       fullscreen: 'Layar Penuh',
@@ -535,9 +535,9 @@ export const id = {
     },
     filters: {
       plant: 'Lubang',
-      predicted: 'Prediksi model',
+      status: 'Status model',
       allPlants: 'Semua',
-      allPredictions: 'Semua prediksi',
+      allStatuses: 'Semua status',
     },
     count: '{n} snapshot',
     summary: {
@@ -553,6 +553,7 @@ export const id = {
     card: {
       sensorLine: 'pH {ph} · EC {ec} · {temperature} °C',
       sensorMissing: 'Sensor tidak tersimpan',
+      photo: 'Foto lubang {plant}',
     },
     qc: {
       ok: 'Lengkap',
@@ -572,6 +573,8 @@ export const id = {
     errors: {
       network: 'Tidak dapat terhubung ke server. Coba lagi.',
       forbidden: 'Hanya admin yang boleh memberi label.',
+      noMoment:
+        'Kamera atau hasil analisis belum tersedia. Pastikan worker berjalan.',
       unknown: 'Terjadi kesalahan. Coba lagi.',
     },
   },

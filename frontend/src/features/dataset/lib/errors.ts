@@ -6,5 +6,8 @@ export function datasetErrorMessage(error: unknown): string {
   if (getApiErrorCode(error) === 'forbidden') {
     return id.dataset.errors.forbidden
   }
+  if (getApiErrorCode(error) === 'service_unavailable') {
+    return id.dataset.errors.noMoment
+  }
   return id.dataset.errors.unknown
 }

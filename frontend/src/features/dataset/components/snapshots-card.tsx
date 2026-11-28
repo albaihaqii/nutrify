@@ -21,7 +21,7 @@ import { SegmentedControl } from '@/components/segmented-control'
 import { useLabelSnapshot } from '../api/dataset-queries'
 import {
   labelFilters,
-  predictionFilters,
+  statusFilters,
   type LabelClass,
   type Snapshot,
   type SnapshotFilterPatch,
@@ -88,28 +88,28 @@ function Filters({ filters, total, onChange }: FiltersProps) {
         </div>
 
         <div className='flex flex-col gap-1.5'>
-          <Label htmlFor='dataset-predicted' className={LABEL_CLASS}>
-            {id.dataset.filters.predicted}
+          <Label htmlFor='dataset-status' className={LABEL_CLASS}>
+            {id.dataset.filters.status}
           </Label>
           <Select
-            value={filters.predicted ?? ALL}
+            value={filters.status ?? ALL}
             onValueChange={(value) =>
               onChange({
-                predicted: value === ALL ? undefined : (value as PlantStatus),
+                status: value === ALL ? undefined : (value as PlantStatus),
               })
             }
           >
             <SelectTrigger
-              id='dataset-predicted'
+              id='dataset-status'
               className={`${SELECT_CLASS} w-[190px]`}
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>
-                {id.dataset.filters.allPredictions}
+                {id.dataset.filters.allStatuses}
               </SelectItem>
-              {predictionFilters.map((status) => (
+              {statusFilters.map((status) => (
                 <SelectItem key={status} value={status}>
                   {id.plantStatus[status]}
                 </SelectItem>
@@ -160,7 +160,7 @@ export function SnapshotsCard({
 
   // Nothing left to label (no other filter) is good news, not an empty result.
   const allDone =
-    filters.label === 'unlabeled' && !filters.plant && !filters.predicted
+    filters.label === 'unlabeled' && !filters.plant && !filters.status
 
   function handleLabel(snapshot: Snapshot, label: LabelClass | null) {
     labelSnapshot.mutate(

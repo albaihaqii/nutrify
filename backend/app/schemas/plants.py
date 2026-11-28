@@ -55,13 +55,21 @@ class ObservationOut(BaseModel):
     qc_status: QcStatusCode
     model_version: str | None
     label_class: PlantClassCode | None
+    has_image: bool
 
 
-class ObservationsQuery(BaseModel):
-    """Query string of GET /observations. Unknown parameters are ignored."""
+class ObservationFilters(BaseModel):
+    """Filters shared by the observation list and its export. Unknown parameters are ignored."""
 
     model_config = ConfigDict(extra="ignore")
 
+    plant: int | None = Field(default=None, ge=1, le=6)
+    from_: datetime | None = Field(default=None, alias="from")
+    to: datetime | None = None
+    status: PlantStatusCode | None = None
+
+
+class ObservationsQuery(ObservationFilters):
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=20, ge=1, le=100)
 
@@ -71,6 +79,37 @@ class ObservationsOut(BaseModel):
     page: int
     page_size: int
     total: int
+
+
+class ExportRow(BaseModel):
+    observed_at: UtcDatetime
+    plant_position: int
+    status: PlantStatusCode
+    confidence: float | None
+    ph: float | None
+    ec: float | None
+    temperature: float | None
+
+
+class ObservationsExport(BaseModel):
+    items: list[ExportRow]
+
+
+class StatusChange(BaseModel):
+    """One stretch of time in which a hole kept the same status."""
+
+    since: UtcDatetime
+    status: PlantStatusCode
+    confidence: float | None
+
+
+class PlantDetailOut(BaseModel):
+    position: int
+    status: PlantStatusCode
+    current_class: PlantClassCode | None
+    current_since: UtcDatetime | None
+    latest_observation: ObservationOut
+    status_history: list[StatusChange]
 
 
 class DailyConditionsQuery(BaseModel):

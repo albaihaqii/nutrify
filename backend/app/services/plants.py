@@ -2,35 +2,61 @@
 
 from collections import Counter
 from datetime import timedelta
+from typing import Any
 
+from sqlalchemy import ColumnElement, and_
+
+from app.errors import ApiError
 from app.extensions import db
-from app.models import Observation, Plant, QcStatus
+from app.models import Observation, Plant, PlantClass, QcStatus
 from app.schemas.plants import (
     DailyCondition,
     DailyConditionsOut,
     DailyConditionsQuery,
+    ExportRow,
     LastObservation,
     ObservationFeatures,
+    ObservationFilters,
     ObservationOut,
+    ObservationsExport,
     ObservationsOut,
     ObservationsQuery,
+    PlantDetailOut,
     PlantOut,
     PlantsOut,
+    StatusChange,
 )
 from app.services.sensors import to_naive_utc
 
 COUNTED_STATUSES = ("normal", "n_deficiency", "fe_deficiency", "needs_check")
+EXPORT_LIMIT = 20000  # rows in one export
+HISTORY_SCAN = 1000  # newest results of a hole read to find its status changes
+HISTORY_CHANGES = 5
+
+# The observations that carry each status; the inverse of `status_code`.
+STATUS_CONDITIONS: dict[str, ColumnElement[bool]] = {
+    "normal": Observation.stable_class == PlantClass.NORMAL,
+    "n_deficiency": Observation.stable_class == PlantClass.N_DEFICIENCY,
+    "fe_deficiency": Observation.stable_class == PlantClass.FE_DEFICIENCY,
+    "no_plant": Observation.qc_status == QcStatus.NO_PLANT,
+    "needs_check": and_(
+        Observation.stable_class.is_(None), Observation.qc_status != QcStatus.NO_PLANT
+    ),
+}
+
+
+def status_code(stable_class: PlantClass | None, qc_status: QcStatus) -> str:
+    """The status of a stored result, in the words of the live analysis."""
+    if stable_class is not None:
+        return stable_class.value
+    return "no_plant" if qc_status is QcStatus.NO_PLANT else "needs_check"
 
 
 def status_of(observation: Observation | None) -> str | None:
-    """The status a stored observation stands for, in the words of the live analysis."""
+    """The status a stored observation stands for, or None when there is no observation."""
     if observation is None:
         return None
-    if observation.stable_class is not None:
-        return observation.stable_class.value
-    if observation.qc_status is QcStatus.NO_PLANT:
-        return "no_plant"
-    return "needs_check"
+    return status_code(observation.stable_class, observation.qc_status)
 
 
 def _number(value: object) -> float | None:
@@ -86,24 +112,124 @@ def _observation_out(observation: Observation, position: int) -> ObservationOut:
         qc_status=observation.qc_status.value,
         model_version=observation.model_version,
         label_class=observation.label_class.value if observation.label_class else None,
+        has_image=observation.capture_id is not None,
+    )
+
+
+def _conditions(filters: ObservationFilters) -> list[ColumnElement[bool]]:
+    conditions: list[ColumnElement[bool]] = []
+    if filters.plant is not None:
+        conditions.append(Plant.position == filters.plant)
+    if filters.from_ is not None:
+        conditions.append(Observation.observed_at >= to_naive_utc(filters.from_))
+    if filters.to is not None:
+        conditions.append(Observation.observed_at <= to_naive_utc(filters.to))
+    if filters.status is not None:
+        conditions.append(STATUS_CONDITIONS[filters.status])
+    return conditions
+
+
+def _matching(filters: ObservationFilters) -> Any:
+    """Observations and the position of their hole that match the filters, newest first."""
+    return (
+        db.select(Observation, Plant.position)
+        .join(Plant, Plant.id == Observation.plant_id)
+        .where(*_conditions(filters))
+        .order_by(Observation.observed_at.desc(), Plant.position)
     )
 
 
 def get_observations(query: ObservationsQuery) -> ObservationsOut:
     """Stored results, newest first; the six holes of one analysis come in position order."""
-    total = db.session.scalar(db.select(db.func.count(Observation.id))) or 0
+    total = (
+        db.session.scalar(
+            db.select(db.func.count(Observation.id))
+            .join(Plant, Plant.id == Observation.plant_id)
+            .where(*_conditions(query))
+        )
+        or 0
+    )
     rows = db.session.execute(
-        db.select(Observation, Plant.position)
-        .join(Plant, Plant.id == Observation.plant_id)
-        .order_by(Observation.observed_at.desc(), Plant.position)
-        .limit(query.page_size)
-        .offset((query.page - 1) * query.page_size)
+        _matching(query).limit(query.page_size).offset((query.page - 1) * query.page_size)
     ).all()
     return ObservationsOut(
         items=[_observation_out(observation, position) for observation, position in rows],
         page=query.page,
         page_size=query.page_size,
         total=total,
+    )
+
+
+def get_observation_export(filters: ObservationFilters) -> ObservationsExport:
+    """All results that match the filters, newest first, in the few fields of the CSV export."""
+    rows = db.session.execute(_matching(filters).limit(EXPORT_LIMIT + 1)).all()
+    if len(rows) > EXPORT_LIMIT:
+        raise ApiError(
+            422,
+            "validation_error",
+            f"too many rows (maximum {EXPORT_LIMIT}); use a shorter window",
+            {"field": "from"},
+        )
+    return ObservationsExport(
+        items=[
+            ExportRow(
+                observed_at=observation.observed_at,
+                plant_position=position,
+                status=status_of(observation),  # type: ignore[arg-type]
+                confidence=_number(observation.confidence),
+                ph=_number(observation.ph),
+                ec=_number(observation.ec),
+                temperature=_number(observation.temperature),
+            )
+            for observation, position in rows
+        ]
+    )
+
+
+def _status_history(plant_id: int) -> list[StatusChange]:
+    """The latest stretches in which the hole kept one status, newest first. A stretch starts at
+    its oldest stored result that is still inside the rows read."""
+    rows = db.session.scalars(
+        db.select(Observation)
+        .where(Observation.plant_id == plant_id)
+        .order_by(Observation.observed_at.desc(), Observation.id.desc())
+        .limit(HISTORY_SCAN)
+    )
+    changes: list[StatusChange] = []
+    for observation in rows:
+        status = status_of(observation)
+        if changes and changes[-1].status == status:
+            changes[-1].since = observation.observed_at
+            continue
+        if len(changes) == HISTORY_CHANGES:
+            break
+        changes.append(
+            StatusChange(
+                since=observation.observed_at,
+                status=status,  # type: ignore[arg-type]
+                confidence=_number(observation.confidence),
+            )
+        )
+    return changes
+
+
+def get_plant(position: int) -> PlantDetailOut:
+    """A hole with its latest result in full and its latest status changes."""
+    row = db.session.execute(
+        db.select(Plant, Observation)
+        .join(Observation, Observation.id == Plant.last_observation_id)
+        .where(Plant.position == position)
+    ).one_or_none()
+    if row is None:
+        raise ApiError(404, "not_found", "There is no result for this hole yet")
+    plant, last = row
+    return PlantDetailOut(
+        position=plant.position,
+        status=status_of(last),  # type: ignore[arg-type]
+        current_class=plant.current_class.value if plant.current_class else None,
+        current_since=plant.current_since,
+        latest_observation=_observation_out(last, plant.position),
+        status_history=_status_history(plant.id),
     )
 
 

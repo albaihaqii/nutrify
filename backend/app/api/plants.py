@@ -12,3 +12,9 @@ bp = Blueprint("plants", __name__)
 @login_required
 def list_plants() -> Response:
     return jsonify(plant_service.get_plants().model_dump(mode="json"))
+
+
+@bp.get("/<int:position>")
+@login_required
+def get_plant(position: int) -> Response:
+    return jsonify(plant_service.get_plant(position).model_dump(mode="json"))

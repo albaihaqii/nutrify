@@ -221,3 +221,184 @@ def test_the_window_accepts_an_offset_and_is_limited(
             "/api/dashboard/daily-conditions", query_string=params, headers=viewer_headers
         )
         assert response.status_code == 422
+
+
+# --- filters and export ----------------------------------------------------------------------
+
+
+def listed(client: FlaskClient, headers: dict[str, str], **params: object) -> list[dict]:
+    response = client.get("/api/observations", query_string=params, headers=headers)
+    assert response.status_code == 200, response.get_json()
+    return response.get_json()["items"]
+
+
+def test_observations_can_be_filtered_by_plant_and_time(
+    client: FlaskClient, viewer_headers: dict[str, str]
+) -> None:
+    add(1, START)
+    add(2, START + timedelta(hours=1))
+    add(2, START + timedelta(hours=2))
+    add(2, START + timedelta(hours=3))
+
+    assert {row["plant_position"] for row in listed(client, viewer_headers, plant=2)} == {2}
+    rows = listed(
+        client,
+        viewer_headers,
+        **{"from": "2026-11-20T01:00:00Z", "to": "2026-11-20T02:00:00Z"},
+    )
+    assert [row["observed_at"] for row in rows] == [
+        "2026-11-20T02:00:00.000Z",
+        "2026-11-20T01:00:00.000Z",
+    ]
+
+
+def test_observations_can_be_filtered_by_status(
+    client: FlaskClient, viewer_headers: dict[str, str]
+) -> None:
+    add(1, START, PlantClass.NORMAL)
+    add(2, START, PlantClass.N_DEFICIENCY)
+    add(3, START, PlantClass.FE_DEFICIENCY)
+    add(4, START, None, QcStatus.NEEDS_CHECK)
+    add(5, START, None, QcStatus.INVALID_LEAF)
+    add(6, START, None, QcStatus.NO_PLANT)
+
+    def positions(status: str) -> list[int]:
+        return [row["plant_position"] for row in listed(client, viewer_headers, status=status)]
+
+    assert positions("normal") == [1]
+    assert positions("n_deficiency") == [2]
+    assert positions("fe_deficiency") == [3]
+    assert positions("needs_check") == [4, 5]
+    assert positions("no_plant") == [6]
+
+
+def test_the_total_counts_the_filtered_rows(
+    client: FlaskClient, viewer_headers: dict[str, str]
+) -> None:
+    add(1, START)
+    add(2, START)
+
+    body = client.get(
+        "/api/observations", query_string={"plant": 2}, headers=viewer_headers
+    ).get_json()
+
+    assert body["total"] == 1
+
+
+@pytest.mark.parametrize("params", [{"plant": 7}, {"status": "sick"}, {"from": "yesterday"}])
+def test_a_bad_filter_is_rejected(
+    client: FlaskClient, viewer_headers: dict[str, str], params: dict
+) -> None:
+    response = client.get("/api/observations", query_string=params, headers=viewer_headers)
+    assert response.status_code == 422
+
+
+def test_the_export_has_every_matching_row_without_paging(
+    client: FlaskClient, viewer_headers: dict[str, str]
+) -> None:
+    for minute in range(25):
+        add(1, START + timedelta(minutes=minute))
+    add(2, START)
+
+    response = client.get(
+        "/api/observations/export", query_string={"plant": 1}, headers=viewer_headers
+    )
+
+    items = response.get_json()["items"]
+    assert len(items) == 25
+    assert set(items[0]) == {
+        "observed_at",
+        "plant_position",
+        "status",
+        "confidence",
+        "ph",
+        "ec",
+        "temperature",
+    }
+
+
+def test_an_export_that_is_too_large_is_refused(
+    monkeypatch: pytest.MonkeyPatch, client: FlaskClient, viewer_headers: dict[str, str]
+) -> None:
+    monkeypatch.setattr("app.services.plants.EXPORT_LIMIT", 2)
+    for minute in range(3):
+        add(1, START + timedelta(minutes=minute))
+
+    response = client.get("/api/observations/export", headers=viewer_headers)
+
+    assert response.status_code == 422
+    assert error_of(response)["details"] == {"field": "from"}
+
+
+# --- plant detail ----------------------------------------------------------------------------
+
+
+def make_latest(position: int) -> None:
+    """Point the hole at its newest observation, like the recorder does."""
+    plant = hole(position)
+    last = db.session.scalars(
+        db.select(Observation)
+        .where(Observation.plant_id == plant.id)
+        .order_by(Observation.observed_at.desc())
+    ).first()
+    assert last is not None
+    plant.last_observation_id = last.id
+    plant.current_class = last.stable_class
+    plant.current_since = last.observed_at
+    db.session.commit()
+
+
+def test_a_plant_has_its_latest_result_and_its_status_changes(
+    client: FlaskClient, viewer_headers: dict[str, str]
+) -> None:
+    for hours, stable in enumerate(
+        [PlantClass.NORMAL, PlantClass.NORMAL, PlantClass.N_DEFICIENCY, PlantClass.N_DEFICIENCY]
+    ):
+        row = add(3, START + timedelta(hours=hours), stable)
+    row.mean_r, row.mean_g, row.mean_b = Decimal("118.40"), Decimal("160.20"), Decimal("70.90")
+    row.rule_path = [{"feature": "mean_r", "operator": "<=", "threshold": 144.55}]
+    row.confidence = Decimal("0.910")
+    db.session.commit()
+    make_latest(3)
+
+    response = client.get("/api/plants/3", headers=viewer_headers)
+
+    body = response.get_json()
+    assert (body["position"], body["status"], body["current_class"]) == (
+        3,
+        "n_deficiency",
+        "n_deficiency",
+    )
+    latest = body["latest_observation"]
+    assert latest["id"] == row.id
+    assert latest["features"]["mean_r"] == 118.4
+    assert latest["rule_path"] == [{"feature": "mean_r", "operator": "<=", "threshold": 144.55}]
+    assert latest["has_image"] is False
+    assert body["status_history"] == [
+        {"since": "2026-11-20T02:00:00.000Z", "status": "n_deficiency", "confidence": 0.91},
+        {"since": "2026-11-20T00:00:00.000Z", "status": "normal", "confidence": None},
+    ]
+
+
+def test_the_status_history_keeps_only_the_latest_changes(
+    client: FlaskClient, viewer_headers: dict[str, str]
+) -> None:
+    classes = [PlantClass.NORMAL, PlantClass.N_DEFICIENCY] * 4  # eight stretches of one result
+    for hours, stable in enumerate(classes):
+        add(1, START + timedelta(hours=hours), stable)
+    make_latest(1)
+
+    history = client.get("/api/plants/1", headers=viewer_headers).get_json()["status_history"]
+
+    assert len(history) == 5
+    assert history[0]["since"] == "2026-11-20T07:00:00.000Z"
+
+
+@pytest.mark.parametrize("position", [1, 7, 0])
+def test_a_hole_without_a_result_is_not_found(
+    client: FlaskClient, viewer_headers: dict[str, str], position: int
+) -> None:
+    response = client.get(f"/api/plants/{position}", headers=viewer_headers)
+
+    assert response.status_code == 404
+    assert error_of(response)["code"] == "not_found"

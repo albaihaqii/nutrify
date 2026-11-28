@@ -34,6 +34,7 @@ ADVISED_STATUSES = ("n_deficiency", "fe_deficiency", "needs_check")
 SUSTAINED = timedelta(minutes=5)  # a value must stay out of range this long
 COVERAGE_SLACK = timedelta(seconds=60)  # how late the first reading of the window may be
 REPEAT_AFTER = timedelta(hours=1)  # new advice for a value that stays out of range
+RECENT_RESULTS = 5  # results of a hole the advisor gets to see
 
 
 def metric_facts(
@@ -68,9 +69,35 @@ def advise_plant_status(
         plant_position=hole.position,
         status=status,
         confidence=None if observation.confidence is None else float(observation.confidence),
+        recent_statuses=_recent_statuses(hole, observation),
         metrics=metric_facts(reading_values(observation), settings),
     )
     return create_advice(context, hole, observation)
+
+
+def _recent_statuses(hole: Plant, observation: Observation) -> list[str]:
+    """The statuses of the hole's last stored results up to this one, oldest first."""
+    rows = db.session.scalars(
+        db.select(Observation)
+        .where(Observation.plant_id == hole.id, Observation.id <= observation.id)
+        .order_by(Observation.id.desc())
+        .limit(RECENT_RESULTS)
+    )
+    return [str(status_of(row)) for row in reversed(list(rows))]
+
+
+def advise_changes(changes: list[tuple[int, int]], settings: dict[str, Any]) -> None:
+    """Advice for holes that changed status, given as (hole id, observation id). The rows are read
+    again, so this can run in another thread. One failure is logged and does not stop the rest."""
+    for hole_id, observation_id in changes:
+        try:
+            hole = db.session.get(Plant, hole_id)
+            observation = db.session.get(Observation, observation_id)
+            if hole is not None and observation is not None:
+                advise_plant_status(hole, observation, settings)
+        except Exception:
+            db.session.rollback()
+            log.exception("Cannot make advice for hole %s", hole_id)
 
 
 def advise_metric(focus: MetricName, metrics: dict[MetricName, MetricFact]) -> Advice:

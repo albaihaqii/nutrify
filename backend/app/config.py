@@ -32,6 +32,9 @@ class Config:
     CAMERA_INDEX = int(os.environ.get("CAMERA_INDEX", "0"))
     # Mirror the picture: none, horizontal (left-right), vertical (up-down) or both.
     CAMERA_FLIP = os.environ.get("CAMERA_FLIP", "none")
+    # The advisor writes its advice with Gemini when there is a key; without one, the rules do.
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+    GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite").strip()
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # largest accepted upload, in bytes
 
     ADMIN_NAME = os.environ.get("ADMIN_NAME", "Admin")

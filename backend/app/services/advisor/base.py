@@ -36,6 +36,8 @@ class AdviceContext:
     confidence: float | None = None
     # `sensor_range`: the measurement that stayed out of its range.
     focus: MetricName | None = None
+    # `plant_status`: the statuses of the hole's last stored results, oldest first.
+    recent_statuses: list[str] = field(default_factory=list)
     # The latest fresh sensor values; empty when there are none.
     metrics: dict[MetricName, MetricFact] = field(default_factory=dict)
 
@@ -45,6 +47,7 @@ class AdviceContext:
             "plant_position": self.plant_position,
             "status": self.status,
             "confidence": self.confidence,
+            "recent_statuses": self.recent_statuses,
             "focus": self.focus,
             "metrics": {name: fact.as_json() for name, fact in self.metrics.items()},
         }
@@ -57,7 +60,8 @@ class AdviceContext:
         if self.trigger is AdviceTrigger.SENSOR_RANGE:
             assert self.focus is not None
             return f"sensor_range:{self.focus}:{self.metrics[self.focus].band}:{bands}"
-        return f"plant_status:{self.status}:{bands}"
+        # The advice names the hole, so a hole gets its own cache entries.
+        return f"plant_status:{self.plant_position}:{self.status}:{bands}"
 
 
 @dataclass(frozen=True)

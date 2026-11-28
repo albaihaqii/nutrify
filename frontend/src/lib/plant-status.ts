@@ -16,3 +16,12 @@ export const plantStatusClass: Record<PlantStatus, string> = {
   check:
     'border-[1.5px] border-dashed border-current bg-status-check-bg text-status-check-fg',
 }
+
+/** The status codes of the API (`GET /camera/analysis`, `/plants`) as UI statuses; `none` is an empty hole. */
+export const statusOfApi: Record<string, PlantStatus | 'none'> = {
+  normal: 'ok',
+  n_deficiency: 'n',
+  fe_deficiency: 'fe',
+  needs_check: 'check',
+  no_plant: 'none',
+}

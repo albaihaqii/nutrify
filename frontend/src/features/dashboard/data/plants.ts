@@ -1,18 +1,18 @@
-import { type PlantStatus } from '@/lib/plant-status'
+import { type LiveStatus } from '@/features/live/data/live-analysis'
 
 export type PlantReading = {
-  id: string
-  status: PlantStatus
-  /** 0 to 1, or null when the models disagree. */
+  /** Hole number, 1 to 6. */
+  position: number
+  status: LiveStatus
+  /** 0 to 1, or null when the model gave no class. */
   confidence: number | null
 }
 
-// Dummy data until the detection API exists.
-export const plantReadings: PlantReading[] = [
-  { id: 'L1', status: 'ok', confidence: 0.94 },
-  { id: 'L2', status: 'ok', confidence: 0.91 },
-  { id: 'L3', status: 'n', confidence: 0.88 },
-  { id: 'L4', status: 'ok', confidence: 0.9 },
-  { id: 'L5', status: 'fe', confidence: 0.82 },
-  { id: 'L6', status: 'check', confidence: null },
-]
+/** `GET /plants` (docs/API.md, section 7). */
+export type PlantsResponse = {
+  items: Array<{
+    position: number
+    status: string | null
+    last_observation: { confidence: number | null } | null
+  }>
+}

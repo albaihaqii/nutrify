@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import { id } from '@/locales/id'
+import { formatConfidence } from '@/lib/confidence'
 import { formatNumber } from '@/lib/format'
-import { plantStatusIcon } from '@/lib/plant-status'
+import { formatDayTime } from '@/lib/format-time'
+import { plantIdOf } from '@/lib/plants'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,6 +18,11 @@ import {
 import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
 import { StatusBadge } from '@/components/status-badge'
+import {
+  liveStatusIcon,
+  liveStatusLabel,
+  isUncertain,
+} from '@/features/live/lib/live-status'
 import { useObservations } from '../api/dashboard-queries'
 import { type Observation } from '../data/observations'
 
@@ -24,11 +31,9 @@ const headClass =
 const cellClass = 'px-3 py-2.5 whitespace-nowrap'
 const { columns } = id.dashboard.observations
 
-function formatAgreement({ agree, total }: Observation) {
-  const text = id.dashboard.observations.agreement
-    .replace('{agree}', String(agree))
-    .replace('{total}', String(total))
-  return agree === 0 ? `${text} ${id.dashboard.observations.different}` : text
+/** A dash for a value the sensor did not give at that moment. */
+function formatReading(value: number | null, decimals: number, unit = '') {
+  return value === null ? '—' : `${formatNumber(value, decimals)}${unit}`
 }
 
 function ObservationsSkeleton() {
@@ -50,7 +55,6 @@ function ObservationsTable({ rows }: { rows: Observation[] }) {
           <TableHead className={headClass}>{columns.plant}</TableHead>
           <TableHead className={headClass}>{columns.status}</TableHead>
           <TableHead className={headClass}>{columns.confidence}</TableHead>
-          <TableHead className={headClass}>{columns.agreement}</TableHead>
           <TableHead className={headClass}>{columns.ph}</TableHead>
           <TableHead className={headClass}>{columns.ec}</TableHead>
           <TableHead className={headClass}>{columns.temperature}</TableHead>
@@ -61,37 +65,36 @@ function ObservationsTable({ rows }: { rows: Observation[] }) {
       </TableHeader>
       <TableBody>
         {rows.map((row) => {
-          const Icon = plantStatusIcon[row.status]
+          const Icon = liveStatusIcon[row.status]
+          const plantId = plantIdOf(row.position)
           return (
             <TableRow key={row.id} className='hover:bg-transparent'>
               <TableCell className={`${cellClass} tabular-nums`}>
-                {row.time}
+                {formatDayTime(row.observedAt)}
               </TableCell>
               <TableCell className={cellClass}>
-                <strong className='font-semibold'>{row.plantId}</strong>
+                <strong className='font-semibold'>{plantId}</strong>
               </TableCell>
               <TableCell className={cellClass}>
-                <StatusBadge tone={row.status} dashed={row.status === 'check'}>
+                <StatusBadge
+                  tone={row.status === 'none' ? 'check' : row.status}
+                  dashed={isUncertain(row.status)}
+                >
                   <Icon aria-hidden='true' />
-                  {id.plantStatus[row.status]}
+                  {liveStatusLabel(row.status)}
                 </StatusBadge>
               </TableCell>
               <TableCell className={`${cellClass} tabular-nums`}>
-                {row.confidence === null
-                  ? '—'
-                  : `${Math.round(row.confidence * 100)}%`}
-              </TableCell>
-              <TableCell className={cellClass}>
-                {formatAgreement(row)}
+                {formatConfidence(row.confidence)}
               </TableCell>
               <TableCell className={`${cellClass} tabular-nums`}>
-                {formatNumber(row.ph, 1)}
+                {formatReading(row.ph, 1)}
               </TableCell>
               <TableCell className={`${cellClass} tabular-nums`}>
-                {formatNumber(row.ec, 2)}
+                {formatReading(row.ec, 2)}
               </TableCell>
               <TableCell className={`${cellClass} tabular-nums`}>
-                {formatNumber(row.temperature, 1)} °C
+                {formatReading(row.temperature, 1, ' °C')}
               </TableCell>
               <TableCell className={cellClass}>
                 <Button
@@ -99,7 +102,7 @@ function ObservationsTable({ rows }: { rows: Observation[] }) {
                   variant='outline'
                   className='h-8 px-2.5 text-[13px]'
                 >
-                  <Link to='/plants' search={{ plant: row.plantId }}>
+                  <Link to='/plants' search={{ plant: plantId }}>
                     {id.dashboard.observations.detail}
                   </Link>
                 </Button>

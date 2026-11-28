@@ -109,6 +109,7 @@ first unless stated otherwise.
 |              | `POST /users`                     | Admin  |
 |              | `PATCH /users/{id}`               | Admin  |
 | Dashboard    | `GET /dashboard/summary`          | Viewer |
+|              | `GET /dashboard/daily-conditions` | Viewer |
 | Sensors      | `POST /sensor-readings`           | Device |
 |              | `GET /sensor-readings/latest`     | Viewer |
 |              | `GET /sensor-readings`            | Viewer |
@@ -384,17 +385,46 @@ One call that feeds the whole dashboard.
 Device `status` is `online`, `offline`, or `never_seen`. A plant that has no result yet has
 `current_class: null` and is counted as `unknown`.
 
+### `GET /dashboard/daily-conditions` (Viewer)
+
+Holes per status at the end of each day, for the stacked bar chart. The window is `days` days
+of 24 hours (default 7, maximum 31) from `from`, so the client passes the local midnight of the
+first day as an ISO 8601 time and the days follow its own clock:
+
+```json
+{
+  "items": [
+    {
+      "start": "2026-11-19T17:00:00.000Z",
+      "normal": 4,
+      "n_deficiency": 1,
+      "fe_deficiency": 0,
+      "needs_check": 1
+    }
+  ]
+}
+```
+
+Every day of the window is listed, oldest first. The condition of a hole on a day is its last
+stored result of that day. A hole without a result that day, or with `no_plant`, is not counted,
+so the four numbers can add up to less than six. Errors: `422 validation_error` for a missing
+`from` or a `days` outside 1 to 31.
+
 ## 7. Plants and observations
 
 ### `GET /plants` (Viewer)
 
-Returns the six plants:
+Returns the holes that have a stored result, by position (an empty list before the worker has
+stored anything). `status` is the status of the last observation in the words of
+`GET /camera/analysis`: `normal`, `n_deficiency`, `fe_deficiency`, `needs_check` or `no_plant`;
+`current_class` stays `null` for the last two:
 
 ```json
 {
   "items": [
     {
       "position": 1,
+      "status": "normal",
       "current_class": "normal",
       "current_since": "2026-11-05T01:10:00.000Z",
       "last_observation": {
@@ -458,9 +488,15 @@ explain the result. Errors: `404 not_found` for a position outside 1 to 6.
 | `has_image`         | `true`: only observations that have a stored frame (used by the Dataset page) |
 | `page`, `page_size` | Pagination                                                                    |
 
+Until the history and dataset pages use them, only `page` and `page_size` are applied and the
+items have no `labeled_by`, `labeled_at` or `image`.
+
 Each item has the observation fields from [Schema](Schema.md) section 4.6 in the same nested
 shape as `latest_observation` above, plus `plant_position`, `label_class`, `labeled_by`,
-`labeled_at`, and `image`:
+`labeled_at`, and `image`. `status` is added to every item (the same values as for `GET /plants`)
+so the client does not have to combine `stable_class` and `qc_status`, and the colour and sensor
+values in `features` are `null` when there was no leaf or no fresh sensor reading. `image` is
+the shape below:
 
 ```json
 "image": {

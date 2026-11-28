@@ -1,5 +1,6 @@
 import { id } from '@/locales/id'
 import { formatNumber } from '@/lib/format'
+import { statusOfApi } from '@/lib/plant-status'
 import {
   type AnalysisResponse,
   type ComparatorResult,
@@ -7,14 +8,6 @@ import {
   type LivePlant,
   type LiveStatus,
 } from '../data/live-analysis'
-
-const STATUS_OF: Record<string, LiveStatus> = {
-  normal: 'ok',
-  n_deficiency: 'n',
-  fe_deficiency: 'fe',
-  needs_check: 'check',
-  no_plant: 'none',
-}
 
 type ApiPlant = AnalysisResponse['plants'][number]
 
@@ -34,7 +27,7 @@ function ruleOf(plant: ApiPlant, status: LiveStatus): string {
   }
   // The path belongs to the latest analysis; while the stabiliser still
   // settles on another status it would explain the wrong one.
-  if (STATUS_OF[plant.observed] !== status) return id.live.rule.settling
+  if (statusOfApi[plant.observed] !== status) return id.live.rule.settling
 
   const steps = plant.rule_path.map(
     ({ feature, operator, threshold }) =>
@@ -44,7 +37,7 @@ function ruleOf(plant: ApiPlant, status: LiveStatus): string {
 }
 
 function toPlant(plant: ApiPlant): LivePlant | null {
-  const status = plant.status === null ? undefined : STATUS_OF[plant.status]
+  const status = plant.status === null ? undefined : statusOfApi[plant.status]
   if (status === undefined) return null // the stabiliser has no status yet
   return {
     position: plant.position,

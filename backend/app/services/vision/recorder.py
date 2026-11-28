@@ -22,6 +22,7 @@ from app.models import Capture, Device, DeviceType, Observation, Plant, PlantCla
 from app.models.types import utcnow
 from app.schemas.camera import CameraAnalysis, PlantAnalysis
 from app.services import sensors
+from app.services.plants import status_of
 
 log = logging.getLogger("nutrify.recorder")
 
@@ -36,17 +37,6 @@ def qc_status_of(plant: PlantAnalysis) -> QcStatus:
     if plant.status == "no_plant":
         return QcStatus.NO_PLANT
     return QcStatus.NEEDS_CHECK if plant.features is not None else QcStatus.INVALID_LEAF
-
-
-def status_of(observation: Observation | None) -> str | None:
-    """The status a stored observation stands for, in the words of the live analysis."""
-    if observation is None:
-        return None
-    if observation.stable_class is not None:
-        return observation.stable_class.value
-    if observation.qc_status is QcStatus.NO_PLANT:
-        return "no_plant"
-    return "needs_check"
 
 
 class Recorder:

@@ -1,10 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { id } from '@/locales/id'
-import {
-  plantStatusClass,
-  plantStatusIcon,
-  type PlantStatus,
-} from '@/lib/plant-status'
+import { formatConfidence } from '@/lib/confidence'
+import { plantStatusClass, type PlantStatus } from '@/lib/plant-status'
+import { plantIdOf } from '@/lib/plants'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -12,6 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { QueryBoundary } from '@/components/query-boundary'
 import { StatusBadge } from '@/components/status-badge'
+import {
+  liveStatusIcon,
+  liveStatusLabel,
+} from '@/features/live/lib/live-status'
 import { usePlantReadings } from '../api/dashboard-queries'
 import { type PlantReading } from '../data/plants'
 
@@ -35,34 +37,35 @@ function PlantMapSkeleton() {
 }
 
 function PlantMapBody({ readings }: { readings: PlantReading[] }) {
-  const countOf = (status: PlantStatus) =>
+  const countOf = (status: PlantReading['status']) =>
     readings.filter((plant) => plant.status === status).length
   const needCheck = countOf('check')
+  const noPlant = countOf('none')
 
   return (
     <>
       <div className='grid grid-cols-3 gap-2.5'>
         {readings.map((plant) => {
-          const Icon = plantStatusIcon[plant.status]
+          const Icon = liveStatusIcon[plant.status]
           return (
             <div
-              key={plant.id}
+              key={plant.position}
               className={cn(
                 'flex min-h-[86px] flex-col gap-0.5 rounded-[10px] p-2.5 text-xs',
-                plantStatusClass[plant.status]
+                plantStatusClass[
+                  plant.status === 'none' ? 'check' : plant.status
+                ]
               )}
             >
               <b className='flex items-center justify-between text-[13px]'>
-                <span>{plant.id}</span>
+                <span>{plantIdOf(plant.position)}</span>
                 <Icon className='size-4' aria-hidden='true' />
               </b>
               <span className='font-semibold'>
-                {id.plantStatus[plant.status]}
+                {liveStatusLabel(plant.status)}
               </span>
               <span className='tabular-nums'>
-                {plant.confidence === null
-                  ? '—'
-                  : `${Math.round(plant.confidence * 100)}%`}
+                {formatConfidence(plant.confidence)}
               </span>
             </div>
           )
@@ -81,15 +84,19 @@ function PlantMapBody({ readings }: { readings: PlantReading[] }) {
       </div>
 
       <p className='mt-3 border-t pt-3 text-xs text-muted-foreground'>
-        {needCheck > 0 ? (
+        {needCheck > 0 && (
           <>
             {needCheck} {id.dashboard.plants.noteCount}{' '}
             <strong className='font-semibold'>{id.plantStatus.check}</strong>{' '}
-            {id.dashboard.plants.noteReason}
+            {id.dashboard.plants.noteReason}{' '}
           </>
-        ) : (
-          id.dashboard.plants.noneToCheck
         )}
+        {noPlant > 0 && (
+          <>
+            {noPlant} {id.dashboard.plants.noPlant}
+          </>
+        )}
+        {needCheck === 0 && noPlant === 0 && id.dashboard.plants.noneToCheck}
       </p>
     </>
   )

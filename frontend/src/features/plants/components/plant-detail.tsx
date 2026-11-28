@@ -2,20 +2,21 @@ import { type ReactNode } from 'react'
 import { id } from '@/locales/id'
 import { X } from 'lucide-react'
 import { formatConfidence } from '@/lib/confidence'
+import { formatNumber } from '@/lib/format'
 import { formatDayTime } from '@/lib/format-time'
-import { plantStatusIcon } from '@/lib/plant-status'
+import { type PlantId } from '@/lib/plants'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
+import { PlantStatusBadge } from '@/components/plant-status-badge'
 import { QueryBoundary } from '@/components/query-boundary'
-import { StatusBadge } from '@/components/status-badge'
 import { usePlantDetail } from '../api/plants-queries'
 import { type PlantDetail } from '../data/plants'
-import { LeafIllustration } from './leaf-illustration'
+import { ObservationImage } from './observation-image'
 
 const copy = id.plants.detail
-const ILLUSTRATION = 'h-[136px] w-[170px] max-w-full'
+const PICTURE = 'size-full rounded-xl'
 
 function Figure({
   caption,
@@ -56,6 +57,7 @@ function DetailSkeleton() {
 
 function DetailBody({ detail }: { detail: PlantDetail }) {
   const { mean } = detail
+  const imageId = detail.hasImage ? detail.observationId : null
   const meanItems = mean
     ? [
         { key: 'r', label: copy.mean.r, value: mean.r },
@@ -69,18 +71,19 @@ function DetailBody({ detail }: { detail: PlantDetail }) {
       <div className='flex min-w-0 flex-col gap-5'>
         <div className='grid gap-4 @xl/content:grid-cols-2'>
           <Figure caption={copy.photo}>
-            <LeafIllustration
-              status={detail.status}
+            <ObservationImage
+              observationId={imageId}
+              view='photo'
               label={`${copy.photo} ${detail.id}`}
-              className={ILLUSTRATION}
+              className={PICTURE}
             />
           </Figure>
           <Figure caption={copy.segmentation}>
-            <LeafIllustration
-              status={detail.status}
-              outlined
+            <ObservationImage
+              observationId={imageId}
+              view='segmentation'
               label={`${copy.segmentation} ${detail.id}`}
-              className={ILLUSTRATION}
+              className={PICTURE}
             />
           </Figure>
         </div>
@@ -96,7 +99,7 @@ function DetailBody({ detail }: { detail: PlantDetail }) {
                       {item.label}
                     </div>
                     <div className='text-[22px] font-bold tabular-nums'>
-                      {item.value}
+                      {formatNumber(item.value, 1)}
                     </div>
                   </div>
                 ))}
@@ -106,7 +109,7 @@ function DetailBody({ detail }: { detail: PlantDetail }) {
                   aria-hidden='true'
                   className='size-9 rounded-lg border'
                   style={{
-                    background: `rgb(${mean.r}, ${mean.g}, ${mean.b})`,
+                    background: `rgb(${Math.round(mean.r)}, ${Math.round(mean.g)}, ${Math.round(mean.b)})`,
                   }}
                 />
                 <span className='text-muted-foreground'>
@@ -147,7 +150,6 @@ function DetailBody({ detail }: { detail: PlantDetail }) {
           {detail.history.length > 0 ? (
             <div className='flex flex-col'>
               {detail.history.map((entry) => {
-                const Icon = plantStatusIcon[entry.status]
                 return (
                   <div
                     key={entry.at}
@@ -156,13 +158,7 @@ function DetailBody({ detail }: { detail: PlantDetail }) {
                     <span className='w-28 shrink-0 text-muted-foreground tabular-nums'>
                       {formatDayTime(entry.at)}
                     </span>
-                    <StatusBadge
-                      tone={entry.status}
-                      dashed={entry.status === 'check'}
-                    >
-                      <Icon aria-hidden='true' />
-                      {id.plantStatus[entry.status]}
-                    </StatusBadge>
+                    <PlantStatusBadge status={entry.status} />
                     <span className='ms-auto text-muted-foreground tabular-nums'>
                       {formatConfidence(entry.confidence)}
                     </span>
@@ -180,14 +176,13 @@ function DetailBody({ detail }: { detail: PlantDetail }) {
 }
 
 interface PlantDetailCardProps {
-  plantId: string
+  plantId: PlantId
   onClose: () => void
 }
 
 export function PlantDetailCard({ plantId, onClose }: PlantDetailCardProps) {
   const query = usePlantDetail(plantId)
   const detail = query.data
-  const Icon = detail ? plantStatusIcon[detail.status] : null
 
   return (
     <Card id='plant-detail' className='scroll-mt-20 gap-0 p-5 shadow-none'>
@@ -196,16 +191,15 @@ export function PlantDetailCard({ plantId, onClose }: PlantDetailCardProps) {
           {copy.title} {plantId}
         </h2>
         <div className='flex items-center gap-2'>
-          {detail && Icon && (
-            <StatusBadge
-              tone={detail.status}
-              dashed={detail.status === 'check'}
-            >
-              <Icon aria-hidden='true' />
-              {id.plantStatus[detail.status]}
-              {detail.confidence !== null &&
-                ` · ${formatConfidence(detail.confidence)}`}
-            </StatusBadge>
+          {detail && (
+            <PlantStatusBadge
+              status={detail.status}
+              detail={
+                detail.confidence === null
+                  ? undefined
+                  : formatConfidence(detail.confidence)
+              }
+            />
           )}
           <Button
             variant='ghost'

@@ -1,21 +1,19 @@
 import { id } from '@/locales/id'
 import { formatConfidence } from '@/lib/confidence'
 import { formatClock } from '@/lib/format-time'
-import { plantStatusIcon } from '@/lib/plant-status'
+import { type PlantId } from '@/lib/plants'
 import { cn } from '@/lib/utils'
-import { StatusBadge } from '@/components/status-badge'
+import { PlantStatusBadge } from '@/components/plant-status-badge'
 import { type PlantSummary } from '../data/plants'
-import { LeafIllustration } from './leaf-illustration'
+import { ObservationImage } from './observation-image'
 
 interface PlantCardProps {
   plant: PlantSummary
   selected: boolean
-  onSelect: (plantId: string) => void
+  onSelect: (plantId: PlantId) => void
 }
 
 export function PlantCard({ plant, selected, onSelect }: PlantCardProps) {
-  const Icon = plantStatusIcon[plant.status]
-
   return (
     <button
       type='button'
@@ -27,19 +25,18 @@ export function PlantCard({ plant, selected, onSelect }: PlantCardProps) {
       )}
     >
       <div className='flex h-[120px] items-center justify-center rounded-lg bg-[#18241E] dark:bg-[#0A100D]'>
-        <LeafIllustration
-          status={plant.status}
-          className='h-[88px] w-[110px]'
+        <ObservationImage
+          observationId={plant.observationId}
+          view='photo'
+          label={`${id.plants.detail.photo} ${plant.id}`}
+          className='size-full rounded-lg'
         />
       </div>
       <div className='flex items-center justify-between gap-2'>
         <strong className='text-base font-semibold'>
           {id.plants.hole} {plant.id}
         </strong>
-        <StatusBadge tone={plant.status} dashed={plant.status === 'check'}>
-          <Icon aria-hidden='true' />
-          {id.plantStatus[plant.status]}
-        </StatusBadge>
+        <PlantStatusBadge status={plant.status} />
       </div>
       <div className='flex items-center justify-between gap-2 text-muted-foreground'>
         <span>

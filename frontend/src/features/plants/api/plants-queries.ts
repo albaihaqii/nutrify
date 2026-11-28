@@ -1,32 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 import { REFRESH_INTERVAL_MS } from '@/config/realtime'
-import { mockRequest } from '@/lib/mock-request'
-import {
-  buildPlantDetails,
-  buildPlantSummaries,
-  type PlantDetail,
-  type PlantSummary,
-} from '../data/plants'
-
-// Dummy data for now. Wiring an endpoint means replacing the mockRequest(...)
-// call inside each queryFn, nothing else.
+import { type PlantId } from '@/lib/plants'
+import { fetchPlantDetail, fetchPlantSummaries } from './plants-api'
 
 export function usePlantList() {
   return useQuery({
     queryKey: ['plants', 'list'],
-    queryFn: () => mockRequest<PlantSummary[]>(buildPlantSummaries(), []),
+    queryFn: fetchPlantSummaries,
     refetchInterval: REFRESH_INTERVAL_MS,
   })
 }
 
-export function usePlantDetail(plantId: string) {
+export function usePlantDetail(plantId: PlantId) {
   return useQuery({
     queryKey: ['plants', 'detail', plantId],
-    queryFn: () =>
-      mockRequest<PlantDetail | null>(
-        buildPlantDetails().find((plant) => plant.id === plantId) ?? null,
-        null
-      ),
+    queryFn: () => fetchPlantDetail(plantId),
     refetchInterval: REFRESH_INTERVAL_MS,
   })
 }

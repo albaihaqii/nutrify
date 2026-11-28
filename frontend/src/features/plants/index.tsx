@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { getRouteApi } from '@tanstack/react-router'
 import { id } from '@/locales/id'
+import { type PlantId } from '@/lib/plants'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -44,7 +45,7 @@ function PlantsBody({ plants }: { plants: PlantSummary[] }) {
       ?.scrollIntoView({ block: 'start', behavior: 'smooth' })
   }, [selectedId])
 
-  function handleSelect(plantId: string) {
+  function handleSelect(plantId: PlantId) {
     // Clicking the selected plant again closes the detail.
     void navigate({
       search: plantId === selectedId ? {} : { plant: plantId },

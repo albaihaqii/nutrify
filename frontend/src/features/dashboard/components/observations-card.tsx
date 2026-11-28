@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { id } from '@/locales/id'
 import { formatConfidence } from '@/lib/confidence'
-import { formatNumber } from '@/lib/format'
+import { formatReading } from '@/lib/format'
 import { formatDayTime } from '@/lib/format-time'
 import { plantIdOf } from '@/lib/plants'
 import { Button } from '@/components/ui/button'
@@ -16,13 +16,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { EmptyState } from '@/components/empty-state'
+import { PlantStatusBadge } from '@/components/plant-status-badge'
 import { QueryBoundary } from '@/components/query-boundary'
-import { StatusBadge } from '@/components/status-badge'
-import {
-  liveStatusIcon,
-  liveStatusLabel,
-  isUncertain,
-} from '@/features/live/lib/live-status'
 import { useObservations } from '../api/dashboard-queries'
 import { type Observation } from '../data/observations'
 
@@ -30,11 +25,6 @@ const headClass =
   'h-auto px-3 py-2 text-xs font-semibold whitespace-nowrap text-muted-foreground'
 const cellClass = 'px-3 py-2.5 whitespace-nowrap'
 const { columns } = id.dashboard.observations
-
-/** A dash for a value the sensor did not give at that moment. */
-function formatReading(value: number | null, decimals: number, unit = '') {
-  return value === null ? '—' : `${formatNumber(value, decimals)}${unit}`
-}
 
 function ObservationsSkeleton() {
   return (
@@ -65,7 +55,6 @@ function ObservationsTable({ rows }: { rows: Observation[] }) {
       </TableHeader>
       <TableBody>
         {rows.map((row) => {
-          const Icon = liveStatusIcon[row.status]
           const plantId = plantIdOf(row.position)
           return (
             <TableRow key={row.id} className='hover:bg-transparent'>
@@ -76,13 +65,7 @@ function ObservationsTable({ rows }: { rows: Observation[] }) {
                 <strong className='font-semibold'>{plantId}</strong>
               </TableCell>
               <TableCell className={cellClass}>
-                <StatusBadge
-                  tone={row.status === 'none' ? 'check' : row.status}
-                  dashed={isUncertain(row.status)}
-                >
-                  <Icon aria-hidden='true' />
-                  {liveStatusLabel(row.status)}
-                </StatusBadge>
+                <PlantStatusBadge status={row.status} />
               </TableCell>
               <TableCell className={`${cellClass} tabular-nums`}>
                 {formatConfidence(row.confidence)}

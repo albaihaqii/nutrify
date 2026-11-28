@@ -126,6 +126,11 @@ Contract:
 - Every advice record stores its source (`llm` or `rules`) and is shown as a suggestion only.
 - Calls are made only when a stabilised status changes or a sensor stays out of range.
   Results are cached by (status, sensor band) to limit calls.
+- `triggers.py` decides when. The recorder asks for advice when the stabilised status of a hole
+  changes to `n_deficiency`, `fe_deficiency` or `needs_check` (never for `normal` or
+  `no_plant`). The vision worker looks at the sensors every 30 seconds: a value that stayed out
+  of its ideal range for 5 minutes gets advice, and the same value on the same side gets new
+  advice at most once an hour. Both run in the worker, so it must be running for advice to appear.
 
 ### 4.6 Machine learning workspace (`ml/`)
 

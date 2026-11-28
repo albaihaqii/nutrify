@@ -897,7 +897,11 @@ advice is not rewritten.
 Generates advice on demand for a plant or for the current sensor values.
 
 Request: `{ "trigger": "plant_status", "plant": 3 }` or `{ "trigger": "sensor_range" }`.
-Response `201` with the advice item. The advisor receives measured facts only and never decides
+Response `201` with the advice item. For `plant_status`, the hole must have a stored result with
+a deficiency or `needs_check` (`404 not_found` when it has no result, `422 validation_error`
+when it has nothing to advise on). For `sensor_range`, at least one fresh sensor value must be
+out of its ideal range (otherwise `422`); the first one out of range is advised, in the order
+pH, EC, temperature. The advisor receives measured facts only and never decides
 the plant class. Responses may be reused from the cache (same status and sensor band).
 Limited to one request per plant per minute; otherwise `429 rate_limited`. The version 1 web
 app has no button for this; advice is created by the backend when a plant status or sensor

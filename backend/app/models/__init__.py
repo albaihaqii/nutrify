@@ -1,6 +1,7 @@
 """Database models. Import every model here so migrations can discover them."""
 
 from app.models.advice import Advice
+from app.models.advice_rule import AdviceRule
 from app.models.alert import Alert
 from app.models.capture import Capture
 from app.models.device import Device
@@ -22,6 +23,7 @@ from app.models.user import User
 
 __all__ = [
     "Advice",
+    "AdviceRule",
     "AdviceSource",
     "AdviceTrigger",
     "Alert",

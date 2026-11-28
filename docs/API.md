@@ -440,16 +440,19 @@ stored anything). `status` is the status of the last observation in the words of
 
 ### `GET /plants/{position}` (Viewer)
 
-Plant detail with the latest observation in full:
+Plant detail with the latest observation in full and the latest changes of its status:
 
 ```json
 {
   "position": 3,
+  "status": "n_deficiency",
   "current_class": "n_deficiency",
   "current_since": "2026-11-05T02:05:00.000Z",
   "latest_observation": {
     "id": 8802,
+    "plant_position": 3,
     "observed_at": "2026-11-05T02:40:00.000Z",
+    "status": "n_deficiency",
     "features": {
       "mean_r": 118.4,
       "mean_g": 160.2,
@@ -463,18 +466,26 @@ Plant detail with the latest observation in full:
     "stable_class": "n_deficiency",
     "confidence": 0.91,
     "rule_path": [
-      { "feature": "mean_g", "operator": "<=", "threshold": 165.5 },
-      { "feature": "mean_r", "operator": ">", "threshold": 112.0 }
+      { "feature": "mean_r", "operator": "<=", "threshold": 144.55 },
+      { "feature": "mean_r", "operator": ">", "threshold": 95.75 }
     ],
     "qc_status": "ok",
-    "model_version": "c45-0.1.0"
+    "model_version": "c45-0.1.0",
+    "label_class": null,
+    "has_image": true
   },
-  "latest_advice": { "...": "same shape as /advice items, or null" }
+  "status_history": [
+    { "since": "2026-11-05T02:05:00.000Z", "status": "n_deficiency", "confidence": 0.91 },
+    { "since": "2026-11-04T23:10:00.000Z", "status": "normal", "confidence": 0.88 }
+  ]
 }
 ```
 
 `rule_path` lists the conditions from the root of the decision tree to the leaf, so the UI can
-explain the result. Errors: `404 not_found` for a position outside 1 to 6.
+explain the result. `status_history` lists up to five stretches in which the plant kept one
+status, newest first; a stretch starts at its oldest stored result among the latest 1000 of the
+plant. `latest_advice` is added with the advisor. Errors: `404 not_found` for a position without
+a stored result, which includes a position outside 1 to 6.
 
 ### `GET /observations` (Viewer)
 
@@ -482,14 +493,16 @@ explain the result. Errors: `404 not_found` for a position outside 1 to 6.
 | ------------------- | ----------------------------------------------------------------------------- |
 | `plant`             | Position 1 to 6                                                               |
 | `from`, `to`        | Time window                                                                   |
+| `status`            | One of the `status` values of `GET /plants`                                   |
 | `class`             | Filter by `stable_class`                                                      |
 | `qc_status`         | Filter by QC status                                                           |
 | `labeled`           | `true` or `false`                                                             |
 | `has_image`         | `true`: only observations that have a stored frame (used by the Dataset page) |
 | `page`, `page_size` | Pagination                                                                    |
 
-Until the history and dataset pages use them, only `page` and `page_size` are applied and the
-items have no `labeled_by`, `labeled_at` or `image`.
+Until the dataset page uses them, `class`, `qc_status`, `labeled` and `has_image` are not
+applied, and the items have no `labeled_by`, `labeled_at` or `image`; `has_image` in each item
+says whether a snapshot was stored. `plant`, `from`, `to`, `status`, `page` and `page_size` work.
 
 Each item has the observation fields from [Schema](Schema.md) section 4.6 in the same nested
 shape as `latest_observation` above, plus `plant_position`, `label_class`, `labeled_by`,
@@ -511,6 +524,38 @@ frame as fractions (0 to 1) of the frame width and height, taken from the captur
 `roi_config` ([Schema](Schema.md) section 4.5), so it stays correct even if the calibration
 changes later. The Dataset page crops the thumbnail in the browser with this region; the backend
 does not store crops.
+
+### `GET /observations/export` (Viewer)
+
+The same filters as the list (`plant`, `from`, `to`, `status`), without paging. Returns every
+matching result, newest first, in the few fields of the CSV export of the History page:
+
+```json
+{
+  "items": [
+    {
+      "observed_at": "2026-11-05T02:40:00.000Z",
+      "plant_position": 3,
+      "status": "n_deficiency",
+      "confidence": 0.91,
+      "ph": 6.12,
+      "ec": 1.84,
+      "temperature": 24.6
+    }
+  ]
+}
+```
+
+At most 20000 rows: more gives `422 validation_error` with `details.field` = `from`, so the
+client asks for a shorter window.
+
+### `GET /observations/{id}/image` (Viewer)
+
+A JPEG of the hole of an observation, cut out of the snapshot that was stored with it. `view` is
+`photo` (default: the crop as the camera saw it) or `segmentation` (the crop as the model sees it,
+with the outline and the box of the leaf). An `<img>` tag may send the token as `?token=`.
+Errors: `404 not_found` when the observation has no snapshot or the file is gone, `422` for
+another `view`. Pictures never change, so they are cached for a day.
 
 ### `PATCH /observations/{id}/label` (Admin)
 

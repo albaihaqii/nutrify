@@ -4,6 +4,7 @@ from flask import Flask
 
 from app.api import (
     advice,
+    alerts,
     auth,
     camera,
     dashboard,
@@ -22,6 +23,7 @@ from app.api import (
 def register_blueprints(app: Flask) -> None:
     app.register_blueprint(health.bp, url_prefix="/api")
     app.register_blueprint(advice.bp, url_prefix="/api/advice")
+    app.register_blueprint(alerts.bp, url_prefix="/api/alerts")
     app.register_blueprint(auth.bp, url_prefix="/api/auth")
     app.register_blueprint(settings.bp, url_prefix="/api/settings")
     app.register_blueprint(camera.bp, url_prefix="/api/camera")

@@ -936,9 +936,24 @@ Item shape:
 
 The frontend turns `code` and `params` into an Indonesian sentence.
 
+| `code`                | Open while                                                      | `params`                                  |
+| --------------------- | --------------------------------------------------------------- | ----------------------------------------- |
+| `sensor_out_of_range` | The newest fresh reading of a metric is outside its ideal range | `metric`, `value`, `min`, `max`, `side` (`low` or `high`) |
+| `plant_deficiency`    | A hole's current class is `n_deficiency` or `fe_deficiency`     | `status`                                  |
+| `device_offline`      | The webcam is switched on but sends no pictures (rule of `GET /status`) | `device_type`                     |
+| `sensor_stale`        | An active sensor node was seen longer than `sensor_stale_seconds` ago | `stale_seconds`                     |
+
+One condition is one open alert; it closes (`resolved_at`) when the condition clears, and a new
+alert opens if it comes back. A device that is switched off on the Devices page, or was never
+seen, raises nothing, and an old sensor reading neither opens nor closes `sensor_out_of_range`.
+The conditions are checked on every `GET /alerts` and, at most every 5 seconds, when a sensor
+reading arrives. Severity is `critical` for a webcam offline and for the water temperature, and
+`warning` for the rest. `state=open` is the default.
+
 ### `POST /alerts/{id}/acknowledge` (Viewer)
 
-Marks the alert as seen by the current user. Response `200` with the updated alert. Alerts
+Marks the alert as seen by the current user. Response `200` with the updated alert; the first
+person to do so stays on record when others follow. `404 not_found` for an unknown id. Alerts
 resolve automatically when the condition clears.
 
 ## 13. Devices

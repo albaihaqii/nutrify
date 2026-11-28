@@ -106,7 +106,12 @@ export const id = {
       empty: 'Belum ada saran dari Penasihat.',
       viewAll: 'Semua saran',
     },
-    alerts: { title: 'Peringatan Terbaru' },
+    alerts: {
+      title: 'Peringatan Terbaru',
+      empty: 'Tidak ada peringatan aktif.',
+      open: '{count} aktif',
+      more: '{count} peringatan lain masih aktif.',
+    },
     observations: {
       title: 'Pengamatan Terbaru',
       viewAll: 'Riwayat lengkap',
@@ -646,6 +651,23 @@ export const id = {
       invalidImage: 'Berkas tidak dapat dibaca sebagai gambar.',
       noLeaf:
         'Daun tidak terdeteksi. Gunakan foto satu tanaman dengan latar yang polos.',
+    },
+  },
+  alerts: {
+    acknowledge: 'Tandai dilihat',
+    seen: 'Sudah dilihat',
+    errors: { acknowledge: 'Peringatan tidak dapat ditandai. Coba lagi.' },
+    messages: {
+      fallback: 'Ada kondisi yang perlu diperhatikan',
+      metrics: { ph: 'pH', ec: 'EC', temperature: 'Suhu air' },
+      above: 'di atas',
+      below: 'di bawah',
+      sensorOutOfRange:
+        '{metric} {value} {side} rentang ideal {min} sampai {max}',
+      plantDeficiency: 'Lubang {plant}: {status}',
+      deviceOffline: 'Webcam tidak mengirim gambar',
+      sensorStale: 'Sensor tidak mengirim data lebih dari {minutes} menit',
+      sensorStaleNoLimit: 'Sensor tidak mengirim data',
     },
   },
   advisor: {

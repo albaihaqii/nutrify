@@ -1,13 +1,18 @@
 """Sensor reading endpoints (docs/API.md section 5)."""
 
+import logging
+
 from flask import Blueprint, Response, g, jsonify, request
 
 from app.api.decorators import device_required, login_required
 from app.api.utils import load_body
+from app.extensions import db
 from app.schemas.sensors import HistoryQuery, ReadingCreated, ReadingIn
+from app.services import alerts as alert_service
 from app.services import sensors as sensor_service
 
 bp = Blueprint("sensors", __name__)
+log = logging.getLogger("nutrify.alerts")
 
 
 @bp.post("")
@@ -15,6 +20,11 @@ bp = Blueprint("sensors", __name__)
 def create_reading() -> tuple[Response, int]:
     body = load_body(ReadingIn)
     reading = sensor_service.record_reading(g.device, body)
+    try:
+        alert_service.sync_alerts(throttle=True)
+    except Exception:  # the reading is stored: alerts must never make the sensor retry
+        db.session.rollback()
+        log.exception("Cannot update the alerts")
     result = ReadingCreated(id=reading.id, tds_ppm=reading.tds_ppm, received_at=reading.received_at)
     return jsonify(result.model_dump(mode="json")), 201
 

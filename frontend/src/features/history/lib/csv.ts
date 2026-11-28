@@ -1,8 +1,9 @@
 import { id } from '@/locales/id'
 import { buildCsv } from '@/lib/csv'
-import { type ObservationRow } from '../data/history'
+import { liveStatusLabel } from '@/features/live/lib/live-status'
+import { type ExportRow } from '../data/history'
 
-export function buildObservationCsv(rows: ObservationRow[]): string {
+export function buildObservationCsv(rows: ExportRow[]): string {
   const columns = id.history.table.columns
   return buildCsv(
     [
@@ -10,7 +11,6 @@ export function buildObservationCsv(rows: ObservationRow[]): string {
       columns.plant,
       columns.status,
       columns.confidence,
-      columns.agreement,
       columns.ph,
       columns.ec,
       columns.temperature,
@@ -18,12 +18,11 @@ export function buildObservationCsv(rows: ObservationRow[]): string {
     rows.map((row) => [
       row.at,
       row.plantId,
-      id.plantStatus[row.status],
+      liveStatusLabel(row.status),
       row.confidence === null ? '' : Math.round(row.confidence * 100),
-      `${row.agree}/${row.total}`,
-      row.ph,
-      row.ec,
-      row.temperature,
+      row.ph ?? '',
+      row.ec ?? '',
+      row.temperature ?? '',
     ])
   )
 }

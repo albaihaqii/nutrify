@@ -4,9 +4,8 @@ import { id } from '@/locales/id'
 import { formatConfidence } from '@/lib/confidence'
 import { timestampedFilename } from '@/lib/csv'
 import { downloadTextFile } from '@/lib/download'
-import { formatNumber } from '@/lib/format'
+import { formatReading } from '@/lib/format'
 import { formatDayTime } from '@/lib/format-time'
-import { plantStatusIcon, type PlantStatus } from '@/lib/plant-status'
 import { plantIds, type PlantId } from '@/lib/plants'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -30,9 +29,11 @@ import {
 import { EmptyState } from '@/components/empty-state'
 import { ExportCsvButton } from '@/components/export-csv-button'
 import { PaginationBar } from '@/components/pagination-bar'
+import { PlantStatusBadge } from '@/components/plant-status-badge'
 import { QueryBoundary } from '@/components/query-boundary'
-import { StatusBadge } from '@/components/status-badge'
-import { fetchObservationExport } from '../api/history-queries'
+import { type LiveStatus } from '@/features/live/data/live-analysis'
+import { liveStatusLabel } from '@/features/live/lib/live-status'
+import { fetchObservationExport } from '../api/history-api'
 import {
   historyRanges,
   statusFilters,
@@ -119,7 +120,7 @@ function Filters({ filters, onChange }: FiltersProps) {
           value={filters.status ?? ALL}
           onValueChange={(value) =>
             onChange({
-              status: value === ALL ? undefined : (value as PlantStatus),
+              status: value === ALL ? undefined : (value as LiveStatus),
             })
           }
         >
@@ -135,7 +136,7 @@ function Filters({ filters, onChange }: FiltersProps) {
             </SelectItem>
             {statusFilters.map((status) => (
               <SelectItem key={status} value={status}>
-                {id.plantStatus[status]}
+                {liveStatusLabel(status)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -164,7 +165,6 @@ function ObservationsTable({ data }: { data: ObservationPage }) {
           <TableHead className={headClass}>{columns.plant}</TableHead>
           <TableHead className={headClass}>{columns.status}</TableHead>
           <TableHead className={headClass}>{columns.confidence}</TableHead>
-          <TableHead className={headClass}>{columns.agreement}</TableHead>
           <TableHead className={headClass}>{columns.ph}</TableHead>
           <TableHead className={headClass}>{columns.ec}</TableHead>
           <TableHead className={headClass}>{columns.temperature}</TableHead>
@@ -175,7 +175,6 @@ function ObservationsTable({ data }: { data: ObservationPage }) {
       </TableHeader>
       <TableBody>
         {data.rows.map((row) => {
-          const Icon = plantStatusIcon[row.status]
           return (
             <TableRow key={row.id} className='hover:bg-transparent'>
               <TableCell className={numberClass}>
@@ -185,27 +184,19 @@ function ObservationsTable({ data }: { data: ObservationPage }) {
                 <strong className='font-semibold'>{row.plantId}</strong>
               </TableCell>
               <TableCell className={cellClass}>
-                <StatusBadge tone={row.status} dashed={row.status === 'check'}>
-                  <Icon aria-hidden='true' />
-                  {id.plantStatus[row.status]}
-                </StatusBadge>
+                <PlantStatusBadge status={row.status} />
               </TableCell>
               <TableCell className={numberClass}>
                 {formatConfidence(row.confidence)}
               </TableCell>
-              <TableCell className={cellClass}>
-                {id.history.table.agreement
-                  .replace('{agree}', String(row.agree))
-                  .replace('{total}', String(row.total))}
+              <TableCell className={numberClass}>
+                {formatReading(row.ph, 1)}
               </TableCell>
               <TableCell className={numberClass}>
-                {formatNumber(row.ph, 1)}
+                {formatReading(row.ec, 2)}
               </TableCell>
               <TableCell className={numberClass}>
-                {formatNumber(row.ec, 2)}
-              </TableCell>
-              <TableCell className={numberClass}>
-                {formatNumber(row.temperature, 1)} °C
+                {formatReading(row.temperature, 1, ' °C')}
               </TableCell>
               <TableCell className={cellClass}>
                 <Button

@@ -22,6 +22,7 @@ from app.models import Capture, Device, DeviceType, Observation, Plant, PlantCla
 from app.models.types import utcnow
 from app.schemas.camera import CameraAnalysis, PlantAnalysis
 from app.services import sensors
+from app.services.advisor.triggers import advise_plant_status
 from app.services.plants import status_of
 
 log = logging.getLogger("nutrify.recorder")
@@ -89,14 +90,28 @@ class Recorder:
         db.session.flush()
 
         sensor = self._sensor_values()
+        changed: list[tuple[Plant, Observation]] = []
         for result in plants:
             hole = self._hole(result.position)
             row = self._observation(result, hole, capture, analysis.model_version, sensor, now)
             db.session.add(row)
             db.session.flush()
-            self._update_hole(hole, result, row, now)
+            if self._update_hole(hole, result, row, now):
+                changed.append((hole, row))
         db.session.commit()
+        self._advise(changed, settings)
         return True
+
+    @staticmethod
+    def _advise(changed: list[tuple[Plant, Observation]], settings: dict[str, Any]) -> None:
+        """Advice for the holes that changed status. The results are stored already: a failure
+        here is logged and never costs a stored observation."""
+        for hole, row in changed:
+            try:
+                advise_plant_status(hole, row, settings)
+            except Exception:
+                db.session.rollback()
+                log.exception("Cannot make advice for hole %s", hole.position)
 
     @staticmethod
     def _hole(position: int) -> Plant:
@@ -109,18 +124,20 @@ class Recorder:
         return hole
 
     @staticmethod
-    def _update_hole(hole: Plant, result: PlantAnalysis, row: Observation, now: datetime) -> None:
-        """Make the row the latest of the hole; `current_since` moves only on a change of status."""
+    def _update_hole(hole: Plant, result: PlantAnalysis, row: Observation, now: datetime) -> bool:
+        """Make the row the latest of the hole; `current_since` moves only on a change of status.
+        True when the status changed."""
         last = (
             db.session.get(Observation, hole.last_observation_id)
             if hole.last_observation_id
             else None
         )
-        before = status_of(last)
-        if before != result.status:
+        changed = status_of(last) != result.status
+        if changed:
             hole.current_since = now
         hole.current_class = PlantClass(result.status) if result.status in CLASSES else None
         hole.last_observation_id = row.id
+        return changed
 
     def _save(self, jpeg: bytes, taken_at: datetime) -> str:
         """Write the frame as `YYYY/MM/DD/HHMMSS_ffffff.jpg` and return that path."""

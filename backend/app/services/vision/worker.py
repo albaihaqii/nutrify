@@ -32,6 +32,7 @@ JPEG_QUALITY = 80
 NO_DEVICE = "No webcam device yet: add one on the Devices page"
 CHECK_DEVICE_EVERY = 2.0  # seconds between reads of the Devices page switch
 RETRY_OPEN_EVERY = 3.0
+WATCH_SENSORS_EVERY = 30.0  # seconds between looks at whether a sensor value stays out of range
 MAX_FAILED_READS = 30  # about two seconds of silence: treat the camera as unplugged
 
 
@@ -51,11 +52,14 @@ class VisionWorker:
         results: ResultStore | None = None,
         clock: Callable[[], float] = time.monotonic,
         recorder: Recorder | None = None,
+        watch_sensors: Callable[[dict], object] | None = None,
     ) -> None:
         self._source = source
         self._store = store
         self._results = results  # None: only keep the latest frame, do not analyse it
         self._recorder = recorder  # None: the analysis is shown but not stored
+        self._watch_sensors = watch_sensors  # None: no advice about the sensor values
+        self._next_watch = 0.0
         self._analyzer = Analyzer()
         self._settings: dict = dict(DEFAULT_SETTINGS)
         self._next_analysis = 0.0
@@ -74,6 +78,9 @@ class VisionWorker:
         if self._clock() >= self._next_check:
             self._check_device()
             self._next_check = self._clock() + CHECK_DEVICE_EVERY
+        if self._watch_sensors is not None and self._clock() >= self._next_watch:
+            self._next_watch = self._clock() + WATCH_SENSORS_EVERY
+            self._watch()
 
         if not self._active:
             self._release("The webcam is switched off on the Devices page")
@@ -108,6 +115,15 @@ class VisionWorker:
             self._warn_once(NO_DEVICE)
         elif self._last_warning == NO_DEVICE:
             self._last_warning = None
+
+    def _watch(self) -> None:
+        """Let the advisor look at the sensor values; a failure is logged, not fatal."""
+        assert self._watch_sensors is not None
+        try:
+            self._watch_sensors(self._settings)
+        except Exception:
+            db.session.rollback()
+            log.exception("Cannot look at the sensor values for advice")
 
     def _open(self) -> float:
         if self._source.open():

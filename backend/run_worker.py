@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 from app import create_app
+from app.services.advisor.triggers import watch_sensors
 from app.services.vision.frame_store import FrameStore
 from app.services.vision.recorder import Recorder
 from app.services.vision.result_store import ResultStore
@@ -23,6 +24,7 @@ def main() -> None:
             FrameStore(directory),
             ResultStore(directory),
             recorder=Recorder(Path(app.config["STORAGE_DIR"]) / "snapshots"),
+            watch_sensors=watch_sensors,
         )
         logging.info(
             "Vision worker started (camera %s). Press Ctrl+C to stop.", app.config["CAMERA_INDEX"]

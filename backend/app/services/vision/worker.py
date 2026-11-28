@@ -22,6 +22,7 @@ from app.services import settings as settings_service
 from app.services.settings_defaults import DEFAULT_SETTINGS
 from app.services.vision.analyzer import Analyzer
 from app.services.vision.frame_store import FrameStore
+from app.services.vision.recorder import Recorder
 from app.services.vision.result_store import ResultStore
 
 log = logging.getLogger("nutrify.worker")
@@ -49,10 +50,12 @@ class VisionWorker:
         store: FrameStore,
         results: ResultStore | None = None,
         clock: Callable[[], float] = time.monotonic,
+        recorder: Recorder | None = None,
     ) -> None:
         self._source = source
         self._store = store
         self._results = results  # None: only keep the latest frame, do not analyse it
+        self._recorder = recorder  # None: the analysis is shown but not stored
         self._analyzer = Analyzer()
         self._settings: dict = dict(DEFAULT_SETTINGS)
         self._next_analysis = 0.0
@@ -133,9 +136,10 @@ class VisionWorker:
 
         self._failed_reads = 0
         encode_at = self._clock()
-        ok, jpeg = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+        ok, encoded = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
+        jpeg = encoded.tobytes() if ok else None
         write_at = self._clock()
-        if ok and self._store.write(jpeg.tobytes()):
+        if jpeg is not None and self._store.write(jpeg):
             self._wrote_frame = True
             done_at = self._clock()
             self._spent["read"] += encode_at - read_at
@@ -143,11 +147,12 @@ class VisionWorker:
             self._spent["write"] += done_at - write_at
             self._count_frame()
         if self._results is not None and self._clock() >= self._next_analysis:
-            self._analyze(frame, self._results)
+            self._analyze(frame, jpeg, self._results)
         return 0.0
 
-    def _analyze(self, frame: np.ndarray, results: ResultStore) -> None:
-        """Classify the six regions of this frame and hand the result to the API."""
+    def _analyze(self, frame: np.ndarray, jpeg: bytes | None, results: ResultStore) -> None:
+        """Classify the six regions of this frame, hand the result to the API and, when it is
+        due, store it."""
         self._next_analysis = self._clock() + self._settings["analysis_interval_seconds"]
         try:
             analysis = self._analyzer.run(frame, self._settings)
@@ -155,6 +160,8 @@ class VisionWorker:
             self._warn_once(f"Cannot analyse: {error.message}")
             return
         results.write(analysis)
+        if self._recorder is not None and jpeg is not None:
+            self._recorder.record(jpeg, analysis, self._settings)
 
     def _restart_count(self) -> None:
         self._counted_frames = 0

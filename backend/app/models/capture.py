@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Index, String
+from sqlalchemy import JSON, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.extensions import db
@@ -17,6 +17,8 @@ class Capture(db.Model):
     device_id: Mapped[int] = mapped_column(BigIntId, ForeignKey("devices.id", ondelete="RESTRICT"))
     image_path: Mapped[str] = mapped_column(String(255))  # relative to storage/snapshots/
     captured_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
+    # The six regions in force when the frame was stored (copy of `settings.roi_config`)
+    roi_config: Mapped[list] = mapped_column(JSON)
 
     def __repr__(self) -> str:
         return f"<Capture {self.id} {self.image_path}>"

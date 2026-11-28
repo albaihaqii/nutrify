@@ -908,7 +908,7 @@ Returns every key from [Schema](Schema.md) section 4.9 as a flat object:
   "temperature_min": 18,
   "temperature_max": 26,
   "analysis_interval_seconds": 2,
-  "observation_store_interval_seconds": 60,
+  "observation_store_interval_seconds": 300,
   "stabilizer_window": 3,
   "stabilizer_min_votes": 2,
   "sensor_stale_seconds": 120,

@@ -14,6 +14,7 @@ class PlantClass(str, enum.Enum):
 class QcStatus(str, enum.Enum):
     OK = "ok"
     INVALID_LEAF = "invalid_leaf"
+    NO_PLANT = "no_plant"
     STALE_SENSOR = "stale_sensor"
     NEEDS_CHECK = "needs_check"
 

@@ -263,7 +263,8 @@ A frame result is stored with a `qc_status` and excluded from datasets unless it
 | `qc_status`    | Condition                                                                                 | Effect                           |
 | -------------- | ----------------------------------------------------------------------------------------- | -------------------------------- |
 | `ok`           | All checks pass                                                                           | Used normally                    |
-| `invalid_leaf` | Leaf area ratio below a minimum (no leaf visible) or above a maximum (background leakage) | Not classified; status unchanged |
+| `invalid_leaf` | Leaf area ratio above a maximum (background leakage)                                      | Not classified                   |
+| `no_plant`     | Nothing green in the region: leaf area below the minimum or the colour too grey           | Not classified; hole shown empty |
 | `stale_sensor` | Latest sensor reading older than `sensor_stale_seconds`                                   | Not classified                   |
 | `needs_check`  | Classified, but confidence below the review threshold                                     | Kept, shown for review           |
 

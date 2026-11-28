@@ -8,10 +8,11 @@ from flask import Flask
 
 from app.errors import ApiError
 from app.extensions import db
-from app.models import Device, Setting
+from app.models import Capture, Device, Observation, Setting
 from app.services import model_registry as registry_service
 from app.services.vision import worker as worker_module
 from app.services.vision.frame_store import FrameStore
+from app.services.vision.recorder import Recorder
 from app.services.vision.result_store import ResultStore
 from app.services.vision.worker import VisionWorker
 
@@ -219,3 +220,19 @@ def test_it_keeps_running_when_no_model_has_been_trained(
     assert results.read() is None
     warnings = [r for r in caplog.records if "Cannot analyse" in r.message]
     assert len(warnings) == 1
+
+
+def test_it_stores_the_analysis_through_the_recorder(
+    app: Flask, webcam: Device, store: FrameStore, results: ResultStore
+) -> None:
+    clock = Clock()
+    recorder = Recorder(Path(app.config["STORAGE_DIR"]) / "snapshots", clock)
+    worker = VisionWorker(FakeCamera(), store, results, clock, recorder)
+    worker.tick()  # opens the camera
+
+    for _ in range(3):  # the stabiliser needs two results before a hole has a status
+        worker.tick()
+        clock.now += 2
+
+    assert db.session.scalars(db.select(Capture)).first() is not None
+    assert len(db.session.scalars(db.select(Observation)).all()) >= 6

@@ -29,7 +29,7 @@ DEFAULT_SETTINGS = {
     "temperature_min": 18,  # placeholder, to be validated
     "temperature_max": 26,  # placeholder, to be validated
     "analysis_interval_seconds": 2,
-    "observation_store_interval_seconds": 60,
+    "observation_store_interval_seconds": 300,
     "stabilizer_window": 3,
     "stabilizer_min_votes": 2,
     "sensor_stale_seconds": 120,

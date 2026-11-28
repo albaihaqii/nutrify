@@ -92,6 +92,7 @@ Rule: routes contain no business logic; services never import Flask request obje
 | `roi.py`           | Load the 6 calibrated regions and crop them from a frame                                      |
 | `preprocessing.py` | Resize, blur, CIELAB conversion, Otsu threshold on a\*, morphology, masking, mean RGB and Lab |
 | `stabilizer.py`    | Per-hole majority vote over recent results                                                    |
+| `recorder.py`      | Store the frame and one observation per hole at the store interval and on a status change |
 | `analyzer.py`      | Crop, run the pipeline and the models on the six regions, stabilise                           |
 | `result_store.py`  | Hand the latest analysis to the API as `storage/frames/analysis.json`                         |
 

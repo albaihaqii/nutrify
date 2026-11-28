@@ -27,10 +27,11 @@ class Observation(db.Model):
     )
     observed_at: Mapped[datetime] = mapped_column(UtcDateTime, default=utcnow)
 
-    # Image features (mean colour of leaf pixels, 0 to 255) and quality value
-    mean_r: Mapped[Decimal] = mapped_column(Numeric(6, 2))
-    mean_g: Mapped[Decimal] = mapped_column(Numeric(6, 2))
-    mean_b: Mapped[Decimal] = mapped_column(Numeric(6, 2))
+    # Image features (mean colour of leaf pixels, 0 to 255) and quality value. The colours are
+    # null when there is no leaf to measure (`qc_status` is `no_plant` or `invalid_leaf`).
+    mean_r: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
+    mean_g: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
+    mean_b: Mapped[Decimal | None] = mapped_column(Numeric(6, 2))
     leaf_area_ratio: Mapped[Decimal] = mapped_column(Numeric(5, 4))
 
     # Sensor features used together with the image features

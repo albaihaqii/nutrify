@@ -45,7 +45,7 @@ erDiagram
 | Name             | Values                                                                      |
 | ---------------- | --------------------------------------------------------------------------- |
 | `plant_class`    | `normal`, `n_deficiency`, `fe_deficiency`                                   |
-| `qc_status`      | `ok`, `invalid_leaf`, `stale_sensor`, `needs_check`                         |
+| `qc_status`      | `ok`, `invalid_leaf`, `no_plant`, `stale_sensor`, `needs_check`            |
 | `user_role`      | `admin`, `viewer`                                                           |
 | `device_type`    | `sensor_node`, `webcam`                                                     |
 | `severity`       | `info`, `warning`, `critical`                                               |
@@ -144,9 +144,9 @@ result can be reproduced and any row can become a dataset record.
 | plant_id        | BIGINT UNSIGNED   | no   | FK `plants.id`                                     |
 | capture_id      | BIGINT UNSIGNED   | yes  | FK `captures.id`; null when no snapshot was stored |
 | observed_at     | DATETIME(3)       | no   | UTC                                                |
-| mean_r          | DECIMAL(6,2)      | no   | Mean red of leaf pixels (0 to 255)                 |
-| mean_g          | DECIMAL(6,2)      | no   | Mean green                                         |
-| mean_b          | DECIMAL(6,2)      | no   | Mean blue                                          |
+| mean_r          | DECIMAL(6,2)      | yes  | Mean red of leaf pixels (0 to 255); null when there is no leaf to measure |
+| mean_g          | DECIMAL(6,2)      | yes  | Mean green                                         |
+| mean_b          | DECIMAL(6,2)      | yes  | Mean blue                                          |
 | leaf_area_ratio | DECIMAL(5,4)      | no   | Leaf pixels divided by region pixels               |
 | ph              | DECIMAL(4,2)      | yes  | Sensor value used as a feature                     |
 | ec              | DECIMAL(5,3)      | yes  | Sensor value used as a feature (mS/cm)             |
@@ -224,7 +224,7 @@ Default keys:
 | `ec_min`, `ec_max`                   | 1.5, 2.0  | Ideal EC range (mS/cm)                                                                            |
 | `temperature_min`, `temperature_max` | 18, 26    | Placeholder range (Celsius), to be validated                                                      |
 | `analysis_interval_seconds`          | 2         | How often the worker analyses a frame                                                             |
-| `observation_store_interval_seconds` | 60        | How often observations are persisted (also stored on status change)                               |
+| `observation_store_interval_seconds` | 300       | How often observations are persisted (also stored on status change)                               |
 | `stabilizer_window`                  | 3         | Number of recent results considered                                                               |
 | `stabilizer_min_votes`               | 2         | Votes needed to change a status                                                                   |
 | `sensor_stale_seconds`               | 120       | Age after which a reading is considered stale                                                     |
@@ -266,10 +266,26 @@ every other rule, so the table can start empty.
 
 ## 6. Volume and retention
 
-- Classification runs every 10 seconds, but observations are stored every 60 seconds (or when a
-  status changes): about 8,600 rows per day for 6 holes.
+- Classification runs every 2 seconds, but observations are stored every 300 seconds (or when a
+  status changes): about 1,700 rows per day for 6 holes, and one snapshot of about 100 KB every
+  300 seconds, about 30 MB per day.
 - Sensor readings arrive about every 5 seconds: about 17,300 rows per day.
-- Snapshot images are stored on disk under `storage/snapshots/`, referenced by `captures`.
+- Snapshot images are stored on disk under `storage/snapshots/YYYY/MM/DD/`, referenced by `captures`.
+
+What the worker stores (`vision/recorder.py`): one `captures` row and one `observations` row for
+every hole that already has a status, in the same transaction. The sensor values are those of the
+latest reading when it is not older than `sensor_stale_seconds`, otherwise they stay null.
+
+| Status of the hole     | `stable_class` | `qc_status`    | Colours | `plants.current_class` |
+| ---------------------- | -------------- | -------------- | ------- | ---------------------- |
+| a class                | the class      | `ok`           | stored  | the class              |
+| comparators disagree   | null           | `needs_check`  | stored  | null                   |
+| leaf area out of range | null           | `invalid_leaf` | null    | null                   |
+| nothing green          | null           | `no_plant`     | null    | null                   |
+
+`plants.current_since` moves whenever the status of the hole changes, also between a class,
+`needs_check` and `no_plant`.
+The `plants` rows are created when the worker first stores a hole.
 - Optional cleanup: purge unlabeled observations and snapshots older than 90 days. Labeled rows are kept.
 
 ## 7. Dataset export

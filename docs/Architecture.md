@@ -125,7 +125,13 @@ Contract:
   Output is validated; invalid or failed responses fall back to `rules.py`.
 - Every advice record stores its source (`llm` or `rules`) and is shown as a suggestion only.
 - Calls are made only when a stabilised status changes or a sensor stays out of range.
-  Results are cached by (status, sensor band) to limit calls.
+  Results are cached by (status, sensor band) to limit calls. Advice about a hole names the hole,
+  so its cache key also holds the hole number; a model answer is reused for 6 hours, a fallback
+  answer never.
+- Without `GEMINI_API_KEY` the rules advise. With a key, a call that fails (no network, quota,
+  a blocked or malformed answer, more than 20 seconds) falls back to the rules for that advice.
+- Advice from the worker is made in a background thread (`background.py`), so a slow model never
+  stops the frames. `POST /advice/generate` waits for the answer.
 - `triggers.py` decides when. The recorder asks for advice when the stabilised status of a hole
   changes to `n_deficiency`, `fe_deficiency` or `needs_check` (never for `normal` or
   `no_plant`). The vision worker looks at the sensors every 30 seconds: a value that stayed out

@@ -178,7 +178,7 @@ viewers. `GET /devices` is admin only and is not used for this.
 | --------- | ----------------------------------------------------------------------------------------- |
 | `webcam`  | The webcam device is switched on and its latest frame is newer than 10 seconds (the rule of `GET /camera/status`) |
 | `sensor`  | An active sensor node was seen within `sensor_stale_seconds`                              |
-| `advisor` | An LLM provider is configured and its last call succeeded; `false` means rules are in use |
+| `advisor` | An LLM provider is configured and the newest advice was not a fallback to the rules; `false` means rules are in use |
 
 ## 4. Auth and users
 

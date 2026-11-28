@@ -29,3 +29,12 @@ export function formatAgeSeconds(seconds: number) {
   if (seconds < 60) return `${Math.floor(seconds)} ${id.time.secondsAgo}`
   return formatAgo(seconds / 60)
 }
+
+/** A sensor value with its unit, or a dash for a value the sensor did not give. */
+export function formatReading(
+  value: number | null,
+  decimals: number,
+  unit = ''
+) {
+  return value === null ? '—' : `${formatNumber(value, decimals)}${unit}`
+}

@@ -1,6 +1,6 @@
 import { id } from '@/locales/id'
-import { formatNumber } from '@/lib/format'
 import { statusOfApi } from '@/lib/plant-status'
+import { ruleStepLabel } from '@/lib/rule-path'
 import {
   type AnalysisResponse,
   type ComparatorResult,
@@ -10,13 +10,6 @@ import {
 } from '../data/live-analysis'
 
 type ApiPlant = AnalysisResponse['plants'][number]
-
-/** `mean_r` as the tree diagram names it: `Mean_R`. */
-function featureName(name: string): string {
-  const [first = '', ...rest] = name.split('_')
-  const head = first.charAt(0).toUpperCase() + first.slice(1)
-  return [head, ...rest.map((part) => part.toUpperCase())].join('_')
-}
 
 function ruleOf(plant: ApiPlant, status: LiveStatus): string {
   if (status === 'none') return id.live.rule.noPlant
@@ -29,10 +22,7 @@ function ruleOf(plant: ApiPlant, status: LiveStatus): string {
   // settles on another status it would explain the wrong one.
   if (statusOfApi[plant.observed] !== status) return id.live.rule.settling
 
-  const steps = plant.rule_path.map(
-    ({ feature, operator, threshold }) =>
-      `${featureName(feature)} ${operator === '<=' ? '≤' : operator} ${formatNumber(threshold, 2)}`
-  )
+  const steps = plant.rule_path.map(ruleStepLabel)
   return [...steps, id.plantStatus[status]].join(' → ')
 }
 

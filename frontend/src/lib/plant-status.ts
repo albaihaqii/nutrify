@@ -25,3 +25,12 @@ export const statusOfApi: Record<string, PlantStatus | 'none'> = {
   needs_check: 'check',
   no_plant: 'none',
 }
+
+/** The API status code of a UI status, for filters. */
+export const apiStatusOf: Record<PlantStatus | 'none', string> = {
+  ok: 'normal',
+  n: 'n_deficiency',
+  fe: 'fe_deficiency',
+  check: 'needs_check',
+  none: 'no_plant',
+}

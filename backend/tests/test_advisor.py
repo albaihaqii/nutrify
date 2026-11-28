@@ -15,6 +15,7 @@ from app.models import (
     AdviceSource,
     AdviceTrigger,
     Device,
+    Observation,
     SensorReading,
     Severity,
 )
@@ -159,7 +160,9 @@ def test_the_cache_key_follows_the_status_and_the_bands() -> None:
 
 @pytest.fixture()
 def recorder(app: Flask, webcam: Device) -> Recorder:
-    return Recorder(Path(app.config["STORAGE_DIR"]) / "snapshots", Clock())
+    return Recorder(
+        Path(app.config["STORAGE_DIR"]) / "snapshots", Clock(), on_changes=triggers.advise_changes
+    )
 
 
 def test_a_hole_that_turns_deficient_gets_advice(recorder: Recorder) -> None:
@@ -181,7 +184,9 @@ def test_healthy_and_empty_holes_get_no_advice(recorder: Recorder) -> None:
 
 def test_a_status_that_stays_the_same_gets_advice_only_once(recorder: Recorder) -> None:
     recorder.record(JPEG, analysis(result(3, "n_deficiency")), settings())
-    again = Recorder(recorder._snapshots, Clock())  # a restarted worker remembers nothing
+    again = Recorder(
+        recorder._snapshots, Clock(), on_changes=triggers.advise_changes
+    )  # a restarted worker remembers nothing
     again.record(JPEG, analysis(result(3, "n_deficiency")), settings())
 
     assert len(advice_rows()) == 1
@@ -200,10 +205,21 @@ def test_advice_that_fails_does_not_cost_the_observations(
     def broken(*args: object) -> None:
         raise RuntimeError("no advice today")
 
-    monkeypatch.setattr("app.services.vision.recorder.advise_plant_status", broken)
+    monkeypatch.setattr(triggers, "advise_plant_status", broken)
 
     assert recorder.record(JPEG, analysis(result(3, "n_deficiency")), settings())
     assert advice_rows() == []
+    assert len(db.session.scalars(db.select(Observation)).all()) == 1
+
+
+def test_a_failing_callback_does_not_cost_the_observations(app: Flask, webcam: Device) -> None:
+    def broken(changes: list, settings: dict) -> None:
+        raise RuntimeError("no queue today")
+
+    recorder = Recorder(Path(app.config["STORAGE_DIR"]) / "snapshots", Clock(), on_changes=broken)
+
+    assert recorder.record(JPEG, analysis(result(3, "n_deficiency")), settings())
+    assert len(db.session.scalars(db.select(Observation)).all()) == 1
 
 
 # --- a sensor stays out of range --------------------------------------------------------------

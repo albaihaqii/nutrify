@@ -22,7 +22,6 @@ from app.models import Capture, Device, DeviceType, Observation, Plant, PlantCla
 from app.models.types import utcnow
 from app.schemas.camera import CameraAnalysis, PlantAnalysis
 from app.services import sensors
-from app.services.advisor.triggers import advise_plant_status
 from app.services.plants import status_of
 
 log = logging.getLogger("nutrify.recorder")
@@ -41,8 +40,14 @@ def qc_status_of(plant: PlantAnalysis) -> QcStatus:
 
 
 class Recorder:
-    def __init__(self, snapshots: Path, clock: Callable[[], float] = time.monotonic) -> None:
+    def __init__(
+        self,
+        snapshots: Path,
+        clock: Callable[[], float] = time.monotonic,
+        on_changes: Callable[[list[tuple[int, int]], dict[str, Any]], object] | None = None,
+    ) -> None:
         self._snapshots = snapshots
+        self._on_changes = on_changes  # told which holes changed status; None: nobody is
         self._clock = clock
         self._next_store = 0.0
         self._stored: dict[int, str] = {}  # status of each hole at the last store
@@ -90,28 +95,27 @@ class Recorder:
         db.session.flush()
 
         sensor = self._sensor_values()
-        changed: list[tuple[Plant, Observation]] = []
+        changed: list[tuple[int, int]] = []
         for result in plants:
             hole = self._hole(result.position)
             row = self._observation(result, hole, capture, analysis.model_version, sensor, now)
             db.session.add(row)
             db.session.flush()
             if self._update_hole(hole, result, row, now):
-                changed.append((hole, row))
+                changed.append((hole.id, row.id))
         db.session.commit()
-        self._advise(changed, settings)
+        self._tell(changed, settings)
         return True
 
-    @staticmethod
-    def _advise(changed: list[tuple[Plant, Observation]], settings: dict[str, Any]) -> None:
-        """Advice for the holes that changed status. The results are stored already: a failure
-        here is logged and never costs a stored observation."""
-        for hole, row in changed:
-            try:
-                advise_plant_status(hole, row, settings)
-            except Exception:
-                db.session.rollback()
-                log.exception("Cannot make advice for hole %s", hole.position)
+    def _tell(self, changed: list[tuple[int, int]], settings: dict[str, Any]) -> None:
+        """Pass on the holes that changed status (hole id, observation id). The results are stored
+        already: a failure here is logged and never costs a stored observation."""
+        if not changed or self._on_changes is None:
+            return
+        try:
+            self._on_changes(changed, settings)
+        except Exception:
+            log.exception("Cannot pass on the status changes")
 
     @staticmethod
     def _hole(position: int) -> Plant:

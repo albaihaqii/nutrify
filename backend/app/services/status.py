@@ -2,8 +2,10 @@
 
 from datetime import timedelta
 
+from flask import current_app
+
 from app.extensions import db
-from app.models import Device, DeviceType
+from app.models import Advice, AdviceSource, Device, DeviceType
 from app.models.types import utcnow
 from app.schemas.camera import ServiceStatus
 from app.services import camera as camera_service
@@ -21,10 +23,20 @@ def _sensor_online() -> bool:
     return device is not None
 
 
+def _advisor_online() -> bool:
+    """A language model is configured and the newest advice was not a fallback to the rules."""
+    if not current_app.config.get("GEMINI_API_KEY"):
+        return False
+    latest = db.session.scalar(
+        db.select(Advice.source).order_by(Advice.created_at.desc(), Advice.id.desc()).limit(1)
+    )
+    return latest is not AdviceSource.RULES
+
+
 def get_service_status() -> ServiceStatus:
     return ServiceStatus(
         webcam=camera_service.is_online(),
         sensor=_sensor_online(),
-        advisor=False,  # no advisor yet: rules are not built either
+        advisor=_advisor_online(),
         checked_at=utcnow(),
     )

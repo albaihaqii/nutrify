@@ -5,7 +5,8 @@ import time
 from pathlib import Path
 
 from app import create_app
-from app.services.advisor.triggers import watch_sensors
+from app.services.advisor.background import BackgroundRunner
+from app.services.advisor.triggers import advise_changes, watch_sensors
 from app.services.vision.frame_store import FrameStore
 from app.services.vision.recorder import Recorder
 from app.services.vision.result_store import ResultStore
@@ -18,13 +19,20 @@ def main() -> None:
     app = create_app()
     directory = Path(app.config["STORAGE_DIR"]) / "frames"
 
+    runner = BackgroundRunner(app)  # advice may wait for the language model: not in the loop
+
     with app.app_context():
         worker = VisionWorker(
             Webcam(app.config["CAMERA_INDEX"], app.config["CAMERA_FLIP"]),
             FrameStore(directory),
             ResultStore(directory),
-            recorder=Recorder(Path(app.config["STORAGE_DIR"]) / "snapshots"),
-            watch_sensors=watch_sensors,
+            recorder=Recorder(
+                Path(app.config["STORAGE_DIR"]) / "snapshots",
+                on_changes=lambda changes, settings: runner.submit(
+                    lambda: advise_changes(changes, settings)
+                ),
+            ),
+            watch_sensors=lambda settings: runner.submit(lambda: watch_sensors(settings)),
         )
         logging.info(
             "Vision worker started (camera %s). Press Ctrl+C to stop.", app.config["CAMERA_INDEX"]
@@ -36,6 +44,7 @@ def main() -> None:
             pass
         finally:
             worker.close()
+            runner.close()
 
 
 if __name__ == "__main__":

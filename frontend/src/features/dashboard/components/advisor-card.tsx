@@ -1,17 +1,18 @@
+import { Link } from '@tanstack/react-router'
 import { id } from '@/locales/id'
-import { Card } from '@/components/ui/card'
-import { EmptyState } from '@/components/empty-state'
+import { Button } from '@/components/ui/button'
+import { LatestAdviceCard } from '@/features/advisor/components/latest-advice-card'
 
-// The Penasihat has no stored advice yet (roadmap step 5b).
 export function AdvisorCard() {
   return (
-    <Card className='gap-0 p-5 shadow-none'>
-      <div className='mb-4'>
-        <h2 className='text-[15px] font-semibold'>
-          {id.dashboard.advisor.title}
-        </h2>
-      </div>
-      <EmptyState fill title={id.dashboard.noData} className='min-h-[200px]' />
-    </Card>
+    <LatestAdviceCard
+      title={id.dashboard.advisor.title}
+      emptyTitle={id.dashboard.advisor.empty}
+      action={
+        <Button asChild variant='outline' className='h-8 px-2.5 text-[13px]'>
+          <Link to='/advisor'>{id.dashboard.advisor.viewAll}</Link>
+        </Button>
+      }
+    />
   )
 }

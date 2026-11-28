@@ -4,36 +4,31 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
+import { REFRESH_INTERVAL_MS } from '@/config/realtime'
 import { id } from '@/locales/id'
 import { toast } from 'sonner'
-import { mockRequest } from '@/lib/mock-request'
 import {
-  buildAdvicePage,
-  buildFallbackRules,
-  buildLatestAdvice,
-  emptyAdvicePage,
-  setRuleActions,
+  ADVICE_PAGE_SIZE,
   type AdviceFilters,
-  type AdviceItem,
-  type AdvicePage,
-  type FallbackRule,
   type RuleCode,
 } from '../data/advice'
 import { advisorErrorMessage } from '../lib/errors'
+import {
+  fetchAdvicePage,
+  fetchLatestAdvice,
+  fetchRules,
+  saveRule,
+} from './advice-api'
 
-// Dummy data for now. Wiring the backend means replacing the dummy call inside
-// each function below (docs/API.md, section 11), nothing else:
-//   history -> GET /advice?source=&plant=&page=
-//   latest  -> GET /advice/latest          (404 not_found means none yet: return null)
-//   rules   -> GET /advice/rules
-//   update  -> PUT /advice/rules/{code}    { suggested_actions }
-
-export function useAdvicePage(filters: AdviceFilters) {
+export function useAdvicePage(
+  filters: AdviceFilters,
+  pageSize: number = ADVICE_PAGE_SIZE
+) {
   return useQuery({
-    queryKey: ['advice', 'history', filters],
-    queryFn: () =>
-      mockRequest<AdvicePage>(buildAdvicePage(filters), emptyAdvicePage),
+    queryKey: ['advice', 'history', filters, pageSize],
+    queryFn: () => fetchAdvicePage(filters, pageSize),
     placeholderData: keepPreviousData,
+    refetchInterval: REFRESH_INTERVAL_MS,
   })
 }
 
@@ -41,14 +36,15 @@ export function useAdvicePage(filters: AdviceFilters) {
 export function useLatestAdvice() {
   return useQuery({
     queryKey: ['advice', 'latest'],
-    queryFn: () => mockRequest<AdviceItem | null>(buildLatestAdvice(), null),
+    queryFn: fetchLatestAdvice,
+    refetchInterval: REFRESH_INTERVAL_MS,
   })
 }
 
 export function useFallbackRules() {
   return useQuery({
     queryKey: ['advice', 'rules'],
-    queryFn: () => mockRequest<FallbackRule[]>(buildFallbackRules(), []),
+    queryFn: fetchRules,
   })
 }
 
@@ -56,10 +52,8 @@ export function useUpdateRule() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ code, actions }: { code: RuleCode; actions: string[] }) => {
-      setRuleActions(code, actions)
-      return Promise.resolve()
-    },
+    mutationFn: ({ code, actions }: { code: RuleCode; actions: string[] }) =>
+      saveRule(code, actions),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['advice', 'rules'] })
       toast.success(id.advisor.toast.ruleSaved)

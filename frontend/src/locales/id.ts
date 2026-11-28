@@ -101,7 +101,11 @@ export const id = {
         'Diagram batang bertumpuk jumlah lubang per status selama 7 hari',
       empty: 'Belum ada riwayat kondisi tanaman.',
     },
-    advisor: { title: 'Saran Penasihat Terbaru' },
+    advisor: {
+      title: 'Saran Penasihat Terbaru',
+      empty: 'Belum ada saran dari Penasihat.',
+      viewAll: 'Semua saran',
+    },
     alerts: { title: 'Peringatan Terbaru' },
     observations: {
       title: 'Pengamatan Terbaru',
@@ -178,10 +182,6 @@ export const id = {
     },
     advisor: {
       title: 'Penasihat',
-      sourceLlm: 'Sumber: LLM',
-      sourceFallback: 'Aturan Cadangan',
-      causeLabel: 'Dugaan penyebab:',
-      note: 'Ini saran, bukan tindakan otomatis.',
       empty: 'Belum ada saran dari Penasihat.',
     },
   },
@@ -284,7 +284,17 @@ export const id = {
       detail: 'Detail',
       empty: 'Tidak ada pengamatan untuk filter ini.',
     },
-    advice: { title: 'Riwayat Saran' },
+    advice: {
+      title: 'Riwayat Saran',
+      viewAll: 'Semua saran',
+      empty: 'Tidak ada saran untuk filter ini.',
+      columns: {
+        time: 'Waktu',
+        plant: 'Lubang',
+        severity: 'Tingkat',
+        summary: 'Ringkasan',
+      },
+    },
   },
   devices: {
     subtitle: 'Webcam dan node sensor ESP32',
@@ -642,6 +652,13 @@ export const id = {
     title: 'Penasihat',
     subtitle:
       'Hanya memberi saran. Tidak pernah mengendalikan pompa atau perangkat keras.',
+    latest: {
+      sourceLlm: 'Sumber: LLM',
+      sourceRules: 'Aturan Cadangan',
+      about: '{target} · {time}',
+      cause: 'Dugaan penyebab:',
+      note: 'Ini saran, bukan tindakan otomatis.',
+    },
     fallbackBanner: {
       title: 'Penasihat LLM tidak tersedia.',
       text: 'Saran terbaru dibuat dengan Aturan Cadangan di bawah.',

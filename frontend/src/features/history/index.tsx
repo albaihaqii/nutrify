@@ -50,7 +50,7 @@ export function HistoryView() {
         onFilterChange={handleFilterChange}
         onPageChange={handlePageChange}
       />
-      <AdviceHistoryCard />
+      <AdviceHistoryCard filters={filters} />
     </Main>
   )
 }

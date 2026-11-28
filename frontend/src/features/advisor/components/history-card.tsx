@@ -33,6 +33,7 @@ import {
   type AdvicePage,
   type SourceFilter,
 } from '../data/advice'
+import { targetLabel } from '../lib/target'
 import { TextList } from './text-list'
 
 const ALL = 'all'
@@ -93,9 +94,7 @@ function AdviceRow({ item }: { item: AdviceItem }) {
         {formatDayTime(item.createdAt)}
       </TableCell>
       <TableCell className='align-top font-semibold'>
-        {item.plantPosition === null
-          ? id.advisor.history.tank
-          : `L${item.plantPosition}`}
+        {targetLabel(item.plantPosition)}
       </TableCell>
       <TableCell className='align-top'>
         <div className='flex flex-col items-start gap-1'>
